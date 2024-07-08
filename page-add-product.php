@@ -15,8 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $specifications = htmlspecialchars(trim($_POST['specifications'])); // Specifications
         $cost = floatval($_POST['cost']); // Cost (assuming it's a numeric field)
         $price = floatval($_POST['price']); // Price (assuming it's a numeric field)
-        $stock_quantity = intval($_POST['stock_qty']); // Stock Quantity (assuming it's an integer field)
-        $supply_quantity = intval($_POST['supply_qty']); // Supply Quantity (assuming it's an integer field)
+        $stock_qty = intval($_POST['stock_qty']); // Stock Quantity (assuming it's an integer field)
+        $supply_qty = intval($_POST['supply_qty']); // Supply Quantity (assuming it's an integer field)
         $description = htmlspecialchars(trim($_POST['description'])); // Description
 
         // Handle predefined and new categories
@@ -57,8 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':category', $category);
         $stmt->bindParam(':cost', $cost);
         $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':stock_quantity', $stock_quantity);
-        $stmt->bindParam(':supply_quantity', $supply_quantity);
+        $stmt->bindParam(':stock_quantity', $stock_qty);
+        $stmt->bindParam(':supply_quantity', $supply_qty);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':image_path', $image_path);
         
