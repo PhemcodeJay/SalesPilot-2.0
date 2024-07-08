@@ -48,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // SQL query for inserting into products table
         $insert_product_query = "INSERT INTO products (name, staff_name, specifications, category, cost, price, stock_qty, supply_qty, description, image_path)
                                  VALUES (:name, :staff_name, :specifications, :category, :cost, :price, :stock_quantity, :supply_quantity, :description, :image_path)";
+        
         // Prepare and execute statement
         $stmt = $conn->prepare($insert_product_query);
         $stmt->bindParam(':name', $name);
@@ -61,16 +62,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':image_path', $image_path);
         
-        $stmt->execute();
-
-        // Redirect back to listing page after insertion
-        header('Location: page-list-product.html');
-        exit();
+        // Execute the statement and check for success
+        if($stmt->execute()) {
+            // Redirect back to listing page after insertion
+            header('Location: page-list-product.html');
+            exit();
+        } else {
+            // Log the error if insertion failed
+            error_log("Product insertion failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Product insertion failed.");
+        }
     } catch (PDOException $e) {
         // Handle database errors
-        exit("Error: " . $e->getMessage());
+        error_log("PDO Error: " . $e->getMessage());
+        exit("Database Error: " . $e->getMessage());
     } catch (Exception $e) {
         // Handle other errors (e.g., file upload)
+        error_log("Error: " . $e->getMessage());
         exit("Error: " . $e->getMessage());
     }
 } else {
