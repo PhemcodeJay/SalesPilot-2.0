@@ -2,39 +2,64 @@
 // Include your database connection configuration or connection script
 include('config.php'); // Assuming this includes database credentials
 
+// Initialize variables
+$product = $category = $product_type = $customer = $staff = $quantity = $sale_status = $payment_status = $sale_note = "";
+$document_name = "";
+
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $product = $_POST['product'];
-    $description = $_POST['description'];
-    $product_type = $_POST['product_type'];
-    $customer = $_POST['customer'];
-    $staff = $_POST['staff'];
-    $quantity = $_POST['quantity'];
-    $sale_status = $_POST['sale_status'];
-    $payment_status = $_POST['payment_status'];
-    $sale_note = $_POST['sale_note'];
+    $product = isset($_POST['product']) ? $_POST['product'] : '';
+    $category = isset($_POST['category']) ? $_POST['category'] : '';
+    $product_type = isset($_POST['product_type']) ? $_POST['product_type'] : '';
+    $customer = isset($_POST['customer']) ? $_POST['customer'] : '';
+    $staff = isset($_POST['staff']) ? $_POST['staff'] : '';
+    $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : '';
+    $sale_status = isset($_POST['sale_status']) ? $_POST['sale_status'] : '';
+    $payment_status = isset($_POST['payment_status']) ? $_POST['payment_status'] : '';
+    $sale_note = isset($_POST['sale_note']) ? $_POST['sale_note'] : '';
 
     // Handle file upload
-    $document = $_FILES['document'];
-    $document_name = "";
-    if ($document['error'] == UPLOAD_ERR_OK) {
-        $document_name = basename($document['name']);
+    if (isset($_FILES['document']) && $_FILES['document']['error'] == UPLOAD_ERR_OK) {
+        $document_name = basename($_FILES['document']['name']);
         $target_dir = "uploads/";
         $target_file = $target_dir . $document_name;
-        move_uploaded_file($document["tmp_name"], $target_file);
+        move_uploaded_file($_FILES['document']["tmp_name"], $target_file);
+    }
+
+    // Handle predefined and new categories
+    $category = htmlspecialchars(trim($_POST['category_name'])); // Product Category
+
+    // Check if it's a predefined category or user-added category
+    $predefined_categories = ['Category1', 'Category2', 'Category3', 'Category4', 'Category5', 'Category6', 'Category7', 'Category8', 'Category9', 'Category10'];
+    if (!in_array($category, $predefined_categories)) {
+        // It's a new user-added category
+        $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
+        $stmt = $conn->prepare($insert_category_query);
+        $stmt->bindParam(':category', $category);
+        $stmt->execute();
     }
 
     // Insert data into database
-    $sql = "INSERT INTO sales (product, description, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
-            VALUES ('$product', '$description', '$product_type', '$customer', '$staff', '$quantity', '$document_name', '$sale_status', '$payment_status', '$sale_note')";
+    $sql = "INSERT INTO sales (product, category, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
+            VALUES (:product, :category, :product_type, :customer, :staff, :quantity, :document, :sale_status, :payment_status, :sale_note)";
 
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':product', $product);
+    $stmt->bindParam(':category', $category);
+    $stmt->bindParam(':product_type', $product_type);
+    $stmt->bindParam(':customer', $customer);
+    $stmt->bindParam(':staff', $staff);
+    $stmt->bindParam(':quantity', $quantity);
+    $stmt->bindParam(':document', $document_name);
+    $stmt->bindParam(':sale_status', $sale_status);
+    $stmt->bindParam(':payment_status', $payment_status);
+    $stmt->bindParam(':sale_note', $sale_note);
+    
+    if ($stmt->execute()) {
         echo "New sale record created successfully";
     } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+        echo "Error: " . $stmt->errorInfo();
     }
-
-    $conn->close();
 }
 ?>
 
@@ -540,7 +565,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="add_sale.php" method="POST" enctype="multipart/form-data" data-toggle="validator">
+                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
                             <div class="row">                                  
                                 <div class="col-md-6">                      
                                     <div class="form-group">
@@ -549,12 +574,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Category *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Category" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
+                                <div class="form-group">
+                                    <label>Category *</label>
+                                    <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
+                                        <option value="">Select or add category...</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Apparel">Apparel</option>
+                                        <option value="Food">Food</option>
+                                        <option value="Beauty">Beauty</option>
+                                        <option value="Home">Home</option>
+                                        <option value="Auto">Auto</option>
+                                        <option value="Travel">Travel</option>
+                                        <option value="Media">Media</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Education">Education</option>
+                                        <option value="New">Add New Category...</option>
+                                    </select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Product Type *</label>
