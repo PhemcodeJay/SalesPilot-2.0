@@ -8,15 +8,15 @@ $document_name = "";
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $product = isset($_POST['product']) ? $_POST['product'] : '';
-    $category = isset($_POST['category']) ? $_POST['category'] : '';
-    $product_type = isset($_POST['product_type']) ? $_POST['product_type'] : '';
-    $customer = isset($_POST['customer']) ? $_POST['customer'] : '';
-    $staff = isset($_POST['staff']) ? $_POST['staff'] : '';
-    $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : '';
-    $sale_status = isset($_POST['sale_status']) ? $_POST['sale_status'] : '';
-    $payment_status = isset($_POST['payment_status']) ? $_POST['payment_status'] : '';
-    $sale_note = isset($_POST['sale_note']) ? $_POST['sale_note'] : '';
+    $product = $_POST['product'] ?? '';
+    $category = $_POST['category_name'] ?? '';
+    $product_type = $_POST['product_type'] ?? '';
+    $customer = $_POST['customer'] ?? '';
+    $staff = $_POST['staff'] ?? '';
+    $quantity = $_POST['quantity'] ?? '';
+    $sale_status = $_POST['sale_status'] ?? '';
+    $payment_status = $_POST['payment_status'] ?? '';
+    $sale_note = $_POST['sale_note'] ?? '';
 
     // Handle file upload
     if (isset($_FILES['document']) && $_FILES['document']['error'] == UPLOAD_ERR_OK) {
@@ -27,43 +27,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Handle predefined and new categories
-    $category = htmlspecialchars(trim($_POST['category_name'])); // Product Category
+    $category = htmlspecialchars(trim($category)); // Product Category
+    $predefined_categories = ['Electronics', 'Apparel', 'Food', 'Beauty', 'Home', 'Auto', 'Travel', 'Media', 'Finance', 'Education'];
 
-    // Check if it's a predefined category or user-added category
-    $predefined_categories = ['Category1', 'Category2', 'Category3', 'Category4', 'Category5', 'Category6', 'Category7', 'Category8', 'Category9', 'Category10'];
-    if (!in_array($category, $predefined_categories)) {
-        // It's a new user-added category
-        $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
-        $stmt = $conn->prepare($insert_category_query);
+    try {
+        $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        if (!in_array($category, $predefined_categories)) {
+            // It's a new user-added category
+            $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
+            $stmt = $conn->prepare($insert_category_query);
+            $stmt->bindParam(':category', $category);
+            $stmt->execute();
+        }
+
+        // Insert data into database
+        $sql = "INSERT INTO sales (product, category, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
+                VALUES (:product, :category, :product_type, :customer, :staff, :quantity, :document, :sale_status, :payment_status, :sale_note)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':product', $product);
         $stmt->bindParam(':category', $category);
-        $stmt->execute();
-    }
+        $stmt->bindParam(':product_type', $product_type);
+        $stmt->bindParam(':customer', $customer);
+        $stmt->bindParam(':staff', $staff);
+        $stmt->bindParam(':quantity', $quantity);
+        $stmt->bindParam(':document', $document_name);
+        $stmt->bindParam(':sale_status', $sale_status);
+        $stmt->bindParam(':payment_status', $payment_status);
+        $stmt->bindParam(':sale_note', $sale_note);
 
-    // Insert data into database
-    $sql = "INSERT INTO sales (product, category, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
-            VALUES (:product, :category, :product_type, :customer, :staff, :quantity, :document, :sale_status, :payment_status, :sale_note)";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':product', $product);
-    $stmt->bindParam(':category', $category);
-    $stmt->bindParam(':product_type', $product_type);
-    $stmt->bindParam(':customer', $customer);
-    $stmt->bindParam(':staff', $staff);
-    $stmt->bindParam(':quantity', $quantity);
-    $stmt->bindParam(':document', $document_name);
-    $stmt->bindParam(':sale_status', $sale_status);
-    $stmt->bindParam(':payment_status', $payment_status);
-    $stmt->bindParam(':sale_note', $sale_note);
-    
-    if ($stmt->execute()) {
-        echo "New sale record created successfully";
-    } else {
-        echo "Error: " . $stmt->errorInfo();
+        if ($stmt->execute()) {
+            echo "New sale record created successfully";
+        } else {
+            echo "Error: " . implode(" | ", $stmt->errorInfo());
+        }
+    } catch (PDOException $e) {
+        echo "Database error: " . $e->getMessage();
     }
 }
 ?>
-
-
 
 
 <!doctype html>
@@ -71,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Sales Pilot | Add Sales</title>
+      <title>Add Sales</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -122,12 +125,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                           <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-list-product.html">
+                                  <a href="http://localhost/project/page-list-product.php">
                                       <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-product.html">
+                                  <a href="http://localhost/project/backend/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -566,108 +569,97 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
-                            <div class="row">                                  
-                                <div class="col-md-6">                      
-                                    <div class="form-group">
-                                        <label>Product *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Product Name">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Category *</label>
-                                    <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="">Select or add category...</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Apparel">Apparel</option>
-                                        <option value="Food">Food</option>
-                                        <option value="Beauty">Beauty</option>
-                                        <option value="Home">Home</option>
-                                        <option value="Auto">Auto</option>
-                                        <option value="Travel">Travel</option>
-                                        <option value="Media">Media</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Education">Education</option>
-                                        <option value="New">Add New Category...</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Product Type *</label>
-                                        <select name="product_type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Goods</option>
-                                            <option>Services</option>
-                                            <option>Digital</option>
-                                        </select>
-                                    </div> 
-                                </div>  
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Customer *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Customer Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>   
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Staff *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Staff Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>   
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Quantity</label>
-                                        <input type="text" class="form-control" placeholder="Sales Quantity">
-                                    </div>
-                                </div> 
-                            
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Attach Document</label>
-                                        <input type="file" class="form-control image-file" name="pic" accept="image/*">
-                                    </div>
-                                </div>
-                                <div class="col-md-6"> 
-                                    <div class="form-group">
-                                        <label>Sale Status *</label>
-                                        <select name="type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Completed</option>
-                                            <option>Pending</option>
-                                        </select>
-                                    </div>
-                                </div> 
-                                <div class="col-md-6"> 
-                                    <div class="form-group">
-                                        <label>Payment Status *</label>
-                                        <select name="type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Pending</option>
-                                            <option>Due</option>
-                                            <option>Paid</option>
-                                        </select>
-                                    </div>
-                                </div> 
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Sale Note *</label>
-                                        <div id="quill-tool">
-                                            <button class="ql-bold" data-toggle="tooltip" data-placement="bottom" title="Bold"></button>
-                                            <button class="ql-underline" data-toggle="tooltip" data-placement="bottom" title="Underline"></button>
-                                            <button class="ql-italic" data-toggle="tooltip" data-placement="bottom" title="Add italic text <cmd+i>"></button>
-                                            <button class="ql-image" data-toggle="tooltip" data-placement="bottom" title="Upload image"></button>
-                                            <button class="ql-code-block" data-toggle="tooltip" data-placement="bottom" title="Show code"></button>
-                                        </div>
-                                        <div id="quill-toolbar">
-                                        </div>
-                                    </div>
-                                </div> 
-                            </div>                            
-                            <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
-                            <button type="reset" class="btn btn-danger">Reset</button>
-                        </form>
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Product *</label>
+                <input type="text" class="form-control" name="product" placeholder="Enter Product Name" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Category *</label>
+                <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
+                    <option value="">Select or add category...</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Apparel">Apparel</option>
+                    <option value="Food">Food</option>
+                    <option value="Beauty">Beauty</option>
+                    <option value="Home">Home</option>
+                    <option value="Auto">Auto</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Media">Media</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Education">Education</option>
+                    <option value="New">Add New Category...</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Product Type *</label>
+                <select name="product_type" class="selectpicker form-control" data-style="py-0">
+                    <option>Goods</option>
+                    <option>Services</option>
+                    <option>Digital</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Customer *</label>
+                <input type="text" class="form-control" name="customer" placeholder="Enter Customer Name" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Staff *</label>
+                <input type="text" class="form-control" name="staff" placeholder="Enter Staff Name" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="text" class="form-control" name="quantity" placeholder="Sales Quantity">
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Attach Document</label>
+                <input type="file" class="form-control image-file" name="document" accept="image/*">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Sale Status *</label>
+                <select name="sale_status" class="selectpicker form-control" data-style="py-0">
+                    <option>Completed</option>
+                    <option>Pending</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Payment Status *</label>
+                <select name="payment_status" class="selectpicker form-control" data-style="py-0">
+                    <option>Pending</option>
+                    <option>Due</option>
+                    <option>Paid</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Sale Note *</label>
+                <textarea class="form-control" name="sale_note"></textarea>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
+    <button type="reset" class="btn btn-danger">Reset</button>
+</form>
+
                     </div>
                 </div>
             </div>

@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Sales Pilot | List Products</title>
+      <title>List Products</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -108,12 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                           </a>
                           <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="active">
-                                  <a href="http://localhost/project/page-list-product.html">
+                                  <a href="http://localhost/project/page-list-product.php">
                                       <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/page-add-product.html">
+                                  <a href="http://localhost/project/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -547,7 +547,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <h4 class="mb-3">Product List</h4>
                     <p class="mb-0">The product list effectively dictates product presentation and provides space<br> to list your products and offering in the most appealing way.</p>
                 </div>
-                <a href="page-add-product.html" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
+                <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
             </div>
         </div>
         <div class="container-fluid">
