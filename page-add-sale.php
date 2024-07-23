@@ -2,38 +2,31 @@
 // Include your database connection configuration or connection script
 include('config.php'); // Assuming this includes database credentials
 
-// Initialize variables
-$product = $category = $product_type = $customer = $staff = $quantity = $sale_status = $payment_status = $sale_note = "";
-$document_name = "";
-
-// Check if form is submitted
+// Ensure this PHP script is accessed through a POST request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $product = $_POST['product'] ?? '';
-    $category = $_POST['category_name'] ?? '';
-    $product_type = $_POST['product_type'] ?? '';
-    $customer = $_POST['customer'] ?? '';
-    $staff = $_POST['staff'] ?? '';
-    $quantity = $_POST['quantity'] ?? '';
-    $sale_status = $_POST['sale_status'] ?? '';
-    $payment_status = $_POST['payment_status'] ?? '';
-    $sale_note = $_POST['sale_note'] ?? '';
-
-    // Handle file upload
-    if (isset($_FILES['document']) && $_FILES['document']['error'] == UPLOAD_ERR_OK) {
-        $document_name = basename($_FILES['document']['name']);
-        $target_dir = "uploads/";
-        $target_file = $target_dir . $document_name;
-        move_uploaded_file($_FILES['document']["tmp_name"], $target_file);
-    }
-
-    // Handle predefined and new categories
-    $category = htmlspecialchars(trim($category)); // Product Category
-    $predefined_categories = ['Electronics', 'Apparel', 'Food', 'Beauty', 'Home', 'Auto', 'Travel', 'Media', 'Finance', 'Education'];
-
     try {
+        // Establish database connection using PDO
         $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        // Sanitize and validate form inputs
+        $name = htmlspecialchars(trim($_POST['name'])); // Product Name
+        $category = htmlspecialchars(trim($_POST['category'])); // Staff Name
+        $product_type = htmlspecialchars(trim($_POST['product_type'])); // product_type
+        $sale_status = htmlspecialchars($_POST['sale_status']); // customer_name (assuming it's a numeric field)
+        $total_price = floatval($_POST['total_price']); // Price (assuming it's a numeric field)
+        $sales_qty = intval($_POST['sales_qty']); // Stock Quantity (assuming it's an integer field)
+        $payment_status = htmlspecialchars($_POST['payment_status']); // Supply Quantity (assuming it's an integer field)
+        $customer_name = htmlspecialchars(trim($_POST['customer_name'])); // Description
+        $sale_note = htmlspecialchars(trim($_POST['sale_note'])); // Description
+        $staff_name = htmlspecialchars(trim($_POST['staff_name'])); // Description
+
+
+        // Handle predefined and new categories
+        $category = htmlspecialchars(trim($_POST['category_name'])); // Product Category
+
+        // Check if it's a predefined category or user-added category
+        $predefined_categories = ['Category1', 'Category2', 'Category3', 'Category4', 'Category5', 'Category6', 'Category7', 'Category8', 'Category9', 'Category10'];
         if (!in_array($category, $predefined_categories)) {
             // It's a new user-added category
             $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
@@ -42,29 +35,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
         }
 
-        // Insert data into database
-        $sql = "INSERT INTO sales (product, category, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
-                VALUES (:product, :category, :product_type, :customer, :staff, :quantity, :document, :sale_status, :payment_status, :sale_note)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':product', $product);
-        $stmt->bindParam(':category', $category);
+        // File upload handling
+        $upload_dir = 'uploads/';
+        $image_name = $_FILES['pic']['name'];
+        $image_tmp = $_FILES['pic']['tmp_name'];
+        $image_path = $upload_dir . $image_name;
+
+        // Move uploaded file to designated directory
+        if (move_uploaded_file($image_tmp, $image_path)) {
+            // File uploaded successfully
+        } else {
+            throw new Exception("File upload failed.");
+        }
+
+        // SQL query for inserting into products table
+        $insert_product_query = "INSERT INTO sales (name, staff_name, product_type, category, customer_name, total_price, sale_qty, sale_note, image_path)
+                                 VALUES (:name, :staff_name, :product_type, :category, :customer_name, :total_price, :sale_quantity, :sale_note, :image_path)";
+        
+        // Prepare and execute statement
+        $stmt = $conn->prepare($insert_product_query);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':staff_name', $staff_name);
         $stmt->bindParam(':product_type', $product_type);
-        $stmt->bindParam(':customer', $customer);
-        $stmt->bindParam(':staff', $staff);
-        $stmt->bindParam(':quantity', $quantity);
-        $stmt->bindParam(':document', $document_name);
+        $stmt->bindParam(':category', $category);
+        $stmt->bindParam(':customer_name', $customer_name);
+        $stmt->bindParam(':total_price', $total_price);
+        $stmt->bindParam(':sales_qty', $sales_qty);
+        $stmt->bindParam(':sale_note', $sale_note);
         $stmt->bindParam(':sale_status', $sale_status);
         $stmt->bindParam(':payment_status', $payment_status);
-        $stmt->bindParam(':sale_note', $sale_note);
-
-        if ($stmt->execute()) {
-            echo "New sale record created successfully";
+        $stmt->bindParam(':image_path', $image_path);
+        
+        // Execute the statement and check for success
+        if($stmt->execute()) {
+            // Redirect back to listing page after insertion
+            header('Location: page-list-sale.php');
+            exit();
         } else {
-            echo "Error: " . implode(" | ", $stmt->errorInfo());
+            // Log the error if insertion failed
+            error_log("Sale Insertion failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Sale Insertion failed.");
         }
     } catch (PDOException $e) {
-        echo "Database error: " . $e->getMessage();
+        // Handle database errors
+        error_log("PDO Error: " . $e->getMessage());
+        exit("Database Error: " . $e->getMessage());
+    } catch (Exception $e) {
+        // Handle other errors (e.g., file upload)
+        error_log("Error: " . $e->getMessage());
+        exit("Error: " . $e->getMessage());
     }
+} else {
+    // Handle if the script is accessed directly or through another method
+    echo "Invalid request";
 }
 ?>
 
@@ -114,24 +137,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                       </li>
                       <li class=" ">
-                          <a href="#product" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                          <a href="#name" class="collapsed" data-toggle="collapse" aria-expanded="false">
                               <svg class="svg-icon" id="p-dash2" width="20" height="20"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
                                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                               </svg>
-                              <span class="ml-4">Products</span>
+                              <span class="ml-4">names</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
-                          <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          <ul id="name" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/page-list-product.php">
-                                      <i class="las la-minus"></i><span>List Product</span>
+                                  <a href="http://localhost/project/page-list-name.php">
+                                      <i class="las la-minus"></i><span>List name</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-product.php">
-                                      <i class="las la-minus"></i><span>Add Product</span>
+                                  <a href="http://localhost/project/backend/page-add-name.php">
+                                      <i class="las la-minus"></i><span>Add name</span>
                                   </a>
                               </li>
                           </ul>
@@ -570,92 +593,101 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div class="card-body">
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Product *</label>
-                <input type="text" class="form-control" name="product" placeholder="Enter Product Name" required>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Category *</label>
-                <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
-                    <option value="">Select or add category...</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Apparel">Apparel</option>
-                    <option value="Food">Food</option>
-                    <option value="Beauty">Beauty</option>
-                    <option value="Home">Home</option>
-                    <option value="Auto">Auto</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Media">Media</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Education">Education</option>
-                    <option value="New">Add New Category...</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Product Type *</label>
-                <select name="product_type" class="selectpicker form-control" data-style="py-0">
-                    <option>Goods</option>
-                    <option>Services</option>
-                    <option>Digital</option>
-                </select>
-            </div>
-        </div>
+                    <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Product Name *</label>
+                                    <input type="text" name="name" class="form-control" placeholder="Enter Product Name" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Category *</label>
+                                    <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
+                                        <option value="">Select or add category...</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Apparel">Apparel</option>
+                                        <option value="Food">Food</option>
+                                        <option value="Beauty">Beauty</option>
+                                        <option value="Home">Home</option>
+                                        <option value="Auto">Auto</option>
+                                        <option value="Travel">Travel</option>
+                                        <option value="Media">Media</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Education">Education</option>
+                                        <option value="New">Add New Category...</option>
+                                    </select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+        
+                        <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Product Type *</label>
+                                    <select name="product_type" class="selectpicker form-control" data-style="py-0" required>
+                                        <option value="Goods">Physical Product</option>
+                                        <option value="Services">Service Based</option>
+                                        <option value="Digital">Digital Product</option>
+                                    </select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Customer *</label>
-                <input type="text" class="form-control" name="customer" placeholder="Enter Customer Name" required>
+                <input type="text" class="form-control" name="customer_name" placeholder="Enter Customer Name" required>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Staff *</label>
-                <input type="text" class="form-control" name="staff" placeholder="Enter Staff Name" required>
+                <input type="text" class="form-control" name="staff_name" placeholder="Enter Staff Name" required>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
-                <label>Quantity</label>
-                <input type="text" class="form-control" name="quantity" placeholder="Sales Quantity">
+                <label>Sales Qty</label>
+                <input type="text" class="form-control" name="sales_qty" placeholder="Sales Qty">
             </div>
         </div>
-        <div class="col-md-12">
-            <div class="form-group">
-                <label>Attach Document</label>
-                <input type="file" class="form-control image-file" name="document" accept="image/*">
-            </div>
-        </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Image *</label>
+                                    <input type="file" class="form-control image-file" name="document" accept="image/*" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Sale Status *</label>
+                                    <select name="sale_status" class="selectpicker form-control" data-style="py-0" required>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Pending">Pending</option>
+                                    </select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
         <div class="col-md-6">
-            <div class="form-group">
-                <label>Sale Status *</label>
-                <select name="sale_status" class="selectpicker form-control" data-style="py-0">
-                    <option>Completed</option>
-                    <option>Pending</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Payment Status *</label>
-                <select name="payment_status" class="selectpicker form-control" data-style="py-0">
-                    <option>Pending</option>
-                    <option>Due</option>
-                    <option>Paid</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-12">
-            <div class="form-group">
-                <label>Sale Note *</label>
-                <textarea class="form-control" name="sale_note"></textarea>
-            </div>
-        </div>
-    </div>
+                                <div class="form-group">
+                                    <label>Payment Status *</label>
+                                    <select name="payment_status" class="selectpicker form-control" data-style="py-0" required>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Due">Due</option>
+                                        <option value="Paid">Paid</option>
+                                    </select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+        
+                <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Sale Note *</label>
+                                    <textarea name="sale_note" class="form-control" rows="2" required></textarea>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>
     <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
     <button type="reset" class="btn btn-danger">Reset</button>
 </form>
