@@ -141,20 +141,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                               <svg class="svg-icon" id="p-dash2" width="20" height="20"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
                                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                               </svg>
-                              <span class="ml-4">names</span>
+                              <span class="ml-4">Product</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
                           <ul id="name" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/page-list-name.php">
-                                      <i class="las la-minus"></i><span>List name</span>
+                                  <a href="http://localhost/project/page-list-product.php">
+                                      <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-name.php">
-                                      <i class="las la-minus"></i><span>Add name</span>
+                                  <a href="http://localhost/project/backend/page-add-product.php">
+                                      <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
                           </ul>
@@ -603,6 +603,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label>Price *</label>
+                                    <input type="text" name="total-price" class="form-control" placeholder="Enter Price" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label>Category *</label>
                                     <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
                                         <option value="">Select or add category...</option>
@@ -713,7 +720,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">POS Dash</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">Sales Pilot</a>.
                         </div>
                     </div>
                 </div>
