@@ -1,4 +1,5 @@
 <?php
+// Start the session with the desired settings
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
@@ -9,11 +10,12 @@ session_start([
 
 include('config.php');
 
+// Establish database connection
 try {
     $connection = new mysqli($hostname, $username, $password, $database);
-
+    
     if ($connection->connect_error) {
-        throw new Exception("Error: " . $connection->connect_error);
+        throw new Exception("Database connection failed: " . $connection->connect_error);
     }
 } catch (Exception $e) {
     exit($e->getMessage());
@@ -21,8 +23,8 @@ try {
 
 // Check if the user is logged in, if yes, redirect to the dashboard page
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: user-confirm.html");
-    exit;
+    header("Location: user-confirm.html");
+    exit();
 }
 
 $username_err = $password_err = $login_err = "";
@@ -30,44 +32,41 @@ $username_err = $password_err = $login_err = "";
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     // Initialize variables with default values
-    $Username = $Password = "";
-    
+    $username = $password = "";
+
     // Check if username is empty
-    if (empty(trim($_POST["Username"]))) {
+    if (empty(trim($_POST["username"]))) {
         $username_err = "Please enter a username.";
     } else {
-        $Username = filter_var(trim($_POST["Username"]),);
+        $username = trim($_POST["username"]);
     }
-    
+
     // Check if password is empty
-    if (empty(trim($_POST["Password"]))) {
+    if (empty(trim($_POST["password"]))) {
         $password_err = "Please enter your password.";
     } else {
-        $Password = filter_var(trim($_POST["Password"]),);
+        $password = trim($_POST["password"]);
     }
 
     // Validate credentials
     if (empty($username_err) && empty($password_err)) {
-        $stmt = $connection->prepare('SELECT id, Username, Password FROM users WHERE Username = ?');
-        $stmt->bind_param('s', $Username);
+        $stmt = $connection->prepare('SELECT id, username, password FROM users WHERE username = ?');
+        $stmt->bind_param('s', $username);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($id_user, $Username, $passwordHash);
+            $stmt->bind_result($id_user, $db_username, $passwordHash);
             $stmt->fetch();
 
-            if (password_verify($Password, $passwordHash)) {
+            if (password_verify($password, $passwordHash)) {
                 // Password is correct, so start a new session
-                session_start();
-
-                // Store data in session variables
                 $_SESSION["loggedin"] = true;
                 $_SESSION["id_user"] = $id_user;
-                $_SESSION["Username"] = $Username;
+                $_SESSION["username"] = $db_username;
 
                 // Redirect user to the welcome page
-                header("location: user-confirm.html");
+                header("Location: user-confirm.html");
                 exit();
             } else {
                 $login_err = "Invalid username or password.";
@@ -80,8 +79,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     }
 }
 
-mysqli_close($connection);
+// Close the database connection
+$connection->close();
 ?>
+
 
 
 <!DOCTYPE html>

@@ -14,7 +14,7 @@ try {
     $connection = new mysqli($hostname, $username, $password, $database);
     
     if ($connection->connect_error) {
-        throw new Exception("Error: " . $connection->connect_error);
+        throw new Exception("Database connection failed: " . $connection->connect_error);
     }
 } catch (Exception $e) {
     exit($e->getMessage());
@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $_SESSION["loggedin"] = true;
                 $_SESSION["id_user"] = $id_user;
                 $_SESSION["username"] = $username;
-                header("location: user-confirm.html");
+                header("Location: user-confirm.html");
                 exit();
             } else {
                 echo "Invalid username or password.";
@@ -78,13 +78,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
         $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
 
         // File upload handling
-        $upload_dir = 'uploads/';
-        $image_name = $_FILES['document']['name'];
-        $image_tmp = $_FILES['document']['tmp_name'];
-        $image_path = $upload_dir . $image_name;
+        if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/';
+            $image_name = basename($_FILES['document']['name']);
+            $image_tmp = $_FILES['document']['tmp_name'];
+            $image_path = $upload_dir . $image_name;
 
-        if (!move_uploaded_file($image_tmp, $image_path)) {
-            throw new Exception("File upload failed.");
+            if (!move_uploaded_file($image_tmp, $image_path)) {
+                throw new Exception("File upload failed.");
+            }
+        } else {
+            $image_path = ''; // Or handle the case where file upload is not provided
         }
 
         // Retrieve product_id from the products table using the product name
@@ -122,19 +126,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
             header('Location: page-list-sale.php');
             exit();
         } else {
-            error_log("Sale Insertion failed: " . $stmt->error);
-            throw new Exception("Sale Insertion failed.");
+            error_log("Sale insertion failed: " . $stmt->error);
+            throw new Exception("Sale insertion failed.");
         }
     } catch (Exception $e) {
         error_log("Error: " . $e->getMessage());
         exit("Error: " . $e->getMessage());
     }
 } else {
-    echo "Invalid request";
+    echo "Invalid request.";
 }
 
 $connection->close();
 ?>
+
 
 
 
