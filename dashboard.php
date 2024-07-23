@@ -1,43 +1,35 @@
 <?php
-// Include your database connection configuration or connection script
-include('config.php'); // Assuming this includes database credentials
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
 
-// Check if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $product = $_POST['product'];
-    $description = $_POST['description'];
-    $product_type = $_POST['product_type'];
-    $customer = $_POST['customer'];
-    $staff = $_POST['staff'];
-    $quantity = $_POST['quantity'];
-    $sale_status = $_POST['sale_status'];
-    $payment_status = $_POST['payment_status'];
-    $sale_note = $_POST['sale_note'];
+// Check if the user is logged in
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    // Retrieve the username from the session
+    $username = htmlspecialchars($_SESSION["Username"]);
 
-    // Handle file upload
-    $document = $_FILES['document'];
-    $document_name = "";
-    if ($document['error'] == UPLOAD_ERR_OK) {
-        $document_name = basename($document['name']);
-        $target_dir = "uploads/";
-        $target_file = $target_dir . $document_name;
-        move_uploaded_file($document["tmp_name"], $target_file);
-    }
+    // Get the current hour
+    $current_hour = (int)date('H'); // 24-hour format (00 to 23)
 
-    // Insert data into database
-    $sql = "INSERT INTO sales (product, description, product_type, customer, staff, quantity, document, sale_status, payment_status, sale_note)
-            VALUES ('$product', '$description', '$product_type', '$customer', '$staff', '$quantity', '$document_name', '$sale_status', '$payment_status', '$sale_note')";
-
-    if ($conn->query($sql) === TRUE) {
-        echo "New sale record created successfully";
+    // Determine the time of day and set the greeting
+    if ($current_hour < 12) {
+        $time_of_day = "Morning";
+    } elseif ($current_hour < 18) {
+        $time_of_day = "Afternoon";
     } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+        $time_of_day = "Evening";
     }
 
-    $conn->close();
+    $greeting = "Hi " . $username . ", Good " . $time_of_day;
+} else {
+    // Default message for not logged in users
+    $greeting = "Hello, Guest";
 }
 ?>
-
 
 
 <!doctype html>
@@ -45,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Sales Pilot | Add Sales</title>
+      <title>Dashboard</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -66,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-              <a href="http://localhost/project/dashboard.html" class="header-logo">
+              <a href="http://localhost/project/hom.html" class="header-logo">
                   <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">Sales Pilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
@@ -76,8 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <div class="data-scrollbar" data-scroll="1">
               <nav class="iq-sidebar-menu">
                   <ul id="iq-sidebar-toggle" class="iq-menu">
-                      <li class="">
-                          <a href="http://localhost/project/dashboard.html" class="svg-icon">                        
+                      <li class="active">
+                          <a href="http://localhost/project/home.html" class="svg-icon">                        
                               <svg  class="svg-icon" id="p-dash1" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
                               </svg>
@@ -96,12 +88,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                           <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-list-product.html">
+                                  <a href="http://localhost/project/page-list-product.php">
                                       <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-product.html">
+                                  <a href="http://localhost/project/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -146,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                               <i class="las la-minus"></i><span>List Sale</span>
                                           </a>
                                   </li>
-                                  <li class="active">
+                                  <li class="">
                                           <a href="http://localhost/project/backend/page-add-sale.html">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
@@ -181,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                               <svg class="svg-icon" id="p-dash6" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line>
                               </svg>
-                              <span class="ml-4">Returns</span>
+                              <span class="ml-4">Inventory</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
@@ -189,12 +181,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost/project/backend/page-list-returns.html">
-                                              <i class="las la-minus"></i><span>List Returns</span>
+                                              <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
                                   <li class="">
                                           <a href="http://localhost/project/backend/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Return</span>
+                                              <i class="las la-minus"></i><span>Add Inventory</span>
                                           </a>
                                   </li>
                           </ul>
@@ -252,9 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
                       </li>
-                      
                           
-              
               <div class="p-3"></div>
           </div>
           </div>      <div class="iq-top-navbar">
@@ -262,7 +252,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <nav class="navbar navbar-expand-lg navbar-light p-0">
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
-                      <a href="http://localhost/project/dashboard.html" class="header-logo">
+                      <a href="http://localhost/project/backend/index.html" class="header-logo">
                           <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">Sales Pilot</h5>
       
@@ -298,7 +288,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                               <a class="iq-sub-card" href="#"><img
                                                       src="http://localhost/project/assets/images/small/flag-03.png" alt="img-flag"
                                                       class="img-fluid mr-2">Spanish</a>
-                                            
                                           </div>
                                       </div>
                                   </div>
@@ -530,105 +519,357 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               </div>
           </div>
       </div>      <div class="content-page">
-     <div class="container-fluid add-form-list">
+     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-12">
-                <div class="card">
+            <div class="col-lg-4">
+                <div class="card card-transparent card-block card-stretch card-height border-none">
+                    <div class="card-body p-0 mt-lg-2 mt-0">
+                        <h3 class="mb-3"><?php echo $greeting; ?></h3>
+                        <p class="mb-0 mr-4">Your dashboard gives you views of key performance or business process.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-info-light">
+                                        <img src="http://localhost/project/assets/images/product/1.png" class="img-fluid" alt="image">
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Total Sales</p>
+                                        <h4>31.50</h4>
+                                    </div>
+                                </div>                                
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-info iq-progress progress-1" data-percent="85">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-danger-light">
+                                        <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Total Cost</p>
+                                        <h4>$ 4598</h4>
+                                    </div>
+                                </div>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-danger iq-progress progress-1" data-percent="70">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-success-light">
+                                        <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Product Sold</p>
+                                        <h4>4589 M</h4>
+                                    </div>
+                                </div>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Add Sale</h4>
+                            <h4 class="card-title">Overview</h4>
+                        </div>                        
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    
+                    <div class="card-body">
+                        <div id="layout1-chart1"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-block card-stretch card-height">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Revenue Vs Cost</h4>
+                        </div>
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton002">
+                                    <a class="dropdown-item" href="#">Yearly</a>
+                                    <a class="dropdown-item" href="#">Monthly</a>
+                                    <a class="dropdown-item" href="#">Weekly</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="add_sale.php" method="POST" enctype="multipart/form-data" data-toggle="validator">
-                            <div class="row">                                  
-                                <div class="col-md-6">                      
-                                    <div class="form-group">
-                                        <label>Product *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Product Name">
-                                    </div>
+                        <div id="layout1-chart-2" style="min-height: 360px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card card-block card-stretch card-height">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Top Products</h4>
+                        </div>
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton006">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Category *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Category" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Product Type *</label>
-                                        <select name="product_type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Goods</option>
-                                            <option>Services</option>
-                                            <option>Digital</option>
-                                        </select>
-                                    </div> 
-                                </div>  
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Customer *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Customer Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>   
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Staff *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Staff Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>   
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Quantity</label>
-                                        <input type="text" class="form-control" placeholder="Sales Quantity">
-                                    </div>
-                                </div> 
-                            
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Attach Document</label>
-                                        <input type="file" class="form-control image-file" name="pic" accept="image/*">
-                                    </div>
-                                </div>
-                                <div class="col-md-6"> 
-                                    <div class="form-group">
-                                        <label>Sale Status *</label>
-                                        <select name="type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Completed</option>
-                                            <option>Pending</option>
-                                        </select>
-                                    </div>
-                                </div> 
-                                <div class="col-md-6"> 
-                                    <div class="form-group">
-                                        <label>Payment Status *</label>
-                                        <select name="type" class="selectpicker form-control" data-style="py-0">
-                                            <option>Pending</option>
-                                            <option>Due</option>
-                                            <option>Paid</option>
-                                        </select>
-                                    </div>
-                                </div> 
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Sale Note *</label>
-                                        <div id="quill-tool">
-                                            <button class="ql-bold" data-toggle="tooltip" data-placement="bottom" title="Bold"></button>
-                                            <button class="ql-underline" data-toggle="tooltip" data-placement="bottom" title="Underline"></button>
-                                            <button class="ql-italic" data-toggle="tooltip" data-placement="bottom" title="Add italic text <cmd+i>"></button>
-                                            <button class="ql-image" data-toggle="tooltip" data-placement="bottom" title="Upload image"></button>
-                                            <button class="ql-code-block" data-toggle="tooltip" data-placement="bottom" title="Show code"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled row top-product mb-0">
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <div class="bg-warning-light rounded">
+                                            <img src="http://localhost/project/assets/images/product/01.png" class="style-img img-fluid m-auto p-3" alt="image">
                                         </div>
-                                        <div id="quill-toolbar">
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1">Organic Cream</h5>
+                                            <p class="mb-0">789 Item</p>
                                         </div>
                                     </div>
-                                </div> 
-                            </div>                            
-                            <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
-                            <button type="reset" class="btn btn-danger">Reset</button>
-                        </form>
+                                </div>
+                            </li>
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <div class="bg-danger-light rounded">
+                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
+                                        </div>
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1">Rain Umbrella</h5>
+                                            <p class="mb-0">657 Item</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <div class="bg-info-light rounded">
+                                            <img src="http://localhost/project/assets/images/product/03.png" class="style-img img-fluid m-auto p-3" alt="image">
+                                        </div>
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1">Serum Bottle</h5>
+                                            <p class="mb-0">489 Item</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <div class="bg-success-light rounded">
+                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
+                                        </div>
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1">Organic Cream</h5>
+                                            <p class="mb-0">468 Item</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">  
+                <div class="card card-transparent card-block card-stretch mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-between p-0">
+                        <div class="header-title">
+                            <h4 class="card-title mb-0">Best Item All Time</h4>
+                        </div>
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card card-block card-stretch card-height-helf">
+                    <div class="card-body card-item-right">
+                        <div class="d-flex align-items-top">
+                            <div class="bg-warning-light rounded">
+                                <img src="http://localhost/project/assets/images/product/04.png" class="style-img img-fluid m-auto" alt="image">
+                            </div>
+                            <div class="style-text text-left">
+                                <h5 class="mb-2">Coffee Beans Packet</h5>
+                                <p class="mb-2">Total Sell : 45897</p>
+                                <p class="mb-0">Total Earned : $45,89 M</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card card-block card-stretch card-height-helf">
+                    <div class="card-body card-item-right">
+                        <div class="d-flex align-items-top">
+                            <div class="bg-danger-light rounded">
+                                <img src="http://localhost/project/assets/images/product/05.png" class="style-img img-fluid m-auto" alt="image">
+                            </div>
+                            <div class="style-text text-left">
+                                <h5 class="mb-2">Bottle Cup Set</h5>
+                                <p class="mb-2">Total Sell : 44359</p>
+                                <p class="mb-0">Total Earned : $45,50 M</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+            <div class="col-lg-4">  
+                <div class="card card-block card-stretch card-height-helf">
+                    <div class="card-body">
+                        <div class="d-flex align-items-top justify-content-between">
+                            <div class="">
+                                <p class="mb-0">Income</p>
+                                <h5>$ 98,7800 K</h5>
+                            </div>
+                            <div class="card-header-toolbar d-flex align-items-center">
+                                <div class="dropdown">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003"
+                                        data-toggle="dropdown">
+                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                        aria-labelledby="dropdownMenuButton003">
+                                        <a class="dropdown-item" href="#">Year</a>
+                                        <a class="dropdown-item" href="#">Month</a>
+                                        <a class="dropdown-item" href="#">Week</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="layout1-chart-3" class="layout-chart-1"></div>
+                    </div>
+                </div>
+                <div class="card card-block card-stretch card-height-helf">
+                    <div class="card-body">
+                        <div class="d-flex align-items-top justify-content-between">
+                            <div class="">
+                                <p class="mb-0">Expenses</p>
+                                <h5>$ 45,8956 K</h5>
+                            </div>
+                            <div class="card-header-toolbar d-flex align-items-center">
+                                <div class="dropdown">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004"
+                                        data-toggle="dropdown">
+                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                        aria-labelledby="dropdownMenuButton004">
+                                        <a class="dropdown-item" href="#">Year</a>
+                                        <a class="dropdown-item" href="#">Month</a>
+                                        <a class="dropdown-item" href="#">Week</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="layout1-chart-4" class="layout-chart-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">  
+                <div class="card card-block card-stretch card-height">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Order Summary</h4>
+                        </div>                        
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton005">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap align-items-center mt-2">
+                            <div class="d-flex align-items-center progress-order-left">
+                                <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
+                                    <span class="progress-left">
+                                        <span class="progress-bar"></span>
+                                    </span>
+                                    <span class="progress-right">
+                                        <span class="progress-bar"></span>
+                                    </span>
+                                    <div class="progress-value text-secondary">46%</div>
+                                </div>
+                                <div class="progress-value ml-3 pr-5 border-right">
+                                    <h5>$12,6598</h5>
+                                    <p class="mb-0">Average Orders</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center ml-5 progress-order-right">
+                                <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
+                                    <span class="progress-left">
+                                        <span class="progress-bar"></span>
+                                    </span>
+                                    <span class="progress-right">
+                                        <span class="progress-bar"></span>
+                                    </span>
+                                    <div class="progress-value text-primary">46%</div>
+                                </div>
+                                <div class="progress-value ml-3">
+                                    <h5>$59,8478</h5>
+                                    <p class="mb-0">Top Orders</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div id="layout1-chart-5"></div>
                     </div>
                 </div>
             </div>
@@ -650,7 +891,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">POS Dash</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">Sales Pilot</a>.
                         </div>
                     </div>
                 </div>
