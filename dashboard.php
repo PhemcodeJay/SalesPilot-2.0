@@ -134,12 +134,12 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                           </a>
                           <ul id="sale" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-sale.html">
+                                          <a href="http://localhost/project/page-list-sale.php">
                                               <i class="las la-minus"></i><span>List Sale</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.html">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
