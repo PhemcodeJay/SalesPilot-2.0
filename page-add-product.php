@@ -1,10 +1,22 @@
 <?php
-// Include your database connection configuration or connection script
-include('config.php'); // Assuming this includes database credentials
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
+include('config.php'); // Includes database credentials
 
 // Ensure this PHP script is accessed through a POST request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
+        // Check if the user is logged in
+        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            throw new Exception("User is not logged in.");
+        }
+
         // Establish database connection using PDO
         $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -39,15 +51,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $image_path = $upload_dir . $image_name;
 
         // Move uploaded file to designated directory
-        if (move_uploaded_file($image_tmp, $image_path)) {
-            // File uploaded successfully
-        } else {
+        if (!move_uploaded_file($image_tmp, $image_path)) {
             throw new Exception("File upload failed.");
         }
 
         // SQL query for inserting into products table
         $insert_product_query = "INSERT INTO products (name, staff_name, specifications, category, cost, price, stock_qty, supply_qty, description, image_path)
-                                 VALUES (:name, :staff_name, :specifications, :category, :cost, :price, :stock_quantity, :supply_quantity, :description, :image_path)";
+                                 VALUES (:name, :staff_name, :specifications, :category, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
         
         // Prepare and execute statement
         $stmt = $conn->prepare($insert_product_query);
@@ -57,13 +67,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':category', $category);
         $stmt->bindParam(':cost', $cost);
         $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':stock_quantity', $stock_qty);
-        $stmt->bindParam(':supply_quantity', $supply_qty);
+        $stmt->bindParam(':stock_qty', $stock_qty);
+        $stmt->bindParam(':supply_qty', $supply_qty);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':image_path', $image_path);
         
         // Execute the statement and check for success
-        if($stmt->execute()) {
+        if ($stmt->execute()) {
             // Redirect back to listing page after insertion
             header('Location: page-list-product.php');
             exit();
@@ -86,7 +96,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo "Invalid request";
 }
 ?>
-
 
 
 <!doctype html>
