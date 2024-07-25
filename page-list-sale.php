@@ -11,7 +11,7 @@ include('config.php'); // Includes database connection
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
-    throw new Exception("No username found in session.");
+    exit("Error: No username found in session.");
 }
 
 $username = htmlspecialchars($_SESSION["username"]);
@@ -24,119 +24,26 @@ $stmt->execute();
 $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user_info) {
-    throw new Exception("User not found.");
+    exit("Error: User not found.");
 }
 
 // Retrieve user email and registration date
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
-// Ensure this PHP script is accessed through a POST request
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
-        // Check if the user is logged in
-        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            throw new Exception("User is not logged in.");
-        }
+// Check if the user is logged in
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) 
 
-        // Sanitize and validate form inputs
-        $name = htmlspecialchars(trim($_POST['name'])); // Product Name
-        $staff_name = htmlspecialchars(trim($_POST['staff_name'])); // Staff Name
-        $product_type = htmlspecialchars(trim($_POST['product_type'])); // Ensure this is one of 'goods', 'services', 'digital'
-        $category = htmlspecialchars(trim($_POST['category_name']));
-        $cost = floatval($_POST['cost']); // Cost (assuming it's a numeric field)
-        $price = floatval($_POST['price']); // Price (assuming it's a numeric field)
-        $stock_qty = intval($_POST['stock_qty']); // Stock Quantity (assuming it's an integer field)
-        $supply_qty = intval($_POST['supply_qty']); // Supply Quantity (assuming it's an integer field)
-        $description = htmlspecialchars(trim($_POST['description'])); // Description
+// Retrieve sales data from the sales table only
+    $query = "SELECT sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
+              FROM sales
+              ORDER BY sale_date DESC";
+    $stmt = $connection->prepare($query);
+    $stmt->execute();
+    $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Handle predefined and new categories
-        if ($category === 'New') {
-            $new_category = htmlspecialchars(trim($_POST['new_category']));
-            // Check if the new category already exists
-            $select_category_query = "SELECT category_id FROM categories WHERE category_name = :category_name";
-            $stmt = $connection->prepare($select_category_query);
-            $stmt->bindParam(':category_name', $new_category);
-            $stmt->execute();
-            $category_result = $stmt->fetch();
-            if ($category_result) {
-                $category_id = $category_result['category_id'];
-            } else {
-                // Insert new category into categories table
-                $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
-                $stmt = $connection->prepare($insert_category_query);
-                $stmt->bindParam(':category', $new_category);
-                $stmt->execute();
-                $category_id = $connection->lastInsertId();
-                $category = $new_category; // Use the new category name for the products table
-            }
-        } else {
-            // Retrieve the category_id for the selected category
-            $select_category_query = "SELECT category_id FROM categories WHERE category_name = :category_name";
-            $stmt = $connection->prepare($select_category_query);
-            $stmt->bindParam(':category_name', $category);
-            $stmt->execute();
-            $category_result = $stmt->fetch();
-            if (!$category_result) {
-                throw new Exception("Category not found.");
-            }
-            $category_id = $category_result['category_id'];
-        }
 
-        // File upload handling
-        $upload_dir = 'uploads/';
-        $image_name = $_FILES['pic']['name'];
-        $image_tmp = $_FILES['pic']['tmp_name'];
-        $image_path = $upload_dir . $image_name;
-
-        // Move uploaded file to designated directory
-        if (!move_uploaded_file($image_tmp, $image_path)) {
-            throw new Exception("File upload failed.");
-        }
-
-        // SQL query for inserting into products table
-        $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category, category_id, cost, price, stock_qty, supply_qty, description, image_path)
-                                 VALUES (:name, :staff_name, :product_type, :category, :category_id, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
-        
-        // Prepare and execute statement
-        $stmt = $connection->prepare($insert_product_query);
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':staff_name', $staff_name);
-        $stmt->bindParam(':product_type', $product_type);
-        $stmt->bindParam(':category', $category);
-        $stmt->bindParam(':category_id', $category_id);
-        $stmt->bindParam(':cost', $cost);
-        $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':stock_qty', $stock_qty);
-        $stmt->bindParam(':supply_qty', $supply_qty);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':image_path', $image_path);
-        
-        // Execute the statement and check for success
-        if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
-            header('Location: page-list-product.php');
-            exit();
-        } else {
-            // Log the error if insertion failed
-            error_log("Product insertion failed: " . implode(" | ", $stmt->errorInfo()));
-            throw new Exception("Product insertion failed.");
-        }
-    } catch (PDOException $e) {
-        // Handle database errors
-        error_log("PDO Error: " . $e->getMessage());
-        exit("Database Error: " . $e->getMessage());
-    } catch (Exception $e) {
-        // Handle other errors (e.g., file upload)
-        error_log("Error: " . $e->getMessage());
-        exit("Error: " . $e->getMessage());
-    }
-} else {
-    // Handle if the script is accessed directly or through another method
-    echo "Invalid request";
-}
 ?>
-
 
 
 <!doctype html>
@@ -144,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Add Product</title>
+      <title>List Sales</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -166,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="http://localhost/project/dashboard.php" class="header-logo">
-                  <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">POSDash</h5>
+                  <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">sales Pilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -195,12 +102,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                           <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/page-list-product.php">
+                                  <a href="http://localhost/project/backend/page-list-product.php">
                                       <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
-                              <li class="active">
-                                  <a href="http://localhost/project/page-add-product.php">
+                              <li class="">
+                                  <a href="http://localhost/project/backend/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -240,13 +147,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                               </svg>
                           </a>
                           <ul id="sale" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
-                                          <a href="http://localhost/project/page-list-sale.php">
+                                  <li class="active">
+                                          <a href="http://localhost/project/backend/page-list-sale.php">
                                               <i class="las la-minus"></i><span>List Sale</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-sale.php">
+                                          <a href="http://localhost/project/backend/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -280,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                               <svg class="svg-icon" id="p-dash6" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line>
                               </svg>
-                              <span class="ml-4">Inventory</span>
+                              <span class="ml-4">Returns</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
@@ -288,12 +195,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost/project/backend/page-list-returns.html">
-                                              <i class="las la-minus"></i><span>List Inventory</span>
+                                              <i class="las la-minus"></i><span>List Returns</span>
                                           </a>
                                   </li>
                                   <li class="">
                                           <a href="http://localhost/project/backend/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Inventory</span>
+                                              <i class="las la-minus"></i><span>Add Return</span>
                                           </a>
                                   </li>
                           </ul>
@@ -310,13 +217,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                           <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-Mediaers.html">
-                                              <i class="las la-minus"></i><span>Mediaers</span>
+                                          <a href="http://localhost/project/backend/page-list-customers.html">
+                                              <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-Mediaers.html">
-                                              <i class="las la-minus"></i><span>Add Mediaers</span>
+                                          <a href="http://localhost/project/backend/page-add-customers.html">
+                                              <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
@@ -351,11 +258,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
                       </li>
-                      
+                      <li class=" ">
+                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                              <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
+                              </svg>
+                              <span class="ml-4">other page</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
+                          </a>
+                                          
+                  </ul>
+              </nav>
+            
               <div class="p-3"></div>
           </div>
           </div>      <div class="iq-top-navbar">
-          <div class="iq-navbar-Media">
+          <div class="iq-navbar-custom">
               <nav class="navbar navbar-expand-lg navbar-light p-0">
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
@@ -368,7 +288,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                   <div class="iq-search-bar device-search">
                       <form action="#" class="searchbox">
                           <a class="search-link" href="#"><i class="ri-search-line"></i></a>
-                          <input type="text" class="text search-input" placeholder="Search here">
+                          <input type="text" class="text search-input" placeholder="Search here...">
                       </form>
                   </div>
                   <div class="d-flex align-items-center">
@@ -395,6 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                               <a class="iq-sub-card" href="#"><img
                                                       src="http://localhost/project/assets/images/small/flag-03.png" alt="img-flag"
                                                       class="img-fluid mr-2">Spanish</a>
+                                              
                                           </div>
                                       </div>
                                   </div>
@@ -413,7 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                       <form action="#" class="searchbox p-2">
                                           <div class="form-group mb-0 position-relative">
                                               <input type="text" class="text search-input font-size-12"
-                                                  placeholder="type here to search">
+                                                  placeholder="type here to search...">
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
@@ -586,11 +507,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
-                                                    <p class="mb-0">Since <?php echo $date; ?></p>
+                                                <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                      <a href="auth-sign-in.html" class="btn border">Sign Out</a>
+                                                      <a href="loginpage.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>
@@ -626,117 +547,93 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               </div>
           </div>
       </div>      <div class="content-page">
-      <div class="container-fluid add-form-list">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">Add Product</h4>
+     <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="mb-3">Sale List</h4>
+                        <p class="mb-0">Sales enables you to effectively control sales KPIs and monitor them in one central<br>
+                         place while helping teams to reach sales goals. </p>
                     </div>
+                    <a href="page-add-sale.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Sale</a>
                 </div>
-                <div class="card-body">
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Product Name *</label>
-                                    <input type="text" name="name" class="form-control" placeholder="Enter Product Name" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Staff Name *</label>
-                                    <input type="text" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Product Type *</label>
-                                    <select name="product_type" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="Goods">Goods</option>
-                                        <option value="Services">Services</option>
-                                        <option value="Digital">Digital Product or Service</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Category *</label>
-                                <select name="category_name" class="selectpicker form-control" data-style="py-0" id="categorySelect" required>
-                                    <option value="">Select or add category...</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Apparel">Apparel</option>
-                                    <option value="Food">Food</option>
-                                    <option value="Beauty">Beauty</option>
-                                    <option value="Home">Home</option>
-                                    <option value="Auto">Auto</option>
-                                    <option value="Travel">Travel</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Education">Education</option>
-                                    <option value="New">Add New Category...</option>
-                                </select>
-                                <input type="text" name="new_category" id="newCategoryInput" class="form-control" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
-                                <div class="help-block with-errors"></div>
-                            </div>
-                        </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Product Cost *</label>
-                                    <input type="text" name="cost" class="form-control" placeholder="Enter Cost" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Sales Price *</label>
-                                    <input type="text" name="price" class="form-control" placeholder="Enter Price" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Stock Quantity *</label>
-                                    <input type="text" name="stock_qty" class="form-control" placeholder="Enter Stock Quantity" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Supply Quantity *</label>
-                                    <input type="text" name="supply_qty" class="form-control" placeholder="Enter Supply Quantity" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Image *</label>
-                                    <input type="file" class="form-control image-file" name="pic" accept="image/*" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Description *</label>
-                                    <textarea name="description" class="form-control" rows="2" required></textarea>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mr-2">Add Product</button>
-                        <button type="reset" class="btn btn-danger">Reset</button>
-                    </form>
+            </div>
+            <div class="col-lg-12">
+                <div class="table-responsive rounded mb-3">
+                <table class="data-table table mb-0 tbl-server-info">
+        <thead class="bg-white text-uppercase">
+            <tr class="ligth ligth-data">
+              
+                <th>Date</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Sales Status</th>
+                <th>Sales Quantity</th>
+                <th>Payment Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody class="ligth-body">
+            <?php foreach ($sales_data as $sale): ?>
+            <tr>
+               
+                <td><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
+                <td><?php echo htmlspecialchars($sale['product_name']); ?></td>
+                <td><?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
+                <td><div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div></td>
+                <td><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
+                <td><div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div></td>
+                <td>
+                    <div class="d-flex align-items-center list-action">
+                        <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                        <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
         <!-- Page end  -->
+    </div>
+    <!-- Modal Edit -->
+    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="popup text-left">
+                        <div class="media align-items-top justify-content-between">                            
+                            <h3 class="mb-3">Product</h3>
+                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
+                        </div>
+                        <div class="content edit-notes">
+                            <div class="card card-transparent card-block card-stretch event-note mb-0">
+                                <div class="card-body px-0 bukmark">
+                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
+                                        <div class="quill-tool">
+                                        </div>
+                                    </div>
+                                    <div id="quill-toolbar1">
+                                        <p>Virtual Digital Marketing Course every week on Monday, Wednesday and Saturday.Virtual Digital Marketing Course every week on Monday</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer border-0">
+                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
+                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
+                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
       </div>
     </div>
@@ -753,7 +650,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">Sales Pilot</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">POS Dash</a>.
                         </div>
                     </div>
                 </div>
@@ -766,28 +663,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
     
-    <!-- Chart Media JavaScript -->
-    <script src="http://localhost/project/assets/js/Mediaizer.js"></script>
+    <!-- Chart Custom JavaScript -->
+    <script src="http://localhost/project/assets/js/customizer.js"></script>
     
-    <!-- Chart Media JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-Media.js"></script>
+    <!-- Chart Custom JavaScript -->
+    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    document.getElementById('categorySelect').addEventListener('change', function () {
-        var newCategoryInput = document.getElementById('newCategoryInput');
-        if (this.value === 'New') {
-            newCategoryInput.style.display = 'block';
-            newCategoryInput.required = true;
-        } else {
-            newCategoryInput.style.display = 'none';
-            newCategoryInput.required = false;
-        }
-    });
-</script>
-    
   </body>
 </html>

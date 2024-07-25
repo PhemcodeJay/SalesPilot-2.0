@@ -7,12 +7,32 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php');
+include('config.php'); // Includes database connection
+
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    throw new Exception("No username found in session.");
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$stmt = $connection->prepare($user_query);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user_info) {
+    throw new Exception("User not found.");
+}
+
+// Retrieve user email and registration date
+$email = htmlspecialchars($user_info['email']);
+$date = htmlspecialchars($user_info['date']);
 
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    $username = htmlspecialchars($_SESSION["username"]);
-
     if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
@@ -24,30 +44,31 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         if (!isset($_SESSION['username'])) {
             exit("User not logged in.");
         }
-        $username = $_SESSION['username'];
+
+        // Sanitize and validate form inputs
+        $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
+        $sale_status = isset($_POST['sale_status']) ? htmlspecialchars(trim($_POST['sale_status'])) : '';
+        $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
+        $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
+        $payment_status = isset($_POST['payment_status']) ? htmlspecialchars(trim($_POST['payment_status'])) : '';
+        $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
+
+        // Ensure required fields are not empty
+        if (empty($name) || empty($sale_status)) {
+            throw new Exception("Required fields are missing.");
+        }
+
+        // File upload handling
+        $upload_dir = 'uploads/';
+        $image_name = $_FILES['document']['name'];
+        $image_tmp = $_FILES['document']['tmp_name'];
+        $image_path = $upload_dir . $image_name;
+
+        if (!move_uploaded_file($image_tmp, $image_path)) {
+            throw new Exception("File upload failed.");
+        }
 
         try {
-            // Sanitize and validate form inputs
-            $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
-            $category = isset($_POST['category']) ? htmlspecialchars(trim($_POST['category'])) : '';
-            $sale_status = isset($_POST['sale_status']) ? htmlspecialchars($_POST['sale_status']) : '';
-            $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
-            $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
-            $payment_status = isset($_POST['payment_status']) ? htmlspecialchars($_POST['payment_status']) : '';
-            $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
-            $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
-            $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
-
-            // File upload handling
-            $upload_dir = 'uploads/';
-            $image_name = $_FILES['document']['name'];
-            $image_tmp = $_FILES['document']['tmp_name'];
-            $image_path = $upload_dir . $image_name;
-
-            if (!move_uploaded_file($image_tmp, $image_path)) {
-                throw new Exception("File upload failed.");
-            }
-
             // Retrieve product_id from the products table using the product name
             $check_product_query = "SELECT id FROM products WHERE name = :name";
             $stmt = $connection->prepare($check_product_query);
@@ -71,6 +92,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             }
 
             // Retrieve staff_id from the staffs table using the staff name
+            $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
             $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
             $stmt = $connection->prepare($check_staff_query);
             $stmt->bindParam(':staff_name', $staff_name);
@@ -90,6 +112,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             }
 
             // Retrieve customer_id from the customers table using the customer name
+            $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
             $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
             $stmt = $connection->prepare($check_customer_query);
             $stmt->bindParam(':customer_name', $customer_name);
@@ -108,15 +131,14 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 }
             }
 
-            // SQL query for inserting into sales table
-            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, category, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-            VALUES (:product_id, :name, :staff_id, :customer_id, :category, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+            // SQL query for inserting into sales table without customer_name and staff_name columns
+            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
+            VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':name', $name);
             $stmt->bindParam(':staff_id', $staff_id);
             $stmt->bindParam(':customer_id', $customer_id);
-            $stmt->bindParam(':category', $category); // Insert category directly
             $stmt->bindParam(':total_price', $total_price);
             $stmt->bindParam(':sales_qty', $sales_qty);
             $stmt->bindParam(':sale_note', $sale_note);
@@ -144,8 +166,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     echo "Error: User not logged in.";
 }
 ?>
-
-
 
 
 
@@ -600,8 +620,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1">JoanDuo@property.com</h5>
-                                                  <p class="mb-0">Since 10 march, 2020</p>
+                                              <h5 class="mb-1"><?php echo $email; ?></h5>
+                                              <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
                                                       <a href="auth-sign-in.html" class="btn border">Sign Out</a>
@@ -666,26 +686,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Category *</label>
-                                    <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="">Select or add category...</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Apparel">Apparel</option>
-                                        <option value="Food">Food</option>
-                                        <option value="Beauty">Beauty</option>
-                                        <option value="Home">Home</option>
-                                        <option value="Auto">Auto</option>
-                                        <option value="Travel">Travel</option>
-                                        <option value="Media">Media</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Education">Education</option>
-                                        <option value="New">Add New Category...</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
+                            
         
                         <div class="col-md-6">
                                 <div class="form-group">
@@ -799,5 +800,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+   
   </body>
 </html>

@@ -1,51 +1,77 @@
 <?php
-// Include database connection
-require_once 'config.php';
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
 
+include('config.php'); // Includes database connection
+
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    exit(json_encode(['success' => false, 'message' => "No username found in session."]));
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
 try {
-    // Establish database connection using PDO
-    $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        exit(json_encode(['success' => false, 'message' => "User not found."]));
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
 
     // Fetch products from the database including their categories
-    $fetch_products_query = "SELECT id, name, description, price, image_path, category
-                             FROM products";
-    $stmt = $conn->prepare($fetch_products_query);
+    $fetch_products_query = "SELECT id, name, description, price, image_path, category, inventory_qty FROM products";
+    $stmt = $connection->prepare($fetch_products_query);
     $stmt->execute();
-    
-    // Fetch all results
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // Handle database errors
-    exit("Error: " . $e->getMessage());
+    exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id'];
-    $field = $_POST['field'];
-    $value = $_POST['value'];
+// Handle POST requests for updating product information
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['id'], $_POST['field'], $_POST['value'])) {
+        $id = intval($_POST['id']);
+        $field = htmlspecialchars($_POST['field']);
+        $value = htmlspecialchars($_POST['value']);
 
-    // Sanitize inputs
-    $id = intval($id);
-    $field = htmlspecialchars($field);
-    $value = htmlspecialchars($value);
+        // Validate field
+        $allowed_fields = ['name', 'description', 'category', 'price'];
+        if (!in_array($field, $allowed_fields)) {
+            exit(json_encode(['success' => false, 'message' => 'Invalid field']));
+        }
 
-    // Validate field
-    $allowed_fields = ['name', 'description', 'category', 'price'];
-    if (!in_array($field, $allowed_fields)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid field']);
-        exit;
-    }
+        // Prepare and execute the update query
+        try {
+            $update_query = "UPDATE products SET $field = :value WHERE id = :id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':value', $value);
+            $stmt->bindParam(':id', $id);
 
-    // Prepare and execute the update query
-    $stmt = $pdo->prepare("UPDATE products SET $field = :value WHERE id = :id");
-    $stmt->bindParam(':value', $value);
-    $stmt->bindParam(':id', $id);
-
-    if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
+            if ($stmt->execute()) {
+                exit(json_encode(['success' => true]));
+            } else {
+                exit(json_encode(['success' => false, 'message' => 'Update failed']));
+            }
+        } catch (PDOException $e) {
+            exit(json_encode(['success' => false, 'message' => "Error: " . $e->getMessage()]));
+        }
     } else {
-        echo json_encode(['success' => false]);
+        exit(json_encode(['success' => false, 'message' => 'Missing POST parameters']));
     }
 }
 ?>
@@ -499,8 +525,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1">JoanDuo@property.com</h5>
-                                                  <p class="mb-0">Since 10 march, 2020</p>
+                                              <h5 class="mb-1"><?php echo $email; ?></h5>
+                                              <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
                                                       <a href="auth-sign-in.html" class="btn border">Sign Out</a>
@@ -566,7 +592,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <th>Product</th>
                             <th>Description</th>
                             <th>Category</th>
-                            <th>Price</th>
+                            <th>Sales Price</th>
+                            <th>Inventory Qty</th>
                             <th>Image</th>
                             <th>Action</th>
                         </tr>
@@ -589,6 +616,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($product['description']); ?></td>
                             <td contenteditable="true" class="editable" data-field="category"><?php echo htmlspecialchars($product['category']); ?></td>
                             <td contenteditable="true" class="editable" data-field="price"><?php echo number_format($product['price'], 2); ?></td>
+                            <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty'], 2); ?></td>
                             <td>
                                 <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
                             </td>
