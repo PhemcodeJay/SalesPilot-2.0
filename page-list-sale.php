@@ -194,13 +194,13 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-returns.html">
-                                              <i class="las la-minus"></i><span>List Returns</span>
+                                          <a href="http://localhost/project/page-list-inventory.html">
+                                              <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Return</span>
+                                          <a href="http://localhost/project/page-add-inventory.html">
+                                              <i class="las la-minus"></i><span>Add Inventory</span>
                                           </a>
                                   </li>
                           </ul>
