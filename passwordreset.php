@@ -9,7 +9,7 @@ include('config.php');
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
     $password = htmlspecialchars($_POST["Password"]);
     $confirmPassword = htmlspecialchars($_POST["ConfirmPassword"]);
-    $resetToken = htmlspecialchars($_POST["reset_token"]);
+    $resetToken = htmlspecialchars($_POST["reset_code"]);
 
     if (empty($password) || empty($confirmPassword) || empty($resetToken)) {
         echo 'All fields are required!';
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
         return;
     }
 
-    $stmt = $connection->prepare('SELECT user_id, expires_at FROM password_resets WHERE reset_token = ?');
+    $stmt = $connection->prepare('SELECT user_id, expires_at FROM password_resets WHERE reset_code = ?');
     $stmt->execute([$resetToken]);
 
     if ($stmt->rowCount() == 0) {
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
 
     $updateStmt = $connection->prepare('UPDATE users SET password = ? WHERE id = ?');
     if ($updateStmt->execute([$passwordHash, $userId])) {
-        $deleteStmt = $connection->prepare('DELETE FROM password_resets WHERE reset_token = ?');
+        $deleteStmt = $connection->prepare('DELETE FROM password_resets WHERE reset_code = ?');
         $deleteStmt->execute([$resetToken]);
 
         echo 'Password has been reset successfully!';
@@ -90,9 +90,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
                               <div class="p-3">
                                  <h2 class="mb-2">Reset Password</h2>
                                  <p>Enter your email address and we'll send you an email with instructions to reset your password.</p>
-                                    <form method="post" action="reset_password.php">
+                                    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                        <input type="hidden" name="reset_token" value="<?php echo htmlspecialchars($_GET['token']); ?>">
                                         <label>New Password:</label>
                                         <input type="password" name="Password" required>
                                         <label>Confirm Password:</label>

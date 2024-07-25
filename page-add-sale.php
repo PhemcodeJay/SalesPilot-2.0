@@ -11,12 +11,9 @@ include('config.php');
 
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    // Retrieve the username from the session
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Handle sales insertion if form is submitted
     if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
-        // Debugging
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
 
@@ -24,7 +21,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             exit("Error: User not logged in.");
         }
 
-        // Retrieve the logged-in username from the session
         if (!isset($_SESSION['username'])) {
             exit("User not logged in.");
         }
@@ -74,16 +70,35 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 throw new Exception("Username not found in the users table.");
             }
 
-            // Retrieve customer_id from the customers table using the customer name, or create a new customer
-            $check_customer_query = "SELECT customer_id FROM customers WHERE name = :customer_name";
+            // Retrieve staff_id from the staffs table using the staff name
+            $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
+            $stmt = $connection->prepare($check_staff_query);
+            $stmt->bindParam(':staff_name', $staff_name);
+            $stmt->execute();
+            $staff_id = $stmt->fetchColumn();
+
+            if (!$staff_id) {
+                // Insert new staff
+                $insert_staff_query = "INSERT INTO staffs (staff_name) VALUES (:staff_name)";
+                $stmt = $connection->prepare($insert_staff_query);
+                $stmt->bindParam(':staff_name', $staff_name);
+                if ($stmt->execute()) {
+                    $staff_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Staff creation failed.");
+                }
+            }
+
+            // Retrieve customer_id from the customers table using the customer name
+            $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
             $stmt = $connection->prepare($check_customer_query);
             $stmt->bindParam(':customer_name', $customer_name);
             $stmt->execute();
             $customer_id = $stmt->fetchColumn();
-            
+
             if (!$customer_id) {
                 // Insert new customer
-                $insert_customer_query = "INSERT INTO customers (name) VALUES (:customer_name)";
+                $insert_customer_query = "INSERT INTO customers (customer_name) VALUES (:customer_name)";
                 $stmt = $connection->prepare($insert_customer_query);
                 $stmt->bindParam(':customer_name', $customer_name);
                 if ($stmt->execute()) {
@@ -93,34 +108,15 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 }
             }
 
-           // Retrieve category from the categories table using the category name, or create a new category
-            $check_category_query = "SELECT category_name FROM categories WHERE category_name = :category_name";
-            $stmt = $connection->prepare($check_category_query);
-            $stmt->bindParam(':category_name', $category);
-            $stmt->execute();
-            $existing_category = $stmt->fetchColumn();
-
-            if (!$existing_category) {
-                // Insert new category
-                $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category_name)";
-                $stmt = $connection->prepare($insert_category_query);
-                $stmt->bindParam(':category_name', $category);
-                if ($stmt->execute()) {
-                    // The new category will be used directly
-                } else {
-                    throw new Exception("Category creation failed.");
-                }
-            }
-
             // SQL query for inserting into sales table
-            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_name, category, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-                                VALUES (:product_id, :name, :staff_name, :category, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, category, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
+            VALUES (:product_id, :name, :staff_id, :customer_id, :category, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':staff_name', $staff_name);
-            $stmt->bindParam(':category', $category); // Use 'category' directly
+            $stmt->bindParam(':staff_id', $staff_id);
             $stmt->bindParam(':customer_id', $customer_id);
+            $stmt->bindParam(':category', $category); // Insert category directly
             $stmt->bindParam(':total_price', $total_price);
             $stmt->bindParam(':sales_qty', $sales_qty);
             $stmt->bindParam(':sale_note', $sale_note);
@@ -129,7 +125,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':payment_status', $payment_status);
             $stmt->bindParam(':user_id', $user_id);
 
-
             // Execute the statement and check for success
             if ($stmt->execute()) {
                 header('Location: page-list-sale.php');
@@ -137,6 +132,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             } else {
                 throw new Exception("Sale Insertion failed.");
             }
+
         } catch (Exception $e) {
             error_log("Error: " . $e->getMessage());
             exit("Error: " . $e->getMessage());
@@ -145,10 +141,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         echo "Invalid request";
     }
 } else {
-    // User not logged in
     echo "Error: User not logged in.";
 }
 ?>
+
 
 
 
@@ -737,7 +733,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
-        <div class="col-md-6">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Payment Status *</label>
                                     <select name="payment_status" class="selectpicker form-control" data-style="py-0" required>
@@ -749,7 +745,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                 </div>
                             </div>
         
-                <div class="col-md-12">
+                            <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Sale Note *</label>
                                     <textarea name="sale_note" class="form-control" rows="2" required></textarea>
@@ -757,9 +753,9 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                 </div>
                             </div>
                         </div>
-    <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
-    <button type="reset" class="btn btn-danger">Reset</button>
-</form>
+                        <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
+                        <button type="reset" class="btn btn-danger">Reset</button>
+                    </form>
 
                     </div>
                 </div>

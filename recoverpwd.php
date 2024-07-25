@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
     $resetToken = bin2hex(random_bytes(32));
     $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-    $resetStmt = $connection->prepare('INSERT INTO password_resets (user_id, reset_token, expires_at) VALUES (?, ?, ?)');
+    $resetStmt = $connection->prepare('INSERT INTO password_resets (user_id, reset_code, expires_at) VALUES (?, ?, ?)');
     if ($resetStmt->execute([$userId, $resetToken, $expiresAt])) {
         try {
             $mail = new PHPMailer(true);
@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
                               <div class="p-3">
                                  <h2 class="mb-2">Reset Password</h2>
                                  <p>Enter your email address and we'll send you an email with instructions to reset your password.</p>
-                                 <form method="post" action="request_reset.php">
+                                 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>"
                                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                     <label>Email:</label>
                                     <input type="email" name="Email" required>

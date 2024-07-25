@@ -17,14 +17,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("User is not logged in.");
         }
 
+        // Retrieve the username from the session
+        $username = htmlspecialchars($_SESSION["username"]);
+
         // Establish database connection using PDO
-        $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
+        $conn = new PDO("mysql:host=$hostname;dbname=$database", $dbUsername, $dbPassword);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Sanitize and validate form inputs
         $name = htmlspecialchars(trim($_POST['name'])); // Product Name
         $staff_name = htmlspecialchars(trim($_POST['staff_name'])); // Staff Name
-        $specifications = htmlspecialchars(trim($_POST['specifications'])); // Specifications
+        $product_type = htmlspecialchars(trim($_POST['product_type'])); // Product Type
+        $category = htmlspecialchars(trim($_POST['category_name']));
         $cost = floatval($_POST['cost']); // Cost (assuming it's a numeric field)
         $price = floatval($_POST['price']); // Price (assuming it's a numeric field)
         $stock_qty = intval($_POST['stock_qty']); // Stock Quantity (assuming it's an integer field)
@@ -32,16 +36,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = htmlspecialchars(trim($_POST['description'])); // Description
 
         // Handle predefined and new categories
-        $category = htmlspecialchars(trim($_POST['category_name'])); // Product Category
-
-        // Check if it's a predefined category or user-added category
-        $predefined_categories = ['Category1', 'Category2', 'Category3', 'Category4', 'Category5', 'Category6', 'Category7', 'Category8', 'Category9', 'Category10'];
-        if (!in_array($category, $predefined_categories)) {
-            // It's a new user-added category
+        if ($category === 'New') {
+            $new_category = htmlspecialchars(trim($_POST['new_category']));
+            // Insert new category into categories table
             $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
             $stmt = $conn->prepare($insert_category_query);
-            $stmt->bindParam(':category', $category);
+            $stmt->bindParam(':category', $new_category);
             $stmt->execute();
+            $category = $new_category;
         }
 
         // File upload handling
@@ -56,14 +58,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // SQL query for inserting into products table
-        $insert_product_query = "INSERT INTO products (name, staff_name, specifications, category, cost, price, stock_qty, supply_qty, description, image_path)
-                                 VALUES (:name, :staff_name, :specifications, :category, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
+        $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category, cost, price, stock_qty, supply_qty, description, image_path)
+                                 VALUES (:name, :staff_name, :product_type, :category, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
         
         // Prepare and execute statement
         $stmt = $conn->prepare($insert_product_query);
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':staff_name', $staff_name);
-        $stmt->bindParam(':specifications', $specifications);
+        $stmt->bindParam(':product_type', $product_type);
         $stmt->bindParam(':category', $category);
         $stmt->bindParam(':cost', $cost);
         $stmt->bindParam(':price', $price);
@@ -96,6 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo "Invalid request";
 }
 ?>
+
 
 
 <!doctype html>
@@ -545,8 +548,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1">JoanDuo@property.com</h5>
-                                                  <p class="mb-0">Since 10 march, 2020</p>
+                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                  <p class="mb-0">Since<?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
                                                       <a href="auth-sign-in.html" class="btn border">Sign Out</a>
@@ -613,8 +616,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Specifications *</label>
-                                    <select name="specifications" class="selectpicker form-control" data-style="py-0" required>
+                                    <label>Product Type *</label>
+                                    <select name="product_type" class="selectpicker form-control" data-style="py-0" required>
                                         <option value="Physical Product">Physical Product</option>
                                         <option value="Service Based">Service Based</option>
                                         <option value="Digital Product">Digital Product</option>
@@ -623,35 +626,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Category *</label>
-                                    <select name="category_name" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="">Select or add category...</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Apparel">Apparel</option>
-                                        <option value="Food">Food</option>
-                                        <option value="Beauty">Beauty</option>
-                                        <option value="Home">Home</option>
-                                        <option value="Auto">Auto</option>
-                                        <option value="Travel">Travel</option>
-                                        <option value="Media">Media</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Education">Education</option>
-                                        <option value="New">Add New Category...</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
+                            <div class="form-group">
+                                <label>Category *</label>
+                                <select name="category_name" class="selectpicker form-control" data-style="py-0" id="categorySelect" required>
+                                    <option value="">Select or add category...</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Apparel">Apparel</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Beauty">Beauty</option>
+                                    <option value="Home">Home</option>
+                                    <option value="Auto">Auto</option>
+                                    <option value="Travel">Travel</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Education">Education</option>
+                                    <option value="New">Add New Category...</option>
+                                </select>
+                                <input type="text" name="new_category" id="newCategoryInput" class="form-control" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
+                                <div class="help-block with-errors"></div>
                             </div>
+                        </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Cost *</label>
+                                    <label>Product Cost *</label>
                                     <input type="text" name="cost" class="form-control" placeholder="Enter Cost" required>
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Price *</label>
+                                    <label>Sales Price *</label>
                                     <input type="text" name="price" class="form-control" placeholder="Enter Price" required>
                                     <div class="help-block with-errors"></div>
                                 </div>
@@ -735,46 +739,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-    $('select[name="category"]').change(function() {
-        var selectedValue = $(this).val();
-        var newCategoryInput = $(this).next('input[name="newCategory"]');
-
-        if (selectedValue === 'New') {
-            if (newCategoryInput.length === 0) {
-                newCategoryInput = $('<input>').attr({
-                    type: 'text',
-                    class: 'form-control mt-2',
-                    placeholder: 'Enter new category...',
-                    name: 'newCategory'
-                });
-                $(this).after(newCategoryInput);
-            }
-            newCategoryInput.css('display', 'block');
+    document.getElementById('categorySelect').addEventListener('change', function () {
+        var newCategoryInput = document.getElementById('newCategoryInput');
+        if (this.value === 'New') {
+            newCategoryInput.style.display = 'block';
+            newCategoryInput.required = true;
         } else {
-            newCategoryInput.css('display', 'none');
+            newCategoryInput.style.display = 'none';
+            newCategoryInput.required = false;
         }
     });
-
-    $('#categoryForm').submit(function(event) {
-        event.preventDefault();
-
-        var formData = $(this).serialize();
-        $.ajax({
-            type: 'POST',
-            url: $(this).attr('action'),
-            data: formData,
-            success: function(response) {
-                alert('Category added successfully!');
-                $('#name, #description').val('');
-            },
-            error: function(xhr, status, error) {
-                alert('Error adding category: ' + error);
-            }
-        });
-    });
-});
-
 </script>
     
   </body>
