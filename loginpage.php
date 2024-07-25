@@ -1,5 +1,4 @@
 <?php
-// Start the session with the desired settings
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
@@ -8,20 +7,9 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php');
+include('config.php'); // This file should set up the PDO connection as $connection
 
-// Establish database connection
-try {
-    $connection = new mysqli($hostname, $username, $password, $database);
-    
-    if ($connection->connect_error) {
-        throw new Exception("Database connection failed: " . $connection->connect_error);
-    }
-} catch (Exception $e) {
-    exit($e->getMessage());
-}
-
-// Check if the user is logged in, if yes, redirect to the dashboard page
+// Check if the user is already logged in, if yes, redirect to the dashboard page
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     header("Location: user-confirm.html");
     exit();
@@ -31,56 +19,54 @@ $username_err = $password_err = $login_err = "";
 
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
-    // Initialize variables with default values
-    $username = $password = "";
+    $username = isset($_POST["username"]) ? trim($_POST["username"]) : '';
+    $password = isset($_POST["password"]) ? trim($_POST["password"]) : '';
 
-    // Check if username is empty
-    if (empty(trim($_POST["username"]))) {
+    if (empty($username)) {
         $username_err = "Please enter a username.";
-    } else {
-        $username = trim($_POST["username"]);
     }
 
-    // Check if password is empty
-    if (empty(trim($_POST["password"]))) {
+    if (empty($password)) {
         $password_err = "Please enter your password.";
-    } else {
-        $password = trim($_POST["password"]);
     }
 
-    // Validate credentials
     if (empty($username_err) && empty($password_err)) {
-        $stmt = $connection->prepare('SELECT id, username, password FROM users WHERE username = ?');
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $stmt->store_result();
+        try {
+            $stmt = $connection->prepare('SELECT id, username, password FROM users WHERE username = ?');
+            $stmt->execute([$username]);
 
-        if ($stmt->num_rows > 0) {
-            $stmt->bind_result($id_user, $db_username, $passwordHash);
-            $stmt->fetch();
+            if ($stmt->rowCount() > 0) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                $id_user = $user['id'];
+                $db_username = $user['username'];
+                $passwordHash = $user['password'];
 
-            if (password_verify($password, $passwordHash)) {
-                // Password is correct, so start a new session
-                $_SESSION["loggedin"] = true;
-                $_SESSION["id_user"] = $id_user;
-                $_SESSION["username"] = $db_username;
+                if (password_verify($password, $passwordHash)) {
+                    // Set session variables only after successful login
+                    $_SESSION["loggedin"] = true;
+                    $_SESSION["id_user"] = $id_user;
+                    $_SESSION["username"] = $db_username;
 
-                // Redirect user to the welcome page
-                header("Location: user-confirm.html");
-                exit();
+                    // Debugging
+                    error_log("Login successful. Session ID: " . session_id());
+                    error_log("Session variables: " . print_r($_SESSION, true));
+
+                    header("Location: user-confirm.html");
+                    exit();
+                } else {
+                    $login_err = "Invalid username or password.";
+                }
             } else {
                 $login_err = "Invalid username or password.";
             }
-        } else {
-            $login_err = "Invalid username or password.";
+        } catch (PDOException $e) {
+            exit("Database error: " . $e->getMessage());
         }
-    } else {
-        echo "Oops! Something went wrong. Please try again later.";
     }
 }
 
 // Close the database connection
-$connection->close();
+$connection = null;
 ?>
 
 
@@ -146,25 +132,25 @@ $connection->close();
               </div>
               <div class="card-body">
               <form action="http://localhost/project/loginpage.php" method="post" role="form" class="text-start">
-                    <div class="input-group input-group-outline my-3">
-                            <input type="text" class="form-control" id="Username" name="Username" placeholder="Enter your username">
-                        </div>
-                    <div class="input-group input-group-outline mb-3">
-                            <input type="password" class="form-control" id="Password" name="Password" placeholder="Enter your password">
-                        </div>
-                  <div class="form-check form-switch d-flex align-items-center mb-3">
-                    <input class="form-check-input" type="checkbox" id="rememberMe" checked>
-                    <label class="form-check-label mb-0 ms-3" for="rememberMe">Remember me</label>
-                  </div>
-                  <div class="text-center">
-                    <button type="submit" name="login" value="Login" id="loginButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
-                    <button type="submit" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Forgot Password</button>
-                  </div>
-                  <p class="mt-4 text-sm text-center">
-                    Don't have an account?
-                    <a href="http://localhost/project/sign-up.php" class="text-primary text-gradient font-weight-bold">Sign up</a>
-                  </p>
-                </form>
+                      <div class="input-group input-group-outline my-3">
+                          <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
+                      </div>
+                      <div class="input-group input-group-outline mb-3">
+                          <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
+                      </div>
+                      <div class="form-check form-switch d-flex align-items-center mb-3">
+                          <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                          <label class="form-check-label mb-0 ms-3" for="rememberMe">Remember me</label>
+                      </div>
+                      <div class="text-center">
+                          <button type="submit" name="login" value="Login" id="loginButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
+                          <button type="submit" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Forgot Password</button>
+                      </div>
+                      <p class="mt-4 text-sm text-center">
+                          Don't have an account?
+                          <a href="http://localhost/project/sign-up.php" class="text-primary text-gradient font-weight-bold">Sign up</a>
+                      </p>
+                  </form>
               </div>
             </div>
           </div>

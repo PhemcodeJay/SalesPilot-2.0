@@ -9,136 +9,147 @@ session_start([
 
 include('config.php');
 
-// Establish database connection using MySQLi
-try {
-    $connection = new mysqli($hostname, $username, $password, $database);
-    
-    if ($connection->connect_error) {
-        throw new Exception("Database connection failed: " . $connection->connect_error);
-    }
-} catch (Exception $e) {
-    exit($e->getMessage());
-}
+// Check if the user is logged in
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    // Retrieve the username from the session
+    $username = htmlspecialchars($_SESSION["username"]);
 
-// Handle user login if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
-    $username = !empty(trim($_POST["username"])) ? filter_var(trim($_POST["username"]), FILTER_SANITIZE_STRING) : '';
-    $password = !empty(trim($_POST["password"])) ? trim($_POST["password"]) : '';
+    // Handle sales insertion if form is submitted
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
+        // Debugging
+        error_log("Session ID: " . session_id());
+        error_log("Session variables: " . print_r($_SESSION, true));
 
-    if ($username && $password) {
-        $stmt = $connection->prepare('SELECT id, username, password FROM users WHERE username = ?');
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $stmt->store_result();
-
-        if ($stmt->num_rows > 0) {
-            $stmt->bind_result($id_user, $username, $passwordHash);
-            $stmt->fetch();
-
-            if (password_verify($password, $passwordHash)) {
-                $_SESSION["loggedin"] = true;
-                $_SESSION["id_user"] = $id_user;
-                $_SESSION["username"] = $username;
-                header("Location: user-confirm.html");
-                exit();
-            } else {
-                echo "Invalid username or password.";
-            }
-        } else {
-            echo "Invalid username or password.";
+        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            exit("Error: User not logged in.");
         }
-    } else {
-        echo "Please enter both username and password.";
-    }
-}
 
-// Handle sales insertion if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
-    // Check if the user is logged in
-    if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-        exit("User not logged in.");
-    }
-
-    try {
         // Retrieve the logged-in username from the session
         if (!isset($_SESSION['username'])) {
-            throw new Exception("User not logged in.");
+            exit("User not logged in.");
         }
         $username = $_SESSION['username'];
 
-        // Sanitize and validate form inputs
-        $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
-        $category = isset($_POST['category']) ? htmlspecialchars(trim($_POST['category'])) : '';
-        $sale_status = isset($_POST['sale_status']) ? htmlspecialchars($_POST['sale_status']) : '';
-        $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
-        $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
-        $payment_status = isset($_POST['payment_status']) ? htmlspecialchars($_POST['payment_status']) : '';
-        $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
-        $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
-        $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
+        try {
+            // Sanitize and validate form inputs
+            $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
+            $category = isset($_POST['category']) ? htmlspecialchars(trim($_POST['category'])) : '';
+            $sale_status = isset($_POST['sale_status']) ? htmlspecialchars($_POST['sale_status']) : '';
+            $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
+            $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
+            $payment_status = isset($_POST['payment_status']) ? htmlspecialchars($_POST['payment_status']) : '';
+            $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
+            $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
+            $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
 
-        // File upload handling
-        if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
+            // File upload handling
             $upload_dir = 'uploads/';
-            $image_name = basename($_FILES['document']['name']);
+            $image_name = $_FILES['document']['name'];
             $image_tmp = $_FILES['document']['tmp_name'];
             $image_path = $upload_dir . $image_name;
 
             if (!move_uploaded_file($image_tmp, $image_path)) {
                 throw new Exception("File upload failed.");
             }
-        } else {
-            $image_path = ''; // Or handle the case where file upload is not provided
-        }
 
-        // Retrieve product_id from the products table using the product name
-        $check_product_query = "SELECT id FROM products WHERE name = ?";
-        $stmt = $connection->prepare($check_product_query);
-        $stmt->bind_param('s', $name);
-        $stmt->execute();
-        $stmt->bind_result($product_id);
-        $stmt->fetch();
-        
-        if (!$product_id) {
-            throw new Exception("Product not found in the products table.");
-        }
+            // Retrieve product_id from the products table using the product name
+            $check_product_query = "SELECT id FROM products WHERE name = :name";
+            $stmt = $connection->prepare($check_product_query);
+            $stmt->bindParam(':name', $name);
+            $stmt->execute();
+            $product_id = $stmt->fetchColumn();
+            
+            if (!$product_id) {
+                throw new Exception("Product not found in the products table.");
+            }
 
-        // Retrieve user_id from the users table using the username
-        $check_user_query = "SELECT id FROM users WHERE username = ?";
-        $stmt = $connection->prepare($check_user_query);
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $stmt->bind_result($user_id);
-        $stmt->fetch();
-        
-        if (!$user_id) {
-            throw new Exception("Username not found in the users table.");
-        }
+            // Retrieve user_id from the users table using the username
+            $check_user_query = "SELECT id FROM users WHERE username = :username";
+            $stmt = $connection->prepare($check_user_query);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+            $user_id = $stmt->fetchColumn();
+            
+            if (!$user_id) {
+                throw new Exception("Username not found in the users table.");
+            }
 
-        // SQL query for inserting into sales table
-        $insert_sale_query = "INSERT INTO sales (product_id, name, staff_name, category, customer_name, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $connection->prepare($insert_sale_query);
-        $stmt->bind_param('issssdiissii', $product_id, $name, $staff_name, $category, $customer_name, $total_price, $sales_qty, $sale_note, $image_path, $sale_status, $payment_status, $user_id);
+            // Retrieve customer_id from the customers table using the customer name, or create a new customer
+            $check_customer_query = "SELECT customer_id FROM customers WHERE name = :customer_name";
+            $stmt = $connection->prepare($check_customer_query);
+            $stmt->bindParam(':customer_name', $customer_name);
+            $stmt->execute();
+            $customer_id = $stmt->fetchColumn();
+            
+            if (!$customer_id) {
+                // Insert new customer
+                $insert_customer_query = "INSERT INTO customers (name) VALUES (:customer_name)";
+                $stmt = $connection->prepare($insert_customer_query);
+                $stmt->bindParam(':customer_name', $customer_name);
+                if ($stmt->execute()) {
+                    $customer_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Customer creation failed.");
+                }
+            }
 
-        // Execute the statement and check for success
-        if ($stmt->execute()) {
-            header('Location: page-list-sale.php');
-            exit();
-        } else {
-            error_log("Sale insertion failed: " . $stmt->error);
-            throw new Exception("Sale insertion failed.");
+           // Retrieve category from the categories table using the category name, or create a new category
+            $check_category_query = "SELECT category_name FROM categories WHERE category_name = :category_name";
+            $stmt = $connection->prepare($check_category_query);
+            $stmt->bindParam(':category_name', $category);
+            $stmt->execute();
+            $existing_category = $stmt->fetchColumn();
+
+            if (!$existing_category) {
+                // Insert new category
+                $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category_name)";
+                $stmt = $connection->prepare($insert_category_query);
+                $stmt->bindParam(':category_name', $category);
+                if ($stmt->execute()) {
+                    // The new category will be used directly
+                } else {
+                    throw new Exception("Category creation failed.");
+                }
+            }
+
+            // SQL query for inserting into sales table
+            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_name, category, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
+                                VALUES (:product_id, :name, :staff_name, :category, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+            $stmt = $connection->prepare($insert_sale_query);
+            $stmt->bindParam(':product_id', $product_id);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':staff_name', $staff_name);
+            $stmt->bindParam(':category', $category); // Use 'category' directly
+            $stmt->bindParam(':customer_id', $customer_id);
+            $stmt->bindParam(':total_price', $total_price);
+            $stmt->bindParam(':sales_qty', $sales_qty);
+            $stmt->bindParam(':sale_note', $sale_note);
+            $stmt->bindParam(':image_path', $image_path);
+            $stmt->bindParam(':sale_status', $sale_status);
+            $stmt->bindParam(':payment_status', $payment_status);
+            $stmt->bindParam(':user_id', $user_id);
+
+
+            // Execute the statement and check for success
+            if ($stmt->execute()) {
+                header('Location: page-list-sale.php');
+                exit();
+            } else {
+                throw new Exception("Sale Insertion failed.");
+            }
+        } catch (Exception $e) {
+            error_log("Error: " . $e->getMessage());
+            exit("Error: " . $e->getMessage());
         }
-    } catch (Exception $e) {
-        error_log("Error: " . $e->getMessage());
-        exit("Error: " . $e->getMessage());
+    } else {
+        echo "Invalid request";
     }
 } else {
-    echo "Invalid request.";
+    // User not logged in
+    echo "Error: User not logged in.";
 }
-
-$connection->close();
 ?>
+
 
 
 
@@ -655,7 +666,7 @@ $connection->close();
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Price *</label>
-                                    <input type="text" name="total-price" class="form-control" placeholder="Enter Price" required>
+                                    <input type="text" name="total_price" class="form-control" placeholder="Enter Price" required>
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>

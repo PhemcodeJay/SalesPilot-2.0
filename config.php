@@ -4,10 +4,17 @@ $username = "root";
 $password = "";
 $database = "salespilot";
 
+$dsn = "mysql:host=$hostname;dbname=$database;charset=utf8";
 
-$connection = mysqli_connect($hostname, $username, $password, $database);
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
 
-if (!$connection) {
-    exit("Error: " . mysqli_connect_error());
+try {
+    $connection = new PDO($dsn, $username, $password, $options);
+} catch (PDOException $e) {
+    exit("Database connection failed: " . $e->getMessage());
 }
 ?>

@@ -7,28 +7,55 @@ session_start([
     'sid_length'      => 48,
 ]);
 
+include('config.php'); // This file should set up the PDO connection as $connection
+
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     // Retrieve the username from the session
-    $username = htmlspecialchars($_SESSION["Username"]);
+    $username = htmlspecialchars($_SESSION["username"]);
+    
+    try {
+        // Prepare a SQL statement to retrieve user details
+        $stmt = $connection->prepare('SELECT email, date FROM users WHERE username = ?');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get the current hour
-    $current_hour = (int)date('H'); // 24-hour format (00 to 23)
+        if ($user) {
+            $email = htmlspecialchars($user['email']);
+            $date = date('d F, Y', strtotime($user['date']));
 
-    // Determine the time of day and set the greeting
-    if ($current_hour < 12) {
-        $time_of_day = "Morning";
-    } elseif ($current_hour < 18) {
-        $time_of_day = "Afternoon";
-    } else {
-        $time_of_day = "Evening";
+            // Get the current hour
+            $current_hour = (int)date('H'); // 24-hour format (00 to 23)
+
+            // Determine the time of day and set the greeting
+            if ($current_hour < 12) {
+                $time_of_day = "Morning";
+            } elseif ($current_hour < 18) {
+                $time_of_day = "Afternoon";
+            } else {
+                $time_of_day = "Evening";
+            }
+
+            $greeting = "Hi " . $username . ", Good " . $time_of_day;
+        } else {
+            // User not found, set default values
+            $email = "N/A";
+            $date = "N/A";
+            $greeting = "Hello, Guest";
+        }
+    } catch (PDOException $e) {
+        // Handle database error
+        exit("Database error: " . $e->getMessage());
     }
-
-    $greeting = "Hi " . $username . ", Good " . $time_of_day;
 } else {
     // Default message for not logged in users
     $greeting = "Hello, Guest";
+    $email = "N/A";
+    $date = "N/A";
 }
+
+// Close the database connection
+$connection = null;
 ?>
 
 
@@ -479,11 +506,11 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1">JoanDuo@property.com</h5>
-                                                  <p class="mb-0">Since 10 march, 2020</p>
+                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                  <p class="mb-0">Since<?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                      <a href="auth-sign-in.html" class="btn border">Sign Out</a>
+                                                      <a href="logout.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>
