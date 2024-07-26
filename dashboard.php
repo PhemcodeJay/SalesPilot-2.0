@@ -54,51 +54,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $greeting = "Hello, Guest";
 }
 
-// SQL query to get the total sales and total cost
-$sql = "
-SELECT
-    p.product_id,
-    p.name,
-    IFNULL(SUM(s.sales_qty), 0) AS total_sales,
-    (p.sales_price - p.cost_price) AS cost_per_unit,
-    IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
-FROM products p
-LEFT JOIN sales s ON p.product_id = s.product_id
-GROUP BY p.product_id, p.product_name, p.sales_price, p.cost_price
-";
-
 try {
-    // Prepare and execute the query
-    $stmt = $connection->prepare($sql);
-    $stmt->execute();
-
-    // Fetch results
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if ($results) {
-        // Output data for each row
-        echo "<table border='1'>
-                <tr>
-                    <th>Product ID</th>
-                    <th>Product Name</th>
-                    <th>Total Sales</th>
-                    <th>Cost Per Unit</th>
-                    <th>Total Cost</th>
-                </tr>";
-        foreach ($results as $row) {
-            echo "<tr>
-                    <td>" . htmlspecialchars($row["product_id"]) . "</td>
-                    <td>" . htmlspecialchars($row["product_name"]) . "</td>
-                    <td>" . htmlspecialchars($row["total_sales"]) . "</td>
-                    <td>" . number_format($row["cost_per_unit"], 2) . "</td>
-                    <td>" . number_format($row["total_cost"], 2) . "</td>
-                  </tr>";
-        }
-        echo "</table>";
-    } else {
-        echo "0 results";
-    }
-
     // SQL query to get the total number of products sold
     $sql = "
     SELECT
@@ -117,13 +73,13 @@ try {
         $total_products_sold = number_format($result["total_products_sold"]);
     }
 
-    // SQL query to get the total sales and total cost
+    // SQL query to get the total sales revenue and total cost
     $sql = "
     SELECT
-        IFNULL(SUM(s.sales_qty), 0) AS total_sales,
-        IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
+        IFNULL(SUM(s.sales_qty * p.price), 0) AS total_sales,
+        IFNULL(SUM(s.sales_qty * (p.price - p.cost)), 0) AS total_cost
     FROM products p
-    LEFT JOIN sales s ON p.product_id = s.product_id
+    LEFT JOIN sales s ON p.id = s.product_id
     ";
 
     // Prepare and execute the query
@@ -147,6 +103,7 @@ try {
 // Close the database connection
 $connection = null;
 ?>
+
 
 
 <!doctype html>
@@ -649,7 +606,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Sales</p>
-                                    <h4><?php echo $total_sales; ?></h4>
+                                    <h4>$<?php echo $total_sales; ?></h4>
                                     </div>
                                 </div>                                
                                 <div class="iq-progress-bar mt-2">
@@ -668,7 +625,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Cost</p>
-                                    <h4><?php echo $total_cost; ?></h4>
+                                    <h4>$<?php echo $total_cost; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
@@ -687,7 +644,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Product Sold</p>
-                                    <h4><?php echo $total_products_sold; ?> M</h4>
+                                    <h4><?php echo $total_products_sold; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
