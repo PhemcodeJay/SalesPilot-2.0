@@ -52,9 +52,13 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
         $payment_status = isset($_POST['payment_status']) ? htmlspecialchars(trim($_POST['payment_status'])) : '';
         $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
+        $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
+        $staff_email = isset($_POST['staff_email']) ? htmlspecialchars(trim($_POST['staff_email'])) : '';
+        $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
+        $customer_email = isset($_POST['customer_email']) ? htmlspecialchars(trim($_POST['customer_email'])) : '';
 
         // Ensure required fields are not empty
-        if (empty($name) || empty($sale_status)) {
+        if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
             throw new Exception("Required fields are missing.");
         }
 
@@ -69,6 +73,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         }
 
         try {
+            $connection->beginTransaction();
+
             // Retrieve product_id from the products table using the product name
             $check_product_query = "SELECT id FROM products WHERE name = :name";
             $stmt = $connection->prepare($check_product_query);
@@ -91,47 +97,63 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 throw new Exception("Username not found in the users table.");
             }
 
-            // Retrieve staff_id from the staffs table using the staff name
-            $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
-            $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
-            $stmt = $connection->prepare($check_staff_query);
-            $stmt->bindParam(':staff_name', $staff_name);
-            $stmt->execute();
-            $staff_id = $stmt->fetchColumn();
-
-            if (!$staff_id) {
-                // Insert new staff
-                $insert_staff_query = "INSERT INTO staffs (staff_name) VALUES (:staff_name)";
-                $stmt = $connection->prepare($insert_staff_query);
+            // Retrieve or insert staff_id
+            if (!empty($staff_name)) {
+                $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
+                $stmt = $connection->prepare($check_staff_query);
                 $stmt->bindParam(':staff_name', $staff_name);
-                if ($stmt->execute()) {
-                    $staff_id = $connection->lastInsertId();
-                } else {
-                    throw new Exception("Staff creation failed.");
+                $stmt->execute();
+                $staff_id = $stmt->fetchColumn();
+
+                if (!$staff_id) {
+                    $insert_staff_query = "INSERT INTO staffs (staff_name" . (!empty($staff_email) ? ", staff_email" : "") . ") VALUES (:staff_name" . (!empty($staff_email) ? ", :staff_email" : "") . ")";
+                    $stmt = $connection->prepare($insert_staff_query);
+                    $stmt->bindParam(':staff_name', $staff_name);
+                    if (!empty($staff_email)) {
+                        $stmt->bindParam(':staff_email', $staff_email);
+                    }
+                    if ($stmt->execute()) {
+                        $staff_id = $connection->lastInsertId();
+                    } else {
+                        throw new Exception("Staff creation failed.");
+                    }
                 }
+            } else {
+                throw new Exception("Staff name cannot be empty.");
             }
 
-            // Retrieve customer_id from the customers table using the customer name
-            $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
-            $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
-            $stmt = $connection->prepare($check_customer_query);
-            $stmt->bindParam(':customer_name', $customer_name);
-            $stmt->execute();
-            $customer_id = $stmt->fetchColumn();
-
-            if (!$customer_id) {
-                // Insert new customer
-                $insert_customer_query = "INSERT INTO customers (customer_name) VALUES (:customer_name)";
-                $stmt = $connection->prepare($insert_customer_query);
+            // Retrieve or insert customer_id
+            if (!empty($customer_name)) {
+                $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
+                $stmt = $connection->prepare($check_customer_query);
                 $stmt->bindParam(':customer_name', $customer_name);
-                if ($stmt->execute()) {
-                    $customer_id = $connection->lastInsertId();
-                } else {
-                    throw new Exception("Customer creation failed.");
+                $stmt->execute();
+                $customer_id = $stmt->fetchColumn();
+
+                if (!$customer_id) {
+                    $insert_customer_query = "INSERT INTO customers (customer_name" . (!empty($customer_email) ? ", customer_email" : "") . ") VALUES (:customer_name" . (!empty($customer_email) ? ", :customer_email" : "") . ")";
+                    $stmt = $connection->prepare($insert_customer_query);
+                    $stmt->bindParam(':customer_name', $customer_name);
+                    if (!empty($customer_email)) {
+                        $stmt->bindParam(':customer_email', $customer_email);
+                    }
+                    if ($stmt->execute()) {
+                        $customer_id = $connection->lastInsertId();
+                    } else {
+                        throw new Exception("Customer creation failed.");
+                    }
                 }
+            } else {
+                throw new Exception("Customer name cannot be empty.");
             }
 
-            // SQL query for inserting into sales table without customer_name and staff_name columns
+            // Debugging statements to log values before insertion
+            error_log("Product ID: " . $product_id);
+            error_log("User ID: " . $user_id);
+            error_log("Staff ID: " . $staff_id);
+            error_log("Customer ID: " . $customer_id);
+
+            // SQL query for inserting into sales table
             $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
             VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
@@ -149,13 +171,19 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 
             // Execute the statement and check for success
             if ($stmt->execute()) {
+                $connection->commit();
+                // Display email and date from the users table
+                echo "Sale recorded successfully.<br>";
+                echo "User Email: " . $email . "<br>";
+                echo "Registration Date: " . $date . "<br>";
                 header('Location: page-list-sale.php');
                 exit();
             } else {
-                throw new Exception("Sale Insertion failed.");
+                $connection->rollBack();
+                throw new Exception("Sale insertion failed.");
             }
-
         } catch (Exception $e) {
+            $connection->rollBack();
             error_log("Error: " . $e->getMessage());
             exit("Error: " . $e->getMessage());
         }
@@ -231,7 +259,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-product.php">
+                                  <a href="http://localhost/project/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -272,12 +300,12 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                           </a>
                           <ul id="sale" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-sale.html">
+                                          <a href="http://localhost/project/page-list-sale.php">
                                               <i class="las la-minus"></i><span>List Sale</span>
                                           </a>
                                   </li>
                                   <li class="active">
-                                          <a href="http://localhost/project/backend/page-add-sale.html">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
