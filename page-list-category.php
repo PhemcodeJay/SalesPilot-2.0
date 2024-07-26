@@ -1,4 +1,9 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start the session with specified settings
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
@@ -7,64 +12,114 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // This file should set up the PDO connection as $connection
+echo "Session started.<br>";
 
-// Check if the user is logged in
-if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    // Retrieve the username from the session
-    $username = htmlspecialchars($_SESSION["username"]);
-    
-    try {
-        // Prepare a SQL statement to retrieve user details
-        $stmt = $connection->prepare('SELECT email, date FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+// Include database connection
+include('config.php');
 
-        if ($user) {
-            $email = htmlspecialchars($user['email']);
-            $date = date('d F, Y', strtotime($user['date']));
-
-            // Get the current hour
-            $current_hour = (int)date('H'); // 24-hour format (00 to 23)
-
-            // Determine the time of day and set the greeting
-            if ($current_hour < 12) {
-                $time_of_day = "Morning";
-            } elseif ($current_hour < 18) {
-                $time_of_day = "Afternoon";
-            } else {
-                $time_of_day = "Evening";
-            }
-
-            $greeting = "Hi " . $username . ", Good " . $time_of_day;
-        } else {
-            // User not found, set default values
-            $email = "N/A";
-            $date = "N/A";
-            $greeting = "Hello, Guest";
-        }
-    } catch (PDOException $e) {
-        // Handle database error
-        exit("Database error: " . $e->getMessage());
-    }
-} else {
-    // Default message for not logged in users
-    $greeting = "Hello, Guest";
-    $email = "N/A";
-    $date = "N/A";
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    echo json_encode(['success' => false, 'message' => "No username found in session."]);
+    exit;
 }
 
-// Close the database connection
-$connection = null;
-?>
+$username = htmlspecialchars($_SESSION["username"]);
 
+try {
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        echo json_encode(['success' => false, 'message' => "User not found."]);
+        exit;
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+
+    // Fetch categories from the database
+    $fetch_categories_query = "SELECT category_id, category_name FROM categories";
+    $stmt = $connection->prepare($fetch_categories_query);
+    $stmt->execute();
+    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch products from the database including their categories, stock, and supply quantities
+    $fetch_products_query = "
+        SELECT 
+            p.id AS product_id,
+            p.name AS product_name,
+            p.description,
+            p.price,
+            p.image_path,
+            p.inventory_qty,
+            p.supply_qty,
+            c.category_name
+        FROM 
+            products p
+        JOIN 
+            categories c ON p.category_id = c.category_id
+    ";
+    $stmt = $connection->prepare($fetch_products_query);
+    $stmt->execute();
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    // Handle database errors
+    echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
+    exit;
+}
+
+// Handle POST requests for updating product information
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['id'], $_POST['field'], $_POST['value'])) {
+        $id = intval($_POST['id']);
+        $field = htmlspecialchars($_POST['field']);
+        $value = htmlspecialchars($_POST['value']);
+
+        // Validate field
+        $allowed_fields = ['name', 'description', 'category', 'price'];
+        if (!in_array($field, $allowed_fields)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid field']);
+            exit;
+        }
+
+        // Prepare and execute the update query
+        try {
+            $update_query = "UPDATE products SET $field = :value WHERE id = :id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':value', $value);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Update failed']);
+            }
+            exit;
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => "Error: " . $e->getMessage()]);
+            exit;
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Missing POST parameters']);
+        exit;
+    }
+}
+
+
+?>
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Dashboard</title>
+      <title>List Category</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -86,7 +141,7 @@ $connection = null;
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="http://localhost/project/dashboard.php" class="header-logo">
-                  <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">Sales Pilot</h5>
+                  <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -95,7 +150,7 @@ $connection = null;
           <div class="data-scrollbar" data-scroll="1">
               <nav class="iq-sidebar-menu">
                   <ul id="iq-sidebar-toggle" class="iq-menu">
-                      <li class="active">
+                      <li class="">
                           <a href="http://localhost/project/dashboard.php" class="svg-icon">                        
                               <svg  class="svg-icon" id="p-dash1" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
@@ -137,16 +192,12 @@ $connection = null;
                               </svg>
                           </a>
                           <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-list-category.html">
+                                  <li class="active">
+                                          <a href="http://localhost/project/page-list-category.php">
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-category.html">
-                                              <i class="las la-minus"></i><span>Add Category</span>
-                                          </a>
-                                  </li>
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -208,7 +259,7 @@ $connection = null;
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost/project/page-list-inventory.php">
-                                              <i class="las la-minus"></i><span>List Inventory</span>
+                                              <i class="las la-minus"></i><span>List Inventpory</span>
                                           </a>
                                   </li>
                               
@@ -267,7 +318,10 @@ $connection = null;
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
                       </li>
-                          
+                      
+                  </ul>
+              </nav>
+              
               <div class="p-3"></div>
           </div>
           </div>      <div class="iq-top-navbar">
@@ -275,16 +329,16 @@ $connection = null;
               <nav class="navbar navbar-expand-lg navbar-light p-0">
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
-                      <a href="http://localhost/project/backend/index.html" class="header-logo">
+                      <a href="http://localhost/project/dashboard.php" class="header-logo">
                           <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
-                          <h5 class="logo-title ml-3">Sales Pilot</h5>
+                          <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>
                   </div>
                   <div class="iq-search-bar device-search">
                       <form action="#" class="searchbox">
                           <a class="search-link" href="#"><i class="ri-search-line"></i></a>
-                          <input type="text" class="text search-input" placeholder="Search here">
+                          <input type="text" class="text search-input" placeholder="Search here...">
                       </form>
                   </div>
                   <div class="d-flex align-items-center">
@@ -329,7 +383,7 @@ $connection = null;
                                       <form action="#" class="searchbox p-2">
                                           <div class="form-group mb-0 position-relative">
                                               <input type="text" class="text search-input font-size-12"
-                                                  placeholder="type here to search">
+                                                  placeholder="type here to search...">
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
@@ -502,11 +556,11 @@ $connection = null;
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
-                                                  <p class="mb-0">Since<?php echo $date; ?></p>
+                                                <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                      <a href="logout.php" class="btn border">Sign Out</a>
+                                                      <a href="loginpage.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>
@@ -544,360 +598,101 @@ $connection = null;
       </div>      <div class="content-page">
      <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-4">
-                <div class="card card-transparent card-block card-stretch card-height border-none">
-                    <div class="card-body p-0 mt-lg-2 mt-0">
-                        <h3 class="mb-3"><?php echo $greeting; ?></h3>
-                        <p class="mb-0 mr-4">Your dashboard gives you views of key performance or business process.</p>
+            <div class="col-lg-12">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="mb-3">Category List</h4>
+                        <p class="mb-0">Use category list as to describe your overall core business from the provided list. <br>
+                        Click the name of the category where you want to add a list item. .</p>
                     </div>
+                    <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
                 </div>
             </div>
-            <div class="col-lg-8">
-                <div class="row">
-                    <div class="col-lg-4 col-md-4">
-                        <div class="card card-block card-stretch card-height">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-4 card-total-sale">
-                                    <div class="icon iq-icon-box-2 bg-info-light">
-                                        <img src="http://localhost/project/assets/images/product/1.png" class="img-fluid" alt="image">
-                                    </div>
-                                    <div>
-                                        <p class="mb-2">Total Sales</p>
-                                        <h4>31.50</h4>
-                                    </div>
-                                </div>                                
-                                <div class="iq-progress-bar mt-2">
-                                    <span class="bg-info iq-progress progress-1" data-percent="85">
-                                    </span>
-                                </div>
+            <div class="col-lg-12">
+                <div class="table-responsive rounded mb-3">
+                <table class="data-table table mb-0 tbl-server-info">
+                <thead class="bg-white text-uppercase">
+                    <tr class="ligth ligth-data">
+                        <th>
+                            <div class="checkbox d-inline-block">
+                                <input type="checkbox" class="checkbox-input" id="checkbox1">
+                                <label for="checkbox1" class="mb-0"></label>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-4">
-                        <div class="card card-block card-stretch card-height">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-4 card-total-sale">
-                                    <div class="icon iq-icon-box-2 bg-danger-light">
-                                        <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
-                                    </div>
-                                    <div>
-                                        <p class="mb-2">Total Cost</p>
-                                        <h4>$ 4598</h4>
-                                    </div>
+                        </th>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Inventory Qty</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody class="ligth-body">
+                    <?php foreach ($products as $product): ?>
+                        <tr>
+                            <td>
+                                <div class="checkbox d-inline-block">
+                                    <input type="checkbox" class="checkbox-input" id="checkbox<?php echo htmlspecialchars($product['product_id']); ?>">
+                                    <label for="checkbox<?php echo htmlspecialchars($product['product_id']); ?>" class="mb-0"></label>
                                 </div>
-                                <div class="iq-progress-bar mt-2">
-                                    <span class="bg-danger iq-progress progress-1" data-percent="70">
-                                    </span>
+                            </td>
+                            <td>
+                                <img src="<?php echo htmlspecialchars($product['image_path']); ?>" class="img-fluid rounded avatar-50" alt="image">
+                            </td>
+                            <td>
+                                <?php echo htmlspecialchars($product['product_name']); ?>
+                                <p class="mb-0"><small><?php echo htmlspecialchars($product['description']); ?></small></p>
+                            </td>
+                            <td><?php echo htmlspecialchars($product['inventory_qty']); ?></td>
+                            <td><?php echo htmlspecialchars($product['category_name']); ?></td>
+                            <td>
+                                <div class="d-flex align-items-center list-action">
+                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-4">
-                        <div class="card card-block card-stretch card-height">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-4 card-total-sale">
-                                    <div class="icon iq-icon-box-2 bg-success-light">
-                                        <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
-                                    </div>
-                                    <div>
-                                        <p class="mb-2">Product Sold</p>
-                                        <h4>4589 M</h4>
-                                    </div>
-                                </div>
-                                <div class="iq-progress-bar mt-2">
-                                    <span class="bg-success iq-progress progress-1" data-percent="75">
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+
             </div>
-            <div class="col-lg-6">
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Overview</h4>
-                        </div>                        
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
-                            </div>
+        </div>
+    </div>
+        <!-- Page end  -->
+    </div>
+    <!-- Modal Edit -->
+    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="popup text-left">
+                        <div class="media align-items-top justify-content-between">                            
+                            <h3 class="mb-3">Product</h3>
+                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
                         </div>
-                    </div>                    
-                    <div class="card-body">
-                        <div id="layout1-chart1"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Revenue Vs Cost</h4>
-                        </div>
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton002">
-                                    <a class="dropdown-item" href="#">Yearly</a>
-                                    <a class="dropdown-item" href="#">Monthly</a>
-                                    <a class="dropdown-item" href="#">Weekly</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="layout1-chart-2" style="min-height: 360px;"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-8">
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Top Products</h4>
-                        </div>
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton006">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled row top-product mb-0">
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-warning-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/01.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Organic Cream</h5>
-                                            <p class="mb-0">789 Item</p>
+                        <div class="content edit-notes">
+                            <div class="card card-transparent card-block card-stretch event-note mb-0">
+                                <div class="card-body px-0 bukmark">
+                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
+                                        <div class="quill-tool">
                                         </div>
                                     </div>
+                                    
                                 </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-danger-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Rain Umbrella</h5>
-                                            <p class="mb-0">657 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-info-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/03.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Serum Bottle</h5>
-                                            <p class="mb-0">489 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-success-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Organic Cream</h5>
-                                            <p class="mb-0">468 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">  
-                <div class="card card-transparent card-block card-stretch mb-4">
-                    <div class="card-header d-flex align-items-center justify-content-between p-0">
-                        <div class="header-title">
-                            <h4 class="card-title mb-0">Best Item All Time</h4>
-                        </div>
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body card-item-right">
-                        <div class="d-flex align-items-top">
-                            <div class="bg-warning-light rounded">
-                                <img src="http://localhost/project/assets/images/product/04.png" class="style-img img-fluid m-auto" alt="image">
-                            </div>
-                            <div class="style-text text-left">
-                                <h5 class="mb-2">Coffee Beans Packet</h5>
-                                <p class="mb-2">Total Sell : 45897</p>
-                                <p class="mb-0">Total Earned : $45,89 M</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body card-item-right">
-                        <div class="d-flex align-items-top">
-                            <div class="bg-danger-light rounded">
-                                <img src="http://localhost/project/assets/images/product/05.png" class="style-img img-fluid m-auto" alt="image">
-                            </div>
-                            <div class="style-text text-left">
-                                <h5 class="mb-2">Bottle Cup Set</h5>
-                                <p class="mb-2">Total Sell : 44359</p>
-                                <p class="mb-0">Total Earned : $45,50 M</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>            
-            <div class="col-lg-4">  
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body">
-                        <div class="d-flex align-items-top justify-content-between">
-                            <div class="">
-                                <p class="mb-0">Income</p>
-                                <h5>$ 98,7800 K</h5>
-                            </div>
-                            <div class="card-header-toolbar d-flex align-items-center">
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003"
-                                        data-toggle="dropdown">
-                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
-                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                        aria-labelledby="dropdownMenuButton003">
-                                        <a class="dropdown-item" href="#">Year</a>
-                                        <a class="dropdown-item" href="#">Month</a>
-                                        <a class="dropdown-item" href="#">Week</a>
+                                <div class="card-footer border-0">
+                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
+                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
+                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div id="layout1-chart-3" class="layout-chart-1"></div>
-                    </div>
-                </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body">
-                        <div class="d-flex align-items-top justify-content-between">
-                            <div class="">
-                                <p class="mb-0">Expenses</p>
-                                <h5>$ 45,8956 K</h5>
-                            </div>
-                            <div class="card-header-toolbar d-flex align-items-center">
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004"
-                                        data-toggle="dropdown">
-                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
-                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                        aria-labelledby="dropdownMenuButton004">
-                                        <a class="dropdown-item" href="#">Year</a>
-                                        <a class="dropdown-item" href="#">Month</a>
-                                        <a class="dropdown-item" href="#">Week</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="layout1-chart-4" class="layout-chart-2"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-8">  
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Order Summary</h4>
-                        </div>                        
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton005">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div> 
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap align-items-center mt-2">
-                            <div class="d-flex align-items-center progress-order-left">
-                                <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
-                                    <span class="progress-left">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <span class="progress-right">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <div class="progress-value text-secondary">46%</div>
-                                </div>
-                                <div class="progress-value ml-3 pr-5 border-right">
-                                    <h5>$12,6598</h5>
-                                    <p class="mb-0">Average Orders</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center ml-5 progress-order-right">
-                                <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
-                                    <span class="progress-left">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <span class="progress-right">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <div class="progress-value text-primary">46%</div>
-                                </div>
-                                <div class="progress-value ml-3">
-                                    <h5>$59,8478</h5>
-                                    <p class="mb-0">Top Orders</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <div id="layout1-chart-5"></div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Page end  -->
     </div>
       </div>
     </div>

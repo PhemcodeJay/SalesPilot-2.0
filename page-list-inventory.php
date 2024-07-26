@@ -616,7 +616,7 @@ try {
                         <p class="mb-0">Inventory dashboard shows the graphical representation of the channel
                          and Reference <br>wise inventory with the comparison to the total units sold..</p>
                     </div>
-                    <a href="page-list-inventory.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Returns</a>
+                    <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
                 </div>
             </div>
             <div class="col-lg-12">
