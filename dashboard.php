@@ -9,6 +9,10 @@ session_start([
 
 include('config.php'); // This file should set up the PDO connection as $connection
 
+// Initialize variables
+$email = $date = $greeting = "N/A";
+$total_products_sold = $total_sales = $total_cost = "0";
+
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     // Retrieve the username from the session
@@ -39,8 +43,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
             // User not found, set default values
-            $email = "N/A";
-            $date = "N/A";
             $greeting = "Hello, Guest";
         }
     } catch (PDOException $e) {
@@ -50,24 +52,22 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 } else {
     // Default message for not logged in users
     $greeting = "Hello, Guest";
-    $email = "N/A";
-    $date = "N/A";
 }
 
-try {
-    // SQL query to get the total sales and total cost
-    $sql = "
-    SELECT
-        p.product_id,
-        p.product_name,
-        IFNULL(SUM(s.sales_qty), 0) AS total_sales,
-        (p.sales_price - p.cost_price) AS cost_per_unit,
-        IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
-    FROM products p
-    LEFT JOIN sales s ON p.product_id = s.product_id
-    GROUP BY p.product_id, p.product_name, p.sales_price, p.cost_price
-    ";
+// SQL query to get the total sales and total cost
+$sql = "
+SELECT
+    p.product_id,
+    p.name,
+    IFNULL(SUM(s.sales_qty), 0) AS total_sales,
+    (p.sales_price - p.cost_price) AS cost_per_unit,
+    IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
+FROM products p
+LEFT JOIN sales s ON p.product_id = s.product_id
+GROUP BY p.product_id, p.product_name, p.sales_price, p.cost_price
+";
 
+try {
     // Prepare and execute the query
     $stmt = $connection->prepare($sql);
     $stmt->execute();
@@ -115,8 +115,6 @@ try {
 
     if ($result) {
         $total_products_sold = number_format($result["total_products_sold"]);
-    } else {
-        $total_products_sold = "0";
     }
 
     // SQL query to get the total sales and total cost
@@ -138,9 +136,6 @@ try {
     if ($result) {
         $total_sales = number_format($result["total_sales"], 2);
         $total_cost = number_format($result["total_cost"], 2);
-    } else {
-        $total_sales = "0.00";
-        $total_cost = "0.00";
     }
 } catch (PDOException $e) {
     // Handle connection errors
