@@ -17,7 +17,6 @@ echo "Session started.<br>";
 // Include database connection
 include('config.php');
 
-echo "Database connection included.<br>";
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
@@ -28,7 +27,7 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 try {
-    echo "Fetching user info.<br>";
+    
     // Retrieve user information from the users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
@@ -46,7 +45,6 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
     // Fetch products from the database including their categories
-    echo "Fetching products.<br>";
     $fetch_products_query = "SELECT id, name, description, price, image_path, category, inventory_qty FROM products";
     $stmt = $connection->prepare($fetch_products_query);
     $stmt->execute();
@@ -57,7 +55,6 @@ try {
     exit;
 }
 
-echo "Handling POST request.<br>";
 
 // Handle POST requests for updating product information
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -96,30 +93,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-echo "Fetching sales data.<br>";
-
-// SQL query to fetch sales and product data
-$sql = "
-    SELECT 
-        s.last_updated, 
-        p.id AS product_id, 
-        p.name AS product_name, 
-        s.sales_qty, 
-        p.inventory_qty, 
-        (p.inventory_qty - s.sales_qty) AS available_stock,
-        s.reference_no
-    FROM 
-        sales s
-    JOIN 
-        products p ON s.product_id = p.id
-";
 
 try {
-    $result = $connection->query($sql);
-    $sales_data = $result->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(['success' => true, 'data' => $sales_data]);
+    // SQL query to fetch sales and product data
+    $sql = "
+        SELECT 
+            s.sale_date, 
+            p.id AS product_id, 
+            p.name AS product_name, 
+            s.sales_qty, 
+            p.inventory_qty, 
+            (p.inventory_qty - s.sales_qty) AS available_stock,
+            s.product_id
+        FROM 
+            sales s
+        JOIN 
+            products p ON s.product_id = p.id
+    ";
+
+    $stmt = $connection->query($sql);
+    $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
+    // Handle database errors
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
+    exit;
 }
 ?>
 
@@ -182,12 +180,12 @@ try {
                           </a>
                           <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-list-product.html">
+                                  <a href="http://localhost/project/page-list-product.php">
                                       <i class="las la-minus"></i><span>List Product</span>
                                   </a>
                               </li>
                               <li class="">
-                                  <a href="http://localhost/project/backend/page-add-product.html">
+                                  <a href="http://localhost/project/page-add-product.php">
                                       <i class="las la-minus"></i><span>Add Product</span>
                                   </a>
                               </li>
@@ -228,12 +226,12 @@ try {
                           </a>
                           <ul id="sale" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-sale.html">
+                                          <a href="http://localhost/project/page-list-sale.php">
                                               <i class="las la-minus"></i><span>List Sale</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.html">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -267,20 +265,15 @@ try {
                               <svg class="svg-icon" id="p-dash6" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line>
                               </svg>
-                              <span class="ml-4">Returns</span>
+                              <span class="ml-4">Inventory</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="active">
-                                          <a href="http://localhost/project/backend/page-list-returns.html">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Returns</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Return</span>
                                           </a>
                                   </li>
                           </ul>
@@ -578,7 +571,7 @@ try {
                                               <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                      <a href="auth-sign-in.html" class="btn border">Sign Out</a>
+                                                      <a href="loghinpage.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>
@@ -628,50 +621,55 @@ try {
             </div>
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
-                    <table class="data-table table mb-0 tbl-server-info">
-                        <thead class="bg-white text-uppercase">
-                            <tr class="ligth ligth-data">
-                                <th>
+                <table class="data-table table mb-0 tbl-server-info">
+                <thead class="bg-white text-uppercase">
+                    <tr class="ligth ligth-data">
+                        <th>
+                            <div class="checkbox d-inline-block">
+                                <input type="checkbox" class="checkbox-input" id="checkboxAll">
+                                <label for="checkboxAll" class="mb-0"></label>
+                            </div>
+                        </th>
+                        <th>Date</th>
+                        <th>Product Name</th>
+                        <th>Sales Qty</th>
+                        <th>Inventory Qty</th>
+                        <th>Available Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody class="ligth-body">
+                    <?php if (!empty($sales_data)): ?>
+                        <?php foreach ($sales_data as $row): ?>
+                            <tr>
+                                <td>
                                     <div class="checkbox d-inline-block">
-                                        <input type="checkbox" class="checkbox-input" id="checkbox1">
-                                        <label for="checkbox1" class="mb-0"></label>
+                                        <input type="checkbox" class="checkbox-input" id="checkbox<?= htmlspecialchars($row['product_id']) ?>">
+                                        <label for="checkbox<?= htmlspecialchars($row['product_id']) ?>" class="mb-0"></label>
                                     </div>
-                                </th>
-                                <th>Date</th>
-                                <th>Product Name</th>
-                                <th>Sales Qty</th>
-                                <th>Inventory Qty</th>
-                                <th>Available Stock</th>
-                                <th>Action</th>
+                                </td>
+                                <td><?= date("d M Y", strtotime(htmlspecialchars($row['sale_date']))) ?></td>
+                                <td><?= htmlspecialchars($row['product_name']) ?></td>
+                                <td><?= htmlspecialchars($row['sales_qty']) ?></td>
+                                <td><?= htmlspecialchars($row['inventory_qty']) ?></td>
+                                <td><?= number_format(htmlspecialchars($row['available_stock']), 2) ?></td>
+                                <td>
+                                    <div class="d-flex align-items-center list-action">
+                                        <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                        <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="ligth-body">
-                            
-                                    <tr>
-                                        <td>
-                                            <div class="checkbox d-inline-block">
-                                                <input type="checkbox" class="checkbox-input" id="checkbox<?= $row['reference_no'] ?>">
-                                                <label for="checkbox<?= $row['reference_no'] ?>" class="mb-0"></label>
-                                            </div>
-                                        </td>
-                                        <td><?= date("d M Y", strtotime($row['last_updated'])) ?></td>
-                                        <td><?= htmlspecialchars($row['product_name']) ?></td>
-                                        <td><?= htmlspecialchars($row['sales_qty']) ?></td>
-                                        <td><?= htmlspecialchars($row['inventory_qty']) ?></td>
-                                        <td><?= number_format($row['available_stock'], 2) ?></td>
-                                        <td>
-                                            <div class="d-flex align-items-center list-action">
-                                                <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                                <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                                <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                               
-                        </tbody>
-                    </table>
-                
-                    
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7">No data available.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+
                 </div>
             </div>
         </div>
@@ -694,9 +692,7 @@ try {
                                         <div class="quill-tool">
                                         </div>
                                     </div>
-                                    <div id="quill-toolbar1">
-                                        <p>Virtual Digital Marketing Course every week on Monday, Wednesday and Saturday.Virtual Digital Marketing Course every week on Monday</p>
-                                    </div>
+                                   
                                 </div>
                                 <div class="card-footer border-0">
                                     <div class="d-flex flex-wrap align-items-ceter justify-content-end">
