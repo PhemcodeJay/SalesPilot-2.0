@@ -54,6 +54,101 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $date = "N/A";
 }
 
+try {
+    // SQL query to get the total sales and total cost
+    $sql = "
+    SELECT
+        p.product_id,
+        p.product_name,
+        IFNULL(SUM(s.sales_qty), 0) AS total_sales,
+        (p.sales_price - p.cost_price) AS cost_per_unit,
+        IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
+    FROM products p
+    LEFT JOIN sales s ON p.product_id = s.product_id
+    GROUP BY p.product_id, p.product_name, p.sales_price, p.cost_price
+    ";
+
+    // Prepare and execute the query
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+
+    // Fetch results
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($results) {
+        // Output data for each row
+        echo "<table border='1'>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Total Sales</th>
+                    <th>Cost Per Unit</th>
+                    <th>Total Cost</th>
+                </tr>";
+        foreach ($results as $row) {
+            echo "<tr>
+                    <td>" . htmlspecialchars($row["product_id"]) . "</td>
+                    <td>" . htmlspecialchars($row["product_name"]) . "</td>
+                    <td>" . htmlspecialchars($row["total_sales"]) . "</td>
+                    <td>" . number_format($row["cost_per_unit"], 2) . "</td>
+                    <td>" . number_format($row["total_cost"], 2) . "</td>
+                  </tr>";
+        }
+        echo "</table>";
+    } else {
+        echo "0 results";
+    }
+
+    // SQL query to get the total number of products sold
+    $sql = "
+    SELECT
+        IFNULL(SUM(s.sales_qty), 0) AS total_products_sold
+    FROM sales s
+    ";
+
+    // Prepare and execute the query
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+
+    // Fetch results
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $total_products_sold = number_format($result["total_products_sold"]);
+    } else {
+        $total_products_sold = "0";
+    }
+
+    // SQL query to get the total sales and total cost
+    $sql = "
+    SELECT
+        IFNULL(SUM(s.sales_qty), 0) AS total_sales,
+        IFNULL(SUM(s.sales_qty) * (p.sales_price - p.cost_price), 0) AS total_cost
+    FROM products p
+    LEFT JOIN sales s ON p.product_id = s.product_id
+    ";
+
+    // Prepare and execute the query
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+
+    // Fetch results
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $total_sales = number_format($result["total_sales"], 2);
+        $total_cost = number_format($result["total_cost"], 2);
+    } else {
+        $total_sales = "0.00";
+        $total_cost = "0.00";
+    }
+} catch (PDOException $e) {
+    // Handle connection errors
+    echo "Error: " . $e->getMessage();
+    $total_sales = "0.00";
+    $total_cost = "0.00";
+}
+
 // Close the database connection
 $connection = null;
 ?>
@@ -138,15 +233,11 @@ $connection = null;
                           </a>
                           <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-category.html">
+                                          <a href="http://localhost/project/page-list-category.php">
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-category.html">
-                                              <i class="las la-minus"></i><span>Add Category</span>
-                                          </a>
-                                  </li>
+                                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -177,20 +268,20 @@ $connection = null;
                               <svg class="svg-icon" id="p-dash5" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                                   <line x1="1" y1="10" x2="23" y2="10"></line>
                               </svg>
-                              <span class="ml-4">Purchases</span>
+                              <span class="ml-4">Expenses</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-purchase.html">
-                                              <i class="las la-minus"></i><span>List Purchases</span>
+                                          <a href="http://localhost/project/backend/page-list-expense.php">
+                                              <i class="las la-minus"></i><span>List Expense</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-purchase.html">
-                                              <i class="las la-minus"></i><span>Add purchase</span>
+                                          <a href="http://localhost/project/page-add-expense.php">
+                                              <i class="las la-minus"></i><span>Add Expense</span>
                                           </a>
                                   </li>
                           </ul>
@@ -275,7 +366,7 @@ $connection = null;
               <nav class="navbar navbar-expand-lg navbar-light p-0">
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
-                      <a href="http://localhost/project/backend/index.html" class="header-logo">
+                      <a href="http://localhost/project/dashboard.php" class="header-logo">
                           <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">Sales Pilot</h5>
       
@@ -562,8 +653,8 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/1.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                        <p class="mb-2">Total Sales</p>
-                                        <h4>31.50</h4>
+                                    <p class="mb-2">Total Sales</p>
+                                    <h4><?php echo $total_sales; ?></h4>
                                     </div>
                                 </div>                                
                                 <div class="iq-progress-bar mt-2">
@@ -581,8 +672,8 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                        <p class="mb-2">Total Cost</p>
-                                        <h4>$ 4598</h4>
+                                    <p class="mb-2">Total Cost</p>
+                                    <h4><?php echo $total_cost; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
@@ -600,8 +691,8 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                        <p class="mb-2">Product Sold</p>
-                                        <h4>4589 M</h4>
+                                    <p class="mb-2">Product Sold</p>
+                                    <h4><?php echo $total_products_sold; ?> M</h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
