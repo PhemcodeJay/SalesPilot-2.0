@@ -1,5 +1,9 @@
 <?php
-// Start the session with the specified settings
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start the session with specified settings
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
@@ -8,12 +12,12 @@ session_start([
     'sid_length'      => 48,
 ]);
 
+echo "Session started.<br>";
+
 // Include database connection
 include('config.php');
 
-// Debugging: Output session data to verify
-// Remove this in production
-echo '<pre>' . print_r($_SESSION, true) . '</pre>';
+echo "Database connection included.<br>";
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
@@ -24,6 +28,7 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 try {
+    echo "Fetching user info.<br>";
     // Retrieve user information from the users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
@@ -41,6 +46,7 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
     // Fetch products from the database including their categories
+    echo "Fetching products.<br>";
     $fetch_products_query = "SELECT id, name, description, price, image_path, category, inventory_qty FROM products";
     $stmt = $connection->prepare($fetch_products_query);
     $stmt->execute();
@@ -50,6 +56,8 @@ try {
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
     exit;
 }
+
+echo "Handling POST request.<br>";
 
 // Handle POST requests for updating product information
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -88,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+echo "Fetching sales data.<br>";
+
 // SQL query to fetch sales and product data
 $sql = "
     SELECT 
@@ -112,6 +122,7 @@ try {
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
 }
 ?>
+
 
 
 
@@ -563,8 +574,8 @@ try {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1">JoanDuo@property.com</h5>
-                                                  <p class="mb-0">Since 10 march, 2020</p>
+                                              <h5 class="mb-1"><?php echo $email; ?></h5>
+                                              <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
                                                       <a href="auth-sign-in.html" class="btn border">Sign Out</a>
@@ -635,8 +646,7 @@ try {
                             </tr>
                         </thead>
                         <tbody class="ligth-body">
-                            <?php if ($result->num_rows > 0): ?>
-                                <?php while($row = $result->fetch_assoc()): ?>
+                            
                                     <tr>
                                         <td>
                                             <div class="checkbox d-inline-block">
@@ -657,19 +667,10 @@ try {
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7">No records found</td>
-                                </tr>
-                            <?php endif; ?>
+                               
                         </tbody>
                     </table>
-                    
-                    <?php
-                    // Close the connection
-                    $conn->close();
-                    ?>
+                
                     
                 </div>
             </div>
