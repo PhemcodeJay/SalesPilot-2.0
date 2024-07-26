@@ -287,15 +287,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-returns.html">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Inventory</span>
-                                          </a>
-                                  </li>
+                                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -590,7 +586,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                     <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                      <a href="auth-sign-in.html" class="btn border">Sign Out</a>
+                                                      <a href="loginpage.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>

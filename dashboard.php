@@ -207,15 +207,11 @@ $connection = null;
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-returns.html">
+                                          <a href="http://localhost/project/backend/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-return.html">
-                                              <i class="las la-minus"></i><span>Add Inventory</span>
-                                          </a>
-                                  </li>
+                              
                           </ul>
                       </li>
                       <li class=" ">
