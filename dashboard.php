@@ -7,19 +7,18 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // This file should set up the PDO connection as $connection
+include('config.php'); // Ensure this file sets up the $connection variable
 
-// Initialize variables
 $email = $date = $greeting = "N/A";
-$total_products_sold = $total_sales = $total_cost = "0";
+$total_products_sold = $total_sales = $total_cost = "0.00";
 
-// Check if the user is logged in
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    // Retrieve the username from the session
     $username = htmlspecialchars($_SESSION["username"]);
     
     try {
-        // Prepare a SQL statement to retrieve user details
         $stmt = $connection->prepare('SELECT email, date FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -28,10 +27,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $email = htmlspecialchars($user['email']);
             $date = date('d F, Y', strtotime($user['date']));
 
-            // Get the current hour
-            $current_hour = (int)date('H'); // 24-hour format (00 to 23)
+            $current_hour = (int)date('H');
 
-            // Determine the time of day and set the greeting
             if ($current_hour < 12) {
                 $time_of_day = "Morning";
             } elseif ($current_hour < 18) {
@@ -42,65 +39,67 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
-            // User not found, set default values
             $greeting = "Hello, Guest";
         }
     } catch (PDOException $e) {
-        // Handle database error
         exit("Database error: " . $e->getMessage());
     }
 } else {
-    // Default message for not logged in users
     $greeting = "Hello, Guest";
 }
 
 try {
-    // SQL query to get the total number of products sold
-    $sql = "
-    SELECT
-        IFNULL(SUM(s.sales_qty), 0) AS total_products_sold
-    FROM sales s
-    ";
-
-    // Prepare and execute the query
+    $sql = "SELECT IFNULL(SUM(sales_qty), 0) AS total_products_sold FROM sales";
     $stmt = $connection->prepare($sql);
     $stmt->execute();
-
-    // Fetch results
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total_products_sold = number_format($result["total_products_sold"]);
 
-    if ($result) {
-        $total_products_sold = number_format($result["total_products_sold"]);
-    }
-
-    // SQL query to get the total sales revenue and total cost
+    // Updated SQL query for total sales and total cost
     $sql = "
     SELECT
         IFNULL(SUM(s.sales_qty * p.price), 0) AS total_sales,
         IFNULL(SUM(s.sales_qty * (p.price - p.cost)), 0) AS total_cost
-    FROM products p
-    LEFT JOIN sales s ON p.id = s.product_id
+    FROM sales s
+    JOIN products p ON s.product_id = p.id
     ";
-
-    // Prepare and execute the query
     $stmt = $connection->prepare($sql);
     $stmt->execute();
-
-    // Fetch results
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total_sales = number_format($result["total_sales"], 2);
+    $total_cost = number_format($result["total_cost"], 2);
 
-    if ($result) {
-        $total_sales = number_format($result["total_sales"], 2);
-        $total_cost = number_format($result["total_cost"], 2);
-    }
 } catch (PDOException $e) {
-    // Handle connection errors
     echo "Error: " . $e->getMessage();
     $total_sales = "0.00";
     $total_cost = "0.00";
 }
 
-// Close the database connection
+$top_products = [];
+
+try {
+    $sql = "
+    SELECT
+        s.id,
+        s.name,
+        s.image_path,  -- Ensure this column exists in your sales table
+        IFNULL(SUM(s.sales_qty), 0) AS total_sold
+    FROM sales s
+    GROUP BY s.id, s.name, s.image_path
+    ORDER BY total_sold DESC
+    LIMIT 4
+    ";
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+    $top_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+   
+} catch (PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
+
+
+
 $connection = null;
 ?>
 
@@ -227,7 +226,7 @@ $connection = null;
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-expense.php">
+                                          <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expense</span>
                                           </a>
                                   </li>
@@ -605,7 +604,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/1.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Total Sales</p>
+                                    <p class="mb-2">Total Revenue</p>
                                     <h4>$<?php echo $total_sales; ?></h4>
                                     </div>
                                 </div>                                
@@ -643,7 +642,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Product Sold</p>
+                                    <p class="mb-2">Quantity Sold</p>
                                     <h4><?php echo $total_products_sold; ?></h4>
                                     </div>
                                 </div>
@@ -709,130 +708,89 @@ $connection = null;
                 </div>
             </div>
             <div class="col-lg-8">
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Top Products</h4>
-                        </div>
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton006">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
+            <div class="card card-block card-stretch card-height">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Top Products</h4>
+                    </div>
+                    <div class="card-header-toolbar d-flex align-items-center">
+                        <div class="dropdown">
+                            <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006" data-toggle="dropdown">
+                                This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                            </span>
+                            <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton006">
+                                <a class="dropdown-item" href="#">Year</a>
+                                <a class="dropdown-item" href="#">Month</a>
+                                <a class="dropdown-item" href="#">Week</a>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled row top-product mb-0">
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-warning-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/01.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Organic Cream</h5>
-                                            <p class="mb-0">789 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-danger-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Rain Umbrella</h5>
-                                            <p class="mb-0">657 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-info-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/03.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Serum Bottle</h5>
-                                            <p class="mb-0">489 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="col-lg-3">
-                                <div class="card card-block card-stretch card-height mb-0">
-                                    <div class="card-body">
-                                        <div class="bg-success-light rounded">
-                                            <img src="http://localhost/project/assets/images/product/02.png" class="style-img img-fluid m-auto p-3" alt="image">
-                                        </div>
-                                        <div class="style-text text-left mt-3">
-                                            <h5 class="mb-1">Organic Cream</h5>
-                                            <p class="mb-0">468 Item</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
+                </div>
+                <div class="card-body">
+    <ul class="list-unstyled row top-product mb-0">
+        <?php if (!empty($top_products)): ?>
+            <?php foreach ($top_products as $sales): ?>
+                <li class="col-lg-3">
+                    <div class="card card-block card-stretch card-height mb-0">
+                        <div class="card-body">
+                            <img src="<?php echo htmlspecialchars($sales['image_path']); ?>" class="style-img img-fluid m-auto p-3" alt="Product Image">
+                            <div class="style-text text-left mt-3">
+                                <h5 class="mb-1"><?php echo htmlspecialchars($sales['name']); ?></h5>
+                                <p class="mb-0"><?php echo number_format($sales['total_sold']) . ' Item'; ?></p>
+                            </div>
+                        </div>
                     </div>
+                </li>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <li class="col-lg-12">
+                <div class="card card-block card-stretch card-height mb-0">
+                    <div class="card-body text-center">
+                        <p>No products available.</p>
+                    </div>
+                </div>
+            </li>
+        <?php endif; ?>
+    </ul>
+</div>
+
+            </div>
+        </div>
+        <div class="col-lg-4">  
+    <div class="card card-transparent card-block card-stretch mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between p-0">
+            <div class="header-title">
+                <h4 class="card-title mb-0">Best Item All Time</h4>
+            </div>
+            <div class="card-header-toolbar d-flex align-items-center">
+                <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
+            </div>
+        </div>
+    </div>
+    <?php foreach ($top_products as $item) { ?>
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body card-item-right">
+            <div class="d-flex align-items-top">
+                <div class="bg-warning-light rounded">
+                    <img src="<?php echo $item['image_path']; ?>" class="style-img img-fluid m-auto" alt="image">
+                </div>
+                <div class="style-text text-left">
+                    <h5 class="mb-2"><?php echo $item['name']; ?></h5>
+                    <p class="mb-2">Total Sold : <?php echo number_format($item['total_sold']); ?></p>
+                    <!-- Assuming you have a column for total_earned, otherwise you can calculate or remove this part -->
+                    <!-- <p class="mb-0">Total Earned : $<?php echo number_format($item['total_earned'], 2); ?> M</p> -->
                 </div>
             </div>
-            <div class="col-lg-4">  
-                <div class="card card-transparent card-block card-stretch mb-4">
-                    <div class="card-header d-flex align-items-center justify-content-between p-0">
-                        <div class="header-title">
-                            <h4 class="card-title mb-0">Best Item All Time</h4>
-                        </div>
-                        <div class="card-header-toolbar d-flex align-items-center">
-                            <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body card-item-right">
-                        <div class="d-flex align-items-top">
-                            <div class="bg-warning-light rounded">
-                                <img src="http://localhost/project/assets/images/product/04.png" class="style-img img-fluid m-auto" alt="image">
-                            </div>
-                            <div class="style-text text-left">
-                                <h5 class="mb-2">Coffee Beans Packet</h5>
-                                <p class="mb-2">Total Sell : 45897</p>
-                                <p class="mb-0">Total Earned : $45,89 M</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body card-item-right">
-                        <div class="d-flex align-items-top">
-                            <div class="bg-danger-light rounded">
-                                <img src="http://localhost/project/assets/images/product/05.png" class="style-img img-fluid m-auto" alt="image">
-                            </div>
-                            <div class="style-text text-left">
-                                <h5 class="mb-2">Bottle Cup Set</h5>
-                                <p class="mb-2">Total Sell : 44359</p>
-                                <p class="mb-0">Total Earned : $45,50 M</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>            
+        </div>
+    </div>
+    <?php } ?>
+</div>
             <div class="col-lg-4">  
                 <div class="card card-block card-stretch card-height-helf">
                     <div class="card-body">
                         <div class="d-flex align-items-top justify-content-between">
                             <div class="">
-                                <p class="mb-0">Income</p>
+                                <p class="mb-0">Net Profit</p>
                                 <h5>$ 98,7800 K</h5>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">

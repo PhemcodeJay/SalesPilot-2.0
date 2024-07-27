@@ -16,6 +16,22 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
+// Retrieve user information from the users table
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$stmt = $connection->prepare($user_query);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user_info) {
+    throw new Exception("User not found.");
+}
+
+// Retrieve user email and registration date
+$email = htmlspecialchars($user_info['email']);
+$date = htmlspecialchars($user_info['date']);
+
+
 // Ensure this PHP script is accessed through a POST request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
@@ -28,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = htmlspecialchars(trim($_POST['description'])); // Description
         $amount = floatval($_POST['amount']); // Amount
         $expense_date = htmlspecialchars(trim($_POST['expense_date'])); // Expense Date
+        $created_by = htmlspecialchars(trim($_POST['created_by'])); // Description
 
         // SQL query for inserting into expenses table
         $insert_expense_query = "INSERT INTO expenses (description, amount, expense_date, created_by) 
@@ -561,11 +578,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Add Purchase</h4>
+                            <h4 class="card-title">Add Expense</h4>
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="page-add-purchase.php" data-toggle="validator">
+                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" data-toggle="validator">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
@@ -576,13 +593,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="description">Description *</label>
-                                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Description" required></textarea>
+                                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="Description" required></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="amount">Amount *</label>
                                         <input type="number" class="form-control" id="amount" name="amount" placeholder="Amount" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="created_by">Created_By *</label>
+                                        <textarea class="form-control" id="created_by" name="created_by" rows="1" placeholder="created_by" required></textarea>
                                     </div>
                                 </div>
                             </div>

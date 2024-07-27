@@ -207,11 +207,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-category.html">
-                                              <i class="las la-minus"></i><span>Add Category</span>
-                                          </a>
-                                  </li>
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -242,20 +238,20 @@ try {
                               <svg class="svg-icon" id="p-dash5" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                                   <line x1="1" y1="10" x2="23" y2="10"></line>
                               </svg>
-                              <span class="ml-4">Purchases</span>
+                              <span class="ml-4">Expenses</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-purchase.html">
-                                              <i class="las la-minus"></i><span>List Purchases</span>
+                                          <a href="http://localhost/project/page-list-expense.php">
+                                              <i class="las la-minus"></i><span>List Expense</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-purchase.html">
-                                              <i class="las la-minus"></i><span>Add purchase</span>
+                                          <a href="http://localhost/project/page-add-expense.php">
+                                              <i class="las la-minus"></i><span>Add Expense</span>
                                           </a>
                                   </li>
                           </ul>
@@ -273,7 +269,7 @@ try {
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="active">
                                           <a href="http://localhost/project/page-list-inventory.php">
-                                              <i class="las la-minus"></i><span>List Returns</span>
+                                              <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
                           </ul>

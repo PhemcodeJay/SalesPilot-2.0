@@ -129,11 +129,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-add-category.html">
-                                              <i class="las la-minus"></i><span>Add Category</span>
-                                          </a>
-                                  </li>
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -164,20 +160,20 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                               <svg class="svg-icon" id="p-dash5" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                                   <line x1="1" y1="10" x2="23" y2="10"></line>
                               </svg>
-                              <span class="ml-4">Purchases</span>
+                              <span class="ml-4">Expenses</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-purchase.html">
-                                              <i class="las la-minus"></i><span>List Purchases</span>
+                                          <a href="http://localhost/project/backend/page-list-expenses.php">
+                                              <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-purchase.html">
-                                              <i class="las la-minus"></i><span>Add purchase</span>
+                                          <a href="http://localhost/project/backend/page-add-expenses.php">
+                                              <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
                           </ul>
@@ -604,9 +600,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                                         <div class="quill-tool">
                                         </div>
                                     </div>
-                                    <div id="quill-toolbar1">
-                                        <p>Virtual Digital Marketing Course every week on Monday, Wednesday and Saturday.Virtual Digital Marketing Course every week on Monday</p>
-                                    </div>
+                                    
                                 </div>
                                 <div class="card-footer border-0">
                                     <div class="d-flex flex-wrap align-items-ceter justify-content-end">
@@ -636,7 +630,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">POS Dash</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">Sales Pilot</a>.
                         </div>
                     </div>
                 </div>
