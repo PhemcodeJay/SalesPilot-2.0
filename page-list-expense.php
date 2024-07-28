@@ -170,12 +170,12 @@ try {
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="active">
-                                          <a href="http://localhost/project/page-list-purchase.php">
+                                          <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-purchase.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
