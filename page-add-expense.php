@@ -9,32 +9,31 @@ session_start([
 
 include('config.php'); // Includes database connection
 
-// Check if username is set in session
-if (!isset($_SESSION["username"])) {
-    throw new Exception("No username found in session.");
-}
+try {
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
 
-$username = htmlspecialchars($_SESSION["username"]);
+    $username = htmlspecialchars($_SESSION["username"]);
 
-// Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = :username";
-$stmt = $connection->prepare($user_query);
-$stmt->bindParam(':username', $username);
-$stmt->execute();
-$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user_info) {
-    throw new Exception("User not found.");
-}
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
 
-// Retrieve user email and registration date
-$email = htmlspecialchars($user_info['email']);
-$date = htmlspecialchars($user_info['date']);
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
 
-
-// Ensure this PHP script is accessed through a POST request
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
+    // Ensure this PHP script is accessed through a POST request
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Check if the user is logged in
         if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             throw new Exception("User is not logged in.");
@@ -44,7 +43,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = htmlspecialchars(trim($_POST['description'])); // Description
         $amount = floatval($_POST['amount']); // Amount
         $expense_date = htmlspecialchars(trim($_POST['expense_date'])); // Expense Date
-        $created_by = htmlspecialchars(trim($_POST['created_by'])); // Description
+        $created_by = htmlspecialchars(trim($_POST['created_by'])); // Created By
+
+        if (empty($description) || empty($amount) || empty($expense_date) || empty($created_by)) {
+            throw new Exception("All form fields are required.");
+        }
 
         // SQL query for inserting into expenses table
         $insert_expense_query = "INSERT INTO expenses (description, amount, expense_date, created_by) 
@@ -55,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':amount', $amount);
         $stmt->bindParam(':expense_date', $expense_date);
-        $stmt->bindParam(':created_by', $username);
+        $stmt->bindParam(':created_by', $created_by);
         
         // Execute the statement and check for success
         if ($stmt->execute()) {
@@ -67,18 +70,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             error_log("Expense insertion failed: " . implode(" | ", $stmt->errorInfo()));
             throw new Exception("Expense insertion failed.");
         }
-    } catch (PDOException $e) {
-        // Handle database errors
-        error_log("PDO Error: " . $e->getMessage());
-        exit("Database Error: " . $e->getMessage());
-    } catch (Exception $e) {
-        // Handle other errors
-        error_log("Error: " . $e->getMessage());
-        exit("Error: " . $e->getMessage());
+    } else {
+        // Handle if the script is accessed directly or through another method
+        echo "Invalid request";
     }
-} else {
-    // Handle if the script is accessed directly or through another method
-    echo "Invalid request";
+} catch (PDOException $e) {
+    // Handle database errors
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    // Handle other errors
+    error_log("Error: " . $e->getMessage());
+    exit("Error: " . $e->getMessage());
 }
 ?>
 
@@ -582,36 +585,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" data-toggle="validator">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="expense_date">Expense Date *</label>
-                                        <input type="date" class="form-control" id="expense_date" name="expense_date" required />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="description">Description *</label>
-                                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="Description" required></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="amount">Amount *</label>
-                                        <input type="number" class="form-control" id="amount" name="amount" placeholder="Amount" required />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="created_by">Created_By *</label>
-                                        <textarea class="form-control" id="created_by" name="created_by" rows="1" placeholder="created_by" required></textarea>
-                                    </div>
+                    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" data-toggle="validator">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="expense_date">Expense Date *</label>
+                                    <input type="date" class="form-control" id="expense_date" name="expense_date" required />
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary mr-2">Add Expense</button>
-                            <button type="reset" class="btn btn-danger">Reset</button>
-                        </form>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="description">Description *</label>
+                                    <textarea class="form-control" id="description" name="description" rows="2" placeholder="Description" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="amount">Amount *</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" placeholder="Amount" required />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="created_by">Created By *</label>
+                                    <input type="text" class="form-control" id="created_by" name="created_by" placeholder="Created By" required />
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">Add Expense</button>
+                        <button type="reset" class="btn btn-danger">Reset</button>
+                    </form>
+
                         
                     </div>
                 </div>

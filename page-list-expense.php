@@ -31,10 +31,23 @@ try {
     // Retrieve user email and registration date
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
-    ?>
 
+    // Retrieve expenses from the expenses table
+    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
+    $stmt = $connection->prepare($expenses_query);
+    $stmt->execute();
+    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
+} catch (PDOException $e) {
+    // Handle database errors
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    // Handle other errors
+    error_log("Error: " . $e->getMessage());
+    exit("Error: " . $e->getMessage());
+}
+?>
 
 <!doctype html>
 <html lang="en">
@@ -537,69 +550,41 @@ try {
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-                    <thead class="bg-white text-uppercase">
-                        <tr class="ligth ligth-data">
-                            <th>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox1">
-                                    <label for="checkbox1" class="mb-0"></label>
-                                </div>
-                            </th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Created_By</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="ligth-body">
+            <thead class="bg-white text-uppercase">
+                <tr class="light light-data">
+                    
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Created By</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody class="light-body">
+                <?php if (!empty($expenses)): ?>
+                    <?php foreach ($expenses as $expense): ?>
                         <tr>
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox2">
-                                    <label for="checkbox2" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td>01 jan 2021</td>
-                            <td>Rent</td>
-                            <td>1000</td>
-                            <td>Dave</td>
+                            
+                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
+                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
+                            <td><?php echo htmlspecialchars($expense['amount']); ?></td>
+                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
                             <td>
                                 <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                        href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox3">
-                                    <label for="checkbox3" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td>05 jan 2021</td>
-                            <td>Salary</td>
-                            <td>2,000</td>
-                            <td>timmy</td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                        href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                    </tbody>
-                </table>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="6">No expenses found.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
                 </div>
             </div>
         </div>
