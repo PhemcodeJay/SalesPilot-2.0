@@ -17,7 +17,7 @@ try {
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the Staffs table
+    // Retrieve user information from the users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -32,11 +32,11 @@ try {
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
-    $stmt = $connection->prepare($expenses_query);
+    // Retrieve staff from the staff table
+    $staff_query = "SELECT staff_name, staff_email, staff_phone, position FROM staffs";
+    $stmt = $connection->prepare($staff_query);
     $stmt->execute();
-    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -49,12 +49,16 @@ try {
 }
 ?>
 
+
+
+
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>List Expenses</title>
+      <title>List Staff</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -128,11 +132,11 @@ try {
                           </a>
                           <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-category.php">
+                                          <a href="http://localhost/project/page-list-category.html">
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                               
+                                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -152,7 +156,7 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.php">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -169,7 +173,7 @@ try {
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="active">
+                                  <li class="">
                                           <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
@@ -197,7 +201,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  
+                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -217,27 +221,27 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/age-add-customers.php">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                  <li class="active">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-suppliers.html">
+                                          <a href="http://localhost/project/page-list-suppliers.php">
                                               <i class="las la-minus"></i><span>Suppliers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-supplier.html">
+                                          <a href="http://localhost/project/page-add-supplier.php">
                                               <i class="las la-minus"></i><span>Add Suppliers</span>
                                           </a>
                                   </li>
@@ -253,18 +257,19 @@ try {
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
                           <a href="http://localhost/project/table-data.html" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                              </svg>
-                              <span class="ml-4">Reports</span>
-                          </a>
+                            <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span class="ml-4">Reports</span>
+                        </a>
+                      
+                          </ul>
                       </li>
-                                    </nav>
+                  </ul>
+              </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                   <div class="card border-none">
-                      <div class="card-body p-0">
-                          
-                      </div>
+                      
                   </div>
               </div>
               <div class="p-3"></div>
@@ -361,7 +366,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3 border-bottom">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
+                                                                  src="http://localhost/project/assets/images/staff/01.jpg" alt="01">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -376,7 +381,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3 border-bottom">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
+                                                                  src="http://localhost/project/assets/images/staff/02.jpg" alt="02">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -391,7 +396,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
+                                                                  src="http://localhost/project/assets/images/staff/03.jpg" alt="03">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -436,7 +441,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3 border-bottom">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
+                                                                  src="http://localhost/project/assets/images/staff/01.jpg" alt="01">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -451,7 +456,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3 border-bottom">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
+                                                                  src="http://localhost/project/assets/images/staff/02.jpg" alt="02">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -466,7 +471,7 @@ try {
                                                       <div class="media align-items-center cust-card py-3">
                                                           <div class="">
                                                               <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
+                                                                  src="http://localhost/project/assets/images/staff/03.jpg" alt="03">
                                                           </div>
                                                           <div class="media-body ml-3">
                                                               <div class="d-flex align-items-center justify-content-between">
@@ -489,7 +494,7 @@ try {
                               <li class="nav-item nav-icon dropdown caption-content">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <img src="http://localhost/project/assets/images/user/1.png" class="img-fluid rounded" alt="user">
+                                      <img src="http://localhost/project/assets/images/staff/1.png" class="img-fluid rounded" alt="staff">
                                   </a>
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
@@ -497,15 +502,15 @@ try {
                                               <div class="media-body profile-detail text-center">
                                                   <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                       class="rounded-top img-fluid mb-4">
-                                                  <img src="http://localhost/project/assets/images/user/1.png" alt="profile-img"
+                                                  <img src="http://localhost/project/assets/images/staff/1.png" alt="profile-img"
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
                                                 <h5 class="mb-1"><?php echo $email; ?></h5>
                                                 <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
-                                                      <a href="http://localhost/project/user-profile-edit.html" class="btn border mr-2">Profile</a>
-                                                      <a href="logout.php" class="btn border">Sign Out</a>
+                                                      <a href="http://localhost/project/staff-profile-edit.html" class="btn border mr-2">Profile</a>
+                                                      <a href="loginpage.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
                                           </div>
@@ -546,51 +551,51 @@ try {
             <div class="col-lg-12">
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
-                        <h4 class="mb-3">Expense List</h4>
-                        <p class="mb-0">A expense dashboard enables purchasing manager to efficiently track, evaluate, <br>
-                        and optimize all acquisition processes within a company.</p>
+                        <h4 class="mb-3">Staffs List</h4>
+                        <p class="mb-0">A dashboard provides you an overview of staff list with access to the most important data,<br>
+                         functions and controls. </p>
                     </div>
-                    <a href="page-add-expense.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Expense</a>
+                    <a href="page-add-staff.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Staff</a>
                 </div>
             </div>
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-            <thead class="bg-white text-uppercase">
-                <tr class="light light-data">
-                    
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Created By</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody class="light-body">
-                <?php if (!empty($expenses)): ?>
-                    <?php foreach ($expenses as $expense): ?>
-                        <tr>
+                    <thead class="bg-white text-uppercase">
+                        <tr class="light light-data">
                             
-                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Position</th>
+                            <th>Action</th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6">No expenses found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody class="light-body">
+                        <?php if (!empty($staff)): ?>
+                            <?php foreach ($staff as $staff): ?>
+                                <tr>
+                                    
+                                    <td><?php echo htmlspecialchars($staff['staff_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['staff_email']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['staff_phone']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['position']); ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center list-action">
+                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">No staffs found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
                 </div>
             </div>
         </div>
@@ -609,10 +614,6 @@ try {
                         <div class="content edit-notes">
                             <div class="card card-transparent card-block card-stretch event-note mb-0">
                                 <div class="card-body px-0 bukmark">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
-                                        <div class="quill-tool">
-                                        </div>
-                                    </div>
                                     
                                 </div>
                                 <div class="card-footer border-0">

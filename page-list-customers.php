@@ -17,7 +17,7 @@ try {
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the Staffs table
+    // Retrieve user information from the users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -32,11 +32,11 @@ try {
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
-    $stmt = $connection->prepare($expenses_query);
+    // Retrieve customer from the customer table
+    $customer_query = "SELECT customer_name, customer_email, customer_phone, customer_location FROM customers";
+    $stmt = $connection->prepare($customer_query);
     $stmt->execute();
-    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $customer = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -49,12 +49,15 @@ try {
 }
 ?>
 
+
+
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>List Expenses</title>
+      <title>List Customers</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -132,7 +135,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                               
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -152,7 +155,7 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.php">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -169,9 +172,9 @@ try {
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="active">
+                                  <li class="">
                                           <a href="http://localhost/project/page-list-expense.php">
-                                              <i class="las la-minus"></i><span>List Expenses</span>
+                                              <i class="las la-minus"></i><span>List Expenses<pan>
                                           </a>
                                   </li>
                                   <li class="">
@@ -197,7 +200,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  
+                              
                           </ul>
                       </li>
                       <li class=" ">
@@ -211,33 +214,33 @@ try {
                               </svg>
                           </a>
                           <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
+                                  <li class="active">
                                           <a href="http://localhost/project/page-list-customers.php">
                                               <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/age-add-customers.php">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
-                                              <i class="las la-minus"></i><span>Staffs</span>
+                                          <a href="http://localhost/project/page-list-staffs.php">
+                                              <i class="las la-minus"></i><span>Staff</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-suppliers.html">
+                                          <a href="http://localhost/project/backend/page-list-suppliers.html">
                                               <i class="las la-minus"></i><span>Suppliers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-supplier.html">
+                                          <a href="http://localhost/project/backend/page-add-supplier.html">
                                               <i class="las la-minus"></i><span>Add Suppliers</span>
                                           </a>
                                   </li>
@@ -259,11 +262,12 @@ try {
                               <span class="ml-4">Reports</span>
                           </a>
                       </li>
-                                    </nav>
+                     </ul>
+              </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                   <div class="card border-none">
                       <div class="card-body p-0">
-                          
+                         
                       </div>
                   </div>
               </div>
@@ -546,51 +550,51 @@ try {
             <div class="col-lg-12">
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
-                        <h4 class="mb-3">Expense List</h4>
-                        <p class="mb-0">A expense dashboard enables purchasing manager to efficiently track, evaluate, <br>
-                        and optimize all acquisition processes within a company.</p>
+                        <h4 class="mb-3">Customers</h4>
+                        <p class="mb-0">A customer dashboard lets you easily gather and visualize customer data from optimizing <br>
+                         the customer experience, ensuring customer retention. </p>
                     </div>
-                    <a href="page-add-expense.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Expense</a>
+                    <a href="page-add-customers.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Customer</a>
                 </div>
             </div>
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-            <thead class="bg-white text-uppercase">
-                <tr class="light light-data">
-                    
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Created By</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody class="light-body">
-                <?php if (!empty($expenses)): ?>
-                    <?php foreach ($expenses as $expense): ?>
-                        <tr>
+                    <thead class="bg-white text-uppercase">
+                        <tr class="light light-data">
                             
-                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Action</th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6">No expenses found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody class="light-body">
+                        <?php if (!empty($customer)): ?>
+                            <?php foreach ($customer as $customer): ?>
+                                <tr>
+                                    
+                                    <td><?php echo htmlspecialchars($customer['customer_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($customer['customer_email']); ?></td>
+                                    <td><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
+                                    <td><?php echo htmlspecialchars($customer['customer_location']); ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center list-action">
+                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">No customers found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
                 </div>
             </div>
         </div>
@@ -609,9 +613,7 @@ try {
                         <div class="content edit-notes">
                             <div class="card card-transparent card-block card-stretch event-note mb-0">
                                 <div class="card-body px-0 bukmark">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
-                                        <div class="quill-tool">
-                                        </div>
+                                    
                                     </div>
                                     
                                 </div>

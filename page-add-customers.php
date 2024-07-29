@@ -17,7 +17,7 @@ try {
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the Staffs table
+    // Retrieve user information from the users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -32,12 +32,48 @@ try {
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
-    $stmt = $connection->prepare($expenses_query);
-    $stmt->execute();
-    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Ensure this PHP script is accessed through a POST request
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Check if the user is logged in
+        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            throw new Exception("User is not logged in.");
+        }
 
+        // Sanitize and validate form inputs
+        $customer_name = htmlspecialchars(trim($_POST['customer_name'])); // customer_name
+        $customer_email = floatval($_POST['customer_email']); // customer_email
+        $customer_phone = htmlspecialchars(trim($_POST['customer_phone'])); // Expense Date
+        $customer_location = htmlspecialchars(trim($_POST['customer_location'])); // Created By
+
+        if (empty($customer_name) || empty($customer_email) || empty($customer_phone) || empty($customer_location)) {
+            throw new Exception("All form fields are required.");
+        }
+
+        // SQL query for inserting into expenses table
+        $insert_expense_query = "INSERT INTO customers (customer_name, customer_email, customer_phone, customer_location) 
+                                 VALUES (:customer_name, :customer_email, :customer_phone, :customer_location)";
+        
+        // Prepare and execute statement
+        $stmt = $connection->prepare($insert_expense_query);
+        $stmt->bindParam(':customer_name', $customer_name);
+        $stmt->bindParam(':customer_email', $customer_email);
+        $stmt->bindParam(':customer_phone', $customer_phone);
+        $stmt->bindParam(':customer_location', $customer_location);
+        
+        // Execute the statement and check for success
+        if ($stmt->execute()) {
+            // Redirect back to listing page after insertion
+            header('Location: page-list-customers.php');
+            exit();
+        } else {
+            // Log the error if insertion failed
+            error_log("Expense insertion failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Expense insertion failed.");
+        }
+    } else {
+        // Handle if the script is accessed directly or through another method
+        echo "Invalid request";
+    }
 } catch (PDOException $e) {
     // Handle database errors
     error_log("PDO Error: " . $e->getMessage());
@@ -49,12 +85,15 @@ try {
 }
 ?>
 
+
+
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>List Expenses</title>
+      <title>Add Customer</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -132,7 +171,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                               
+                                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -152,7 +191,7 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.php">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -169,7 +208,7 @@ try {
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="active">
+                                  <li class="">
                                           <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
@@ -197,7 +236,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -216,18 +255,18 @@ try {
                                               <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
-                                  <li class="">
-                                          <a href="http://localhost/project/age-add-customers.php">
+                                  <li class="active">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -259,7 +298,9 @@ try {
                               <span class="ml-4">Reports</span>
                           </a>
                       </li>
-                                    </nav>
+                      
+                  </ul>
+              </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                   <div class="card border-none">
                       <div class="card-body p-0">
@@ -541,92 +582,56 @@ try {
               </div>
           </div>
       </div>      <div class="content-page">
-     <div class="container-fluid">
+     <div class="container-fluid add-form-list">
         <div class="row">
-            <div class="col-lg-12">
-                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                    <div>
-                        <h4 class="mb-3">Expense List</h4>
-                        <p class="mb-0">A expense dashboard enables purchasing manager to efficiently track, evaluate, <br>
-                        and optimize all acquisition processes within a company.</p>
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Add Customer</h4>
+                        </div>
                     </div>
-                    <a href="page-add-expense.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Expense</a>
-                </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="table-responsive rounded mb-3">
-                <table class="data-table table mb-0 tbl-server-info">
-            <thead class="bg-white text-uppercase">
-                <tr class="light light-data">
-                    
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Created By</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody class="light-body">
-                <?php if (!empty($expenses)): ?>
-                    <?php foreach ($expenses as $expense): ?>
-                        <tr>
-                            
-                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                    <div class="card-body">
+                        <form action="page-add-customers.php" data-toggle="validator">
+                            <div class="row"> 
+                                <div class="col-md-6">                      
+                                    <div class="form-group">
+                                        <label>Name *</label>
+                                        <input type="text" class="form-control" placeholder="Enter Name" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>    
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Email *</label>
+                                        <input type="text" class="form-control" placeholder="Enter Email" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div> 
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Phone Number *</label>
+                                        <input type="text" class="form-control" placeholder="Enter Phone Number" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div> 
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Location *</label>
+                                        <input type="text" class="form-control" placeholder="Enter Location" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6">No expenses found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                               
+                            </div>                            
+                            <button type="submit" class="btn btn-primary mr-2">Add Customer</button>
+                            <button type="reset" class="btn btn-danger">Reset</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Page end  -->
-    </div>
-    <!-- Modal Edit -->
-    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="popup text-left">
-                        <div class="media align-items-top justify-content-between">                            
-                            <h3 class="mb-3">Product</h3>
-                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
-                        </div>
-                        <div class="content edit-notes">
-                            <div class="card card-transparent card-block card-stretch event-note mb-0">
-                                <div class="card-body px-0 bukmark">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
-                                        <div class="quill-tool">
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-                                <div class="card-footer border-0">
-                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
-                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
-                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
       </div>
     </div>

@@ -268,46 +268,52 @@ $connection = null;
                           </a>
                           <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-customers.html">
+                                          <a href="http://localhost/project/page-list-customers.php">
                                               <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-customers.html">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-users.html">
-                                              <i class="las la-minus"></i><span>Users</span>
+                                          <a href="http://localhost/project/page-list-staffs.php">
+                                              <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-users.html">
-                                              <i class="las la-minus"></i><span>Add Users</span>
+                                          <a href="http://localhost/project/page-add-staffs.php">
+                                              <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-suppliers.html">
+                                          <a href="http://localhost/project/page-list-suppliers.html">
                                               <i class="las la-minus"></i><span>Suppliers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-supplier.html">
+                                          <a href="http://localhost/project/page-add-supplier.html">
                                               <i class="las la-minus"></i><span>Add Suppliers</span>
                                           </a>
                                   </li>
                           </ul>
                       </li>
                       <li class="">
-                          <a href="http://localhost/project/backend/page-report.html" class="">
+                          <a href="http://localhost/project/analytics.html" class="">
+                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                              </svg>
+                              <span class="ml-4">Analytics</span>
+                          </a>
+                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          </ul>
+                          <a href="http://localhost/project/table-data.html" class="">
                               <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
                               </svg>
                               <span class="ml-4">Reports</span>
                           </a>
-                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                          </ul>
                       </li>
                           
               <div class="p-3"></div>
@@ -319,7 +325,7 @@ $connection = null;
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="http://localhost/project/dashboard.php" class="header-logo">
                           <img src="http://localhost/project/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
-                          <h5 class="logo-title ml-3">Sales Pilot</h5>
+                          <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>
                   </div>
@@ -547,7 +553,7 @@ $connection = null;
                                                   <h5 class="mb-1"><?php echo $email; ?></h5>
                                                   <p class="mb-0">Since<?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
-                                                      <a href="http://localhost/project/app/user-profile.html" class="btn border mr-2">Profile</a>
+                                                      <a href="http://localhost/project/user-profile-edit.html" class="btn border mr-2">Profile</a>
                                                       <a href="logout.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
@@ -910,12 +916,12 @@ $connection = null;
                     <div class="row">
                         <div class="col-lg-6">
                             <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost/project/backend/privacy-policy.html">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost/project/backend/terms-of-service.html">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.html">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.html">Terms of Use</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="#" class="">Sales Pilot</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost/project/dashboard.php" class="">SalesPilot</a>.
                         </div>
                     </div>
                 </div>

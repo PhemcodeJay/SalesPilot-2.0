@@ -1,60 +1,11 @@
-<?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
 
-include('config.php'); // Includes database connection
-
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the Staffs table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-
-    // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
-    $stmt = $connection->prepare($expenses_query);
-    $stmt->execute();
-    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-    // Handle database errors
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle other errors
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
-}
-?>
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>List Expenses</title>
+      <title>Invoice</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -132,7 +83,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                               
+                             
                           </ul>
                       </li>
                       <li class=" ">
@@ -152,7 +103,7 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-sale.php">
+                                          <a href="http://localhost/project/page-add-sale.php">
                                               <i class="las la-minus"></i><span>Add Sale</span>
                                           </a>
                                   </li>
@@ -169,13 +120,13 @@ try {
                               </svg>
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="active">
-                                          <a href="http://localhost/project/page-list-expense.php">
+                                  <li class="">
+                                          <a href="http://localhost/project/backend/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-expense.php">
+                                          <a href="http://localhost/project/backend/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -193,11 +144,11 @@ try {
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-inventory.php">
+                                          <a href="http://localhost/project/backend/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                                  
+                              
                           </ul>
                       </li>
                       <li class=" ">
@@ -217,17 +168,17 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/age-add-customers.php">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -253,13 +204,17 @@ try {
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
                           <a href="http://localhost/project/table-data.html" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                              </svg>
-                              <span class="ml-4">Reports</span>
-                          </a>
+                            <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span class="ml-4">Reports</span>
+                        </a>
                       </li>
-                                    </nav>
+                      
+                          </ul>
+                      </li>
+                  </ul>
+              </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                   <div class="card border-none">
                       <div class="card-body p-0">
@@ -541,93 +496,179 @@ try {
               </div>
           </div>
       </div>      <div class="content-page">
-     <div class="container-fluid">
-        <div class="row">
+      <div class="container-fluid">
+         <div class="row">                  
             <div class="col-lg-12">
-                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                    <div>
-                        <h4 class="mb-3">Expense List</h4>
-                        <p class="mb-0">A expense dashboard enables purchasing manager to efficiently track, evaluate, <br>
-                        and optimize all acquisition processes within a company.</p>
-                    </div>
-                    <a href="page-add-expense.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Expense</a>
-                </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="table-responsive rounded mb-3">
-                <table class="data-table table mb-0 tbl-server-info">
-            <thead class="bg-white text-uppercase">
-                <tr class="light light-data">
-                    
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Created By</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody class="light-body">
-                <?php if (!empty($expenses)): ?>
-                    <?php foreach ($expenses as $expense): ?>
-                        <tr>
-                            
-                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6">No expenses found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-                </div>
-            </div>
-        </div>
-        <!-- Page end  -->
-    </div>
-    <!-- Modal Edit -->
-    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="popup text-left">
-                        <div class="media align-items-top justify-content-between">                            
-                            <h3 class="mb-3">Product</h3>
-                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
+               <div class="card card-block card-stretch card-height print rounded">
+                  <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                        <div class="iq-header-title">
+                           <h4 class="card-title mb-0">Invoice#1234567</h4>
                         </div>
-                        <div class="content edit-notes">
-                            <div class="card card-transparent card-block card-stretch event-note mb-0">
-                                <div class="card-body px-0 bukmark">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">                                                    
-                                        <div class="quill-tool">
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-                                <div class="card-footer border-0">
-                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
-                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
-                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="invoice-btn">
+                           <button type="button" class="btn btn-primary-dark mr-2"><i class="las la-print"></i> Print
+                              Print</button>
+                           <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i>PDF</button>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                  </div>
+                  <div class="card-body">
+                        <div class="row">
+                           <div class="col-sm-12">                                  
+                              <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
+                              <h5 class="mb-0">Hello, Barry Techs</h5>
+                              <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at
+                                    its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as
+                                    opposed to using 'Content here, content here', making it look like readable English.</p>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-lg-12">
+                              <div class="table-responsive-sm">
+                                    <table class="table">
+                                       <thead>
+                                          <tr>
+                                                <th scope="col">Order Date</th>
+                                                <th scope="col">Order Status</th>
+                                                <th scope="col">Order ID</th>
+                                                <th scope="col">Billing Address</th>
+                                                <th scope="col">Shipping Address</th>
+                                          </tr>
+                                       </thead>
+                                       <tbody>
+                                          <tr>
+                                                <td>Jan 17, 2016</td>
+                                                <td><span class="badge badge-danger">Unpaid</span></td>
+                                                <td>250028</td>
+                                                <td>
+                                                   <p class="mb-0">PO Box 16122 Collins Street West<br>Victoria 8007 Australia<br>
+                                                      Phone: +123 456 7890<br>
+                                                      Email: demo@example.com<br>
+                                                      Web: www.example.com
+                                                   </p>
+                                                </td>
+                                                <td>
+                                                   <p class="mb-0">PO Box 16122 Collins Street West<br>Victoria 8007 Australia<br>
+                                                      Phone: +123 456 7890<br>
+                                                      Email: demo@example.com<br>
+                                                      Web: www.example.com
+                                                   </p>
+                                                </td>
+                                          </tr>
+                                       </tbody>
+                                    </table>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-12">
+                              <h5 class="mb-3">Order Summary</h5>
+                              <div class="table-responsive-sm">
+                                    <table class="table">
+                                       <thead>
+                                          <tr>
+                                                <th class="text-center" scope="col">#</th>
+                                                <th scope="col">Item</th>
+                                                <th class="text-center" scope="col">Quantity</th>
+                                                <th class="text-center" scope="col">Price</th>
+                                                <th class="text-center" scope="col">Totals</th>
+                                          </tr>
+                                       </thead>
+                                       <tbody>
+                                          <tr>
+                                                <th class="text-center" scope="row">1</th>
+                                                <td>
+                                                   <h6 class="mb-0">Web Design</h6>
+                                                   <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                                                   </p>
+                                                </td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">$120.00</td>
+                                                <td class="text-center"><b>$2,880.00</b></td>
+                                          </tr>
+                                          <tr>
+                                                <th class="text-center" scope="row">2</th>
+                                                <td>
+                                                   <h6 class="mb-0">Web Design</h6>
+                                                   <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                                                   </p>
+                                                </td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">$120.00</td>
+                                                <td class="text-center"><b>$2,880.00</b></td>
+                                          </tr>
+                                          <tr>
+                                                <th class="text-center" scope="row">3</th>
+                                                <td>
+                                                   <h6 class="mb-0">Web Design</h6>
+                                                   <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                                                   </p>
+                                                </td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">$120.00</td>
+                                                <td class="text-center"><b>$2,880.00</b></td>
+                                          </tr>
+                                          <tr>
+                                                <th class="text-center" scope="row">4</th>
+                                                <td>
+                                                   <h6 class="mb-0">Web Design</h6>
+                                                   <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                                                   </p>
+                                                </td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">$120.00</td>
+                                                <td class="text-center"><b>$2,880.00</b></td>
+                                          </tr>
+                                       </tbody>
+                                    </table>
+                              </div>
+                           </div>                              
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-12">
+                              <b class="text-danger">Notes:</b>
+                              <p class="mb-0">It is a long established fact that a reader will be distracted by the readable content of a page
+                                    when looking
+                                    at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters,
+                                    as opposed to using 'Content here, content here', making it look like readable English.</p>
+                           </div>
+                        </div>
+                        <div class="row mt-4 mb-3">
+                           <div class="offset-lg-8 col-lg-4">
+                              <div class="or-detail rounded">
+                                    <div class="p-3">
+                                       <h5 class="mb-3">Order Details</h5>
+                                       <div class="mb-2">
+                                          <h6>Bank</h6>
+                                          <p>Threadneedle St</p>
+                                       </div>
+                                       <div class="mb-2">
+                                          <h6>Acc. No</h6>
+                                          <p>12333456789</p>
+                                       </div>
+                                       <div class="mb-2">
+                                          <h6>Due Date</h6>
+                                          <p>12 August 2020</p>
+                                       </div>
+                                       <div class="mb-2">
+                                          <h6>Sub Total</h6>
+                                          <p>$4597.50</p>
+                                       </div>
+                                       <div>
+                                          <h6>Discount</h6>
+                                          <p>10%</p>
+                                       </div>
+                                    </div>
+                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                       <h6>Total</h6>
+                                       <h3 class="text-primary font-weight-700">$4137.75</h3>
+                                    </div>
+                              </div>
+                           </div>
+                        </div>                            
+                  </div>
+               </div>
+            </div>                                    
+         </div>
+      </div>
       </div>
     </div>
     <!-- Wrapper End-->
