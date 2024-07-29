@@ -1,4 +1,84 @@
+<?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
 
+include('config.php'); // Includes database connection
+
+try {
+    // Ensure this PHP script is accessed through a POST request
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Check if the user is logged in
+        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            throw new Exception("User is not logged in.");
+        }
+
+        // Sanitize and validate form inputs
+        $supplier_name = htmlspecialchars(trim($_POST['supplier_name']));
+        $product_name = htmlspecialchars(trim($_POST['product_name']));
+        $supplier_email = htmlspecialchars(trim($_POST['supplier_email']));
+        $supplier_phone = htmlspecialchars(trim($_POST['supplier_phone']));
+        $supplier_location = htmlspecialchars(trim($_POST['supplier_location']));
+        $note = htmlspecialchars(trim($_POST['note']));
+        $supply_qty = intval($_POST['supply_qty']);
+
+        if (empty($supplier_name) || empty($product_name) || empty($supply_qty)) {
+            throw new Exception("Supplier name, product name, and supply quantity are required.");
+        }
+
+        // Insert new supplier
+        $insert_supplier_query = "INSERT INTO suppliers (supplier_name, product_name, supplier_email, supplier_phone, supplier_location, note, supply_qty) 
+                                  VALUES (:supplier_name, :product_name, :supplier_email, :supplier_phone, :supplier_location, :note, :supply_qty)";
+        
+        $stmt = $connection->prepare($insert_supplier_query);
+        $stmt->bindParam(':supplier_name', $supplier_name);
+        $stmt->bindParam(':product_name', $product_name);
+        $stmt->bindParam(':supplier_email', $supplier_email);
+        $stmt->bindParam(':supplier_phone', $supplier_phone);
+        $stmt->bindParam(':supplier_location', $supplier_location);
+        $stmt->bindParam(':note', $note);
+        $stmt->bindParam(':supply_qty', $supply_qty);
+        
+        // Execute the statement and check for success
+        if ($stmt->execute()) {
+            // Redirect back to listing page after insertion
+            header('Location: page-list-suppliers.php');
+            exit();
+        } else {
+            // Log the error if insertion failed
+            error_log("Supplier insertion failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Supplier insertion failed.");
+        }
+    } else {
+        // Handle if the script is accessed directly or through another method
+        echo "Invalid request";
+    }
+} catch (PDOException $e) {
+    // Handle database errors
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    // Handle other errors
+    error_log("Error: " . $e->getMessage());
+    exit("Error: " . $e->getMessage());
+}
+
+// Fetch supplier data from the database
+try {
+    $query = "SELECT * FROM suppliers";
+    $stmt = $connection->prepare($query);
+    $stmt->execute();
+    $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
+
+?>
 
 
 <!doctype html>
@@ -506,85 +586,57 @@
                         <p class="mb-0">Create and manage your vendor list, send and receive purchase orders – your online<br>
                          Dashboard is your new back of house.</p>
                     </div>
-                    <a href="page-add-supplier.html" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Supplier</a>
+                    <a href="page-add-supplier.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Supplier</a>
                 </div>
             </div>
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
-                <table class="data-table table mb-0 tbl-server-info">
-                    <thead class="bg-white text-uppercase">
-                        <tr class="ligth ligth-data">
-                            <th>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox1">
-                                    <label for="checkbox1" class="mb-0"></label>
-                                </div>
-                            </th>
-                            <th>Supplier Name</th>
-                            <th>Product Name</th>
-                            <th>Email</th>
-                            <th>Phone No.</th>
-                            <th>Location</th>
-                            <th>Note</th>
-                            <th>Supply Qty</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="ligth-body">
-                        <tr>
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox2">
-                                    <label for="checkbox2" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td>Fruits Supply</td>
-                            <td>Max Conversion</td>
-                            <td>max@gmail.com</td>
-                            <td>0123456789</td>
-                            <td>Petaling</td>
-                            <td>USA</td>
-                            <td>1234</td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                        href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox3">
-                                    <label for="checkbox3" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td>Footwear Supply</td>
-                            <td>Paige Turner</td>
-                            <td>paige@gmail.com</td>
-                            <td>0125856789</td>
-                            <td>Orlando</td>
-                            <td>USA</td>
-                            <td>1235</td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                        href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        </tr>
-                    </tbody>
-                </table>
+                    <table class="data-table table mb-0 tbl-server-info">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>
+                                    <div class="checkbox d-inline-block">
+                                        <input type="checkbox" class="checkbox-input" id="checkbox1">
+                                        <label for="checkbox1" class="mb-0"></label>
+                                    </div>
+                                </th>
+                                <th>Supplier Name</th>
+                                <th>Product Name</th>
+                                <th>Email</th>
+                                <th>Phone No.</th>
+                                <th>Location</th>
+                                <th>Note</th>
+                                <th>Supply Qty</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="ligth-body">
+                            <?php foreach ($suppliers as $supplier): ?>
+                                <tr>
+                                    <td>
+                                        <div class="checkbox d-inline-block">
+                                            <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $supplier['id']; ?>">
+                                            <label for="checkbox<?php echo $supplier['id']; ?>" class="mb-0"></label>
+                                        </div>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['product_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['supplier_location']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['note']); ?></td>
+                                    <td><?php echo htmlspecialchars($supplier['supply_qty']); ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center list-action">
+                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
