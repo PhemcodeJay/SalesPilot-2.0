@@ -40,21 +40,36 @@ try {
         }
 
         // Sanitize and validate form inputs
-        $staff_name = htmlspecialchars(trim($_POST['staff_name'])); // staff_name
-        $staff_email = floatval($_POST['staff_email']); // staff_email
-        $staff_phone = htmlspecialchars(trim($_POST['staff_phone'])); // Expense Date
-        $position = htmlspecialchars(trim($_POST['position'])); // Created By
+        $staff_name = htmlspecialchars(trim($_POST['staff_name']));
+        $staff_email = htmlspecialchars(trim($_POST['staff_email']));
+        $staff_phone = htmlspecialchars(trim($_POST['staff_phone']));
+        $position = htmlspecialchars(trim($_POST['position']));
 
         if (empty($staff_name) || empty($staff_email) || empty($staff_phone) || empty($position)) {
             throw new Exception("All form fields are required.");
         }
 
-        // SQL query for inserting into staffs table
-        $insert_expense_query = "INSERT INTO staffs (staff_name, staff_email, staff_phone, position) 
-                                 VALUES (:staff_name, :staff_email, :staff_phone, :position)";
-        
-        // Prepare and execute statement
-        $stmt = $connection->prepare($insert_expense_query);
+        // Check if customer exists by name
+        $check_customer_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
+        $stmt = $connection->prepare($check_customer_query);
+        $stmt->bindParam(':staff_name', $staff_name);
+        $stmt->execute();
+        $existing_customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing_customer) {
+            // Update existing customer
+            $update_customer_query = "UPDATE staffs 
+                                      SET staff_email = :staff_email, staff_phone = :staff_phone, position = :position 
+                                      WHERE staff_name = :staff_name";
+            $stmt = $connection->prepare($update_customer_query);
+        } else {
+            // Insert new customer
+            $insert_customer_query = "INSERT INTO staffs (staff_name, staff_email, staff_phone, position) 
+                                      VALUES (:staff_name, :staff_email, :staff_phone, :position)";
+            $stmt = $connection->prepare($insert_customer_query);
+        }
+
+        // Bind parameters
         $stmt->bindParam(':staff_name', $staff_name);
         $stmt->bindParam(':staff_email', $staff_email);
         $stmt->bindParam(':staff_phone', $staff_phone);
@@ -62,13 +77,13 @@ try {
         
         // Execute the statement and check for success
         if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
+            // Redirect back to listing page after insertion/update
             header('Location: page-list-staffs.php');
             exit();
         } else {
-            // Log the error if insertion failed
-            error_log("Expense insertion failed: " . implode(" | ", $stmt->errorInfo()));
-            throw new Exception("Expense insertion failed.");
+            // Log the error if insertion/update failed
+            error_log("Staff insertion/update failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Staff insertion/update failed.");
         }
     } else {
         // Handle if the script is accessed directly or through another method
@@ -84,7 +99,6 @@ try {
     exit("Error: " . $e->getMessage());
 }
 ?>
-
 
 
 <!doctype html>
@@ -591,48 +605,40 @@ try {
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="page-add-staff.php" data-toggle="validator">
-                            <div class="row"> 
-                                <div class="col-md-6">                      
-                                    <div class="form-group">
-                                        <label>Name *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>    
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Phone Number *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Phone No" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Email *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Email" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Position</label>
-                                        <select name="position" class="selectpicker form-control" data-style="py-0">
-                                            <option>Manager</option>
-                                            <option>Sales</option>
-                                        </select>
-                                    </div>
+                    <form action="page-add-staffs.php" method="POST" data-toggle="validator">
+                        <div class="row"> 
+                            <div class="col-md-6">                      
+                                <div class="form-group">
+                                    <label>Name *</label>
+                                    <input type="text" class="form-control" name="staff_name" placeholder="Enter Name" required>
+                                    <div class="help-block with-errors"></div>
                                 </div>
-                                <div class="col-md-12">
-                                   <div class="checkbox d-inline-block mb-3">
-                                        <input type="checkbox" class="checkbox-input mr-2" id="checkbox1" checked="">
-                                        <label for="checkbox1">Notify User by Email</label>
-                                    </div>
-                                </div>                               
-                            </div>                            
-                            <button type="submit" class="btn btn-primary mr-2">Add staff</button>
-                            <button type="reset" class="btn btn-danger">Reset</button>
-                        </form>
+                            </div>    
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Email *</label>
+                                    <input type="email" class="form-control" name="staff_email" placeholder="Enter Email" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div> 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Phone Number *</label>
+                                    <input type="text" class="form-control" name="staff_phone" placeholder="Enter Phone Number" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div> 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Position *</label>
+                                    <input type="text" class="form-control" name="position" placeholder="Enter Position" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>                            
+                        <button type="submit" class="btn btn-primary mr-2">Add Customer</button>
+                        <button type="reset" class="btn btn-danger">Reset</button>
+                    </form>
                     </div>
                 </div>
             </div>

@@ -555,7 +555,7 @@ try {
                         <p class="mb-0">A dashboard provides you an overview of staff list with access to the most important data,<br>
                          functions and controls. </p>
                     </div>
-                    <a href="page-add-staff.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Staff</a>
+                    <a href="page-add-staffs.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Staff</a>
                 </div>
             </div>
             <div class="col-lg-12">

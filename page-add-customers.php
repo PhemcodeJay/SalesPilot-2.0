@@ -40,21 +40,36 @@ try {
         }
 
         // Sanitize and validate form inputs
-        $customer_name = htmlspecialchars(trim($_POST['customer_name'])); // customer_name
-        $customer_email = floatval($_POST['customer_email']); // customer_email
-        $customer_phone = htmlspecialchars(trim($_POST['customer_phone'])); // Expense Date
-        $customer_location = htmlspecialchars(trim($_POST['customer_location'])); // Created By
+        $customer_name = htmlspecialchars(trim($_POST['customer_name']));
+        $customer_email = htmlspecialchars(trim($_POST['customer_email']));
+        $customer_phone = htmlspecialchars(trim($_POST['customer_phone']));
+        $customer_location = htmlspecialchars(trim($_POST['customer_location']));
 
         if (empty($customer_name) || empty($customer_email) || empty($customer_phone) || empty($customer_location)) {
             throw new Exception("All form fields are required.");
         }
 
-        // SQL query for inserting into expenses table
-        $insert_expense_query = "INSERT INTO customers (customer_name, customer_email, customer_phone, customer_location) 
-                                 VALUES (:customer_name, :customer_email, :customer_phone, :customer_location)";
-        
-        // Prepare and execute statement
-        $stmt = $connection->prepare($insert_expense_query);
+        // Check if customer exists by name
+        $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
+        $stmt = $connection->prepare($check_customer_query);
+        $stmt->bindParam(':customer_name', $customer_name);
+        $stmt->execute();
+        $existing_customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing_customer) {
+            // Update existing customer
+            $update_customer_query = "UPDATE customers 
+                                      SET customer_email = :customer_email, customer_phone = :customer_phone, customer_location = :customer_location 
+                                      WHERE customer_name = :customer_name";
+            $stmt = $connection->prepare($update_customer_query);
+        } else {
+            // Insert new customer
+            $insert_customer_query = "INSERT INTO customers (customer_name, customer_email, customer_phone, customer_location) 
+                                      VALUES (:customer_name, :customer_email, :customer_phone, :customer_location)";
+            $stmt = $connection->prepare($insert_customer_query);
+        }
+
+        // Bind parameters
         $stmt->bindParam(':customer_name', $customer_name);
         $stmt->bindParam(':customer_email', $customer_email);
         $stmt->bindParam(':customer_phone', $customer_phone);
@@ -62,13 +77,13 @@ try {
         
         // Execute the statement and check for success
         if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
+            // Redirect back to listing page after insertion/update
             header('Location: page-list-customers.php');
             exit();
         } else {
-            // Log the error if insertion failed
-            error_log("Expense insertion failed: " . implode(" | ", $stmt->errorInfo()));
-            throw new Exception("Expense insertion failed.");
+            // Log the error if insertion/update failed
+            error_log("Customer insertion/update failed: " . implode(" | ", $stmt->errorInfo()));
+            throw new Exception("Customer insertion/update failed.");
         }
     } else {
         // Handle if the script is accessed directly or through another method
@@ -592,41 +607,41 @@ try {
                         </div>
                     </div>
                     <div class="card-body">
-                        <form action="page-add-customers.php" data-toggle="validator">
-                            <div class="row"> 
-                                <div class="col-md-6">                      
-                                    <div class="form-group">
-                                        <label>Name *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Name" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>    
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Email *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Email" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Phone Number *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Phone Number" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Location *</label>
-                                        <input type="text" class="form-control" placeholder="Enter Location" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                                        <form action="page-add-customers.php" method="POST" data-toggle="validator">
+                        <div class="row"> 
+                            <div class="col-md-6">                      
+                                <div class="form-group">
+                                    <label>Name *</label>
+                                    <input type="text" class="form-control" name="customer_name" placeholder="Enter Name" required>
+                                    <div class="help-block with-errors"></div>
                                 </div>
-                               
-                            </div>                            
-                            <button type="submit" class="btn btn-primary mr-2">Add Customer</button>
-                            <button type="reset" class="btn btn-danger">Reset</button>
-                        </form>
+                            </div>    
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Email *</label>
+                                    <input type="email" class="form-control" name="customer_email" placeholder="Enter Email" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div> 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Phone Number *</label>
+                                    <input type="text" class="form-control" name="customer_phone" placeholder="Enter Phone Number" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div> 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Location *</label>
+                                    <input type="text" class="form-control" name="customer_location" placeholder="Enter Location" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>                            
+                        <button type="submit" class="btn btn-primary mr-2">Add Customer</button>
+                        <button type="reset" class="btn btn-danger">Reset</button>
+                    </form>
+
                     </div>
                 </div>
             </div>
