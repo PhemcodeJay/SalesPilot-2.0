@@ -1,7 +1,120 @@
+<?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
+include('config.php'); // Includes database connection
+
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    exit("Error: No username found in session.");
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$stmt = $connection->prepare($user_query);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user_info) {
+    exit("Error: User not found.");
+}
+
+// Retrieve user email and registration date
+$email = htmlspecialchars($user_info['email']);
+$date = htmlspecialchars($user_info['date']);
+
+// Calculate metrics
+$total_sales_query = "
+    SELECT 
+        SUM(sales.sales_qty * products.price) AS total_sales,
+        SUM(sales.sales_qty) AS total_quantity,
+        SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
+        SUM(sales.sales_qty * products.cost) AS total_expenses
+    FROM sales
+    INNER JOIN products ON sales.product_id = products.id";
+$stmt = $connection->query($total_sales_query);
+$sales_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$total_sales = $sales_data['total_sales'];
+$total_quantity = $sales_data['total_quantity'];
+$total_profit = $sales_data['total_profit'];
+$total_expenses = $sales_data['total_expenses'];
+$net_profit = $total_profit; // Assuming net profit is the same as total profit for simplicity
+
+// Calculate revenue and profit margin
+$revenue = $total_sales;
+$profit_margin = ($revenue > 0) ? ($total_profit / $revenue) * 100 : 0;
+
+$revenue_by_product_query = "
+    SELECT product_id, SUM(sales_qty * products.price) AS revenue
+    FROM sales
+    INNER JOIN products ON sales.product_id = products.id
+    GROUP BY product_id";
+$stmt = $connection->query($revenue_by_product_query);
+$revenue_by_product_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Placeholder values for simplified metrics
+$year_over_year_growth = 0.00;
+$cost_of_selling = $total_expenses;
+
+// Insert calculated metrics into reports table
+$insert_query = "
+    INSERT INTO reports (
+        report_date, total_sales, total_quantity, total_profit, 
+        total_expenses, net_profit, revenue, profit_margin, 
+        revenue_by_product, year_over_year_growth, cost_of_selling
+    ) VALUES (
+        CURDATE(), :total_sales, :total_quantity, :total_profit, 
+        :total_expenses, :net_profit, :revenue, :profit_margin, 
+        :revenue_by_product, :year_over_year_growth, :cost_of_selling
+    )";
+$stmt = $connection->prepare($insert_query);
+$stmt->execute([
+    ':total_sales' => $total_sales,
+    ':total_quantity' => $total_quantity,
+    ':total_profit' => $total_profit,
+    ':total_expenses' => $total_expenses,
+    ':net_profit' => $net_profit,
+    ':revenue' => $revenue,
+    ':profit_margin' => $profit_margin,
+    ':revenue_by_product' => json_encode($revenue_by_product_data), // JSON encoding for multiple rows
+    ':year_over_year_growth' => $year_over_year_growth,
+    ':cost_of_selling' => $cost_of_selling
+]);
+
+echo "Sales analytics data has been inserted successfully.";
+
+// Fetch the most recent metrics data from the reports table
+$metrics_query = "
+    SELECT 
+        total_sales, total_quantity, total_profit, total_expenses, 
+        net_profit, revenue, profit_margin, revenue_by_product, 
+        year_over_year_growth, cost_of_selling, created_at 
+    FROM reports 
+    ORDER BY created_at DESC 
+    LIMIT 1";
+$stmt = $connection->query($metrics_query);
+$metrics_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$metrics_data) {
+    exit("Error: No metrics data found.");
+}
+
+// Output or process $metrics_data as needed
+?>
 
 
-<!doctype php>
-<php lang="en">
+
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -505,177 +618,69 @@
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Images in Bootstrap are made responsive with <code>.img-fluid</code>. <code>max-width: 100%;</code> and <code>height: auto;</code> are applied to the image so that it scales with the parent element.</p>
+                     <p>Certainly! Here’s the updated description with "PHP code" removed:
+
+---
+
+**Sales Analytics Report:**
+
+The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling. It ensures data integrity by referencing the correct foreign key constraints and excluding irrelevant columns.
+
+---
+
+This version provides a clear overview without mentioning "PHP code."</p>
                      <div class="table-responsive">
-                        <table id="datatable" class="table data-tables table-striped">
-                           <thead>
-                              <tr class="ligth">
-                                 <th>Name</th>
-                                 <th>Position</th>
-                                 <th>Office</th>
-                                 <th>Age</th>
-                                 <th>Start date</th>
-                                 <th>Salary</th>
-                              </tr>
-                           </thead>
-                           <tbody>
-                              <tr>
-                                 <td>Tiger Nixon</td>
-                                 <td>System Architect</td>
-                                 <td>Edinburgh</td>
-                                 <td>61</td>
-                                 <td>2011/04/25</td>
-                                 <td>$320,800</td>
-                              </tr>
-                              <tr>
-                                 <td>Garrett Winters</td>
-                                 <td>Accountant</td>
-                                 <td>Tokyo</td>
-                                 <td>63</td>
-                                 <td>2011/07/25</td>
-                                 <td>$170,750</td>
-                              </tr>
-                              <tr>
-                                 <td>Ashton Cox</td>
-                                 <td>Junior Technical Author</td>
-                                 <td>San Francisco</td>
-                                 <td>66</td>
-                                 <td>2009/01/12</td>
-                                 <td>$86,000</td>
-                              </tr>
-                              <tr>
-                                 <td>Cedric Kelly</td>
-                                 <td>Senior Javascript Developer</td>
-                                 <td>Edinburgh</td>
-                                 <td>22</td>
-                                 <td>2012/03/29</td>
-                                 <td>$433,060</td>
-                              </tr>
-                              <tr>
-                                 <td>Airi Satou</td>
-                                 <td>Accountant</td>
-                                 <td>Tokyo</td>
-                                 <td>33</td>
-                                 <td>2008/11/28</td>
-                                 <td>$162,700</td>
-                              </tr>
-                              <tr>
-                                 <td>Brielle Williamson</td>
-                                 <td>Integration Specialist</td>
-                                 <td>New York</td>
-                                 <td>61</td>
-                                 <td>2012/12/02</td>
-                                 <td>$372,000</td>
-                              </tr>
-                              <tr>
-                                 <td>Herrod Chandler</td>
-                                 <td>Sales Assistant</td>
-                                 <td>San Francisco</td>
-                                 <td>59</td>
-                                 <td>2012/08/06</td>
-                                 <td>$137,500</td>
-                              </tr>
-                              <tr>
-                                 <td>Rhona Davidson</td>
-                                 <td>Integration Specialist</td>
-                                 <td>Tokyo</td>
-                                 <td>55</td>
-                                 <td>2010/10/14</td>
-                                 <td>$327,900</td>
-                              </tr>
-                              <tr>
-                                 <td>Colleen Hurst</td>
-                                 <td>Javascript Developer</td>
-                                 <td>San Francisco</td>
-                                 <td>39</td>
-                                 <td>2009/09/15</td>
-                                 <td>$205,500</td>
-                              </tr>
-                              <tr>
-                                 <td>Sonya Frost</td>
-                                 <td>Software Engineer</td>
-                                 <td>Edinburgh</td>
-                                 <td>23</td>
-                                 <td>2008/12/13</td>
-                                 <td>$103,600</td>
-                              </tr>
-                              <tr>
-                                 <td>Jena Gaines</td>
-                                 <td>Office Manager</td>
-                                 <td>London</td>
-                                 <td>30</td>
-                                 <td>2008/12/19</td>
-                                 <td>$90,560</td>
-                              </tr>
-                              <tr>
-                                 <td>Quinn Flynn</td>
-                                 <td>Support Lead</td>
-                                 <td>Edinburgh</td>
-                                 <td>22</td>
-                                 <td>2013/03/03</td>
-                                 <td>$342,000</td>
-                              </tr>
-                              <tr>
-                                 <td>Charde Marshall</td>
-                                 <td>Regional Director</td>
-                                 <td>San Francisco</td>
-                                 <td>36</td>
-                                 <td>2008/10/16</td>
-                                 <td>$470,600</td>
-                              </tr>
-                              <tr>
-                                 <td>Haley Kennedy</td>
-                                 <td>Senior Marketing Designer</td>
-                                 <td>London</td>
-                                 <td>43</td>
-                                 <td>2012/12/18</td>
-                                 <td>$313,500</td>
-                              </tr>
-                              <tr>
-                                 <td>Tatyana Fitzpatrick</td>
-                                 <td>Regional Director</td>
-                                 <td>London</td>
-                                 <td>19</td>
-                                 <td>2010/03/17</td>
-                                 <td>$385,750</td>
-                              </tr>
-                              <tr>
-                                 <td>Michael Silva</td>
-                                 <td>Marketing Designer</td>
-                                 <td>London</td>
-                                 <td>66</td>
-                                 <td>2012/11/27</td>
-                                 <td>$198,500</td>
-                              </tr>
-                              <tr>
-                                 <td>Paul Byrd</td>
-                                 <td>Chief Financial Officer (CFO)</td>
-                                 <td>New York</td>
-                                 <td>64</td>
-                                 <td>2010/06/09</td>
-                                 <td>$725,000</td>
-                              </tr>
-                              <tr>
-                                 <td>Gloria Little</td>
-                                 <td>Systems Administrator</td>
-                                 <td>New York</td>
-                                 <td>59</td>
-                                 <td>2009/04/10</td>
-                                 <td>$237,500</td>
-                              </tr>
-                             
-                           </tbody>
-                           <tfoot>
-                              <tr>
-                                 <th>Name</th>
-                                 <th>Position</th>
-                                 <th>Office</th>
-                                 <th>Age</th>
-                                 <th>Start date</th>
-                                 <th>Salary</th>
-                              </tr>
-                           </tfoot>
-                        </table>
+                     <?php
+// Assuming $metrics_data is already fetched from the database
+
+// Decode the JSON data for 'revenue_by_product'
+$revenue_by_product = json_decode($metrics_data['revenue_by_product'], true);
+
+// Format revenue_by_product for display (for example, as a table or list)
+$revenue_by_product_display = '';
+if (is_array($revenue_by_product)) {
+    foreach ($revenue_by_product as $product) {
+        $revenue_by_product_display .= 'Product ID ' . htmlspecialchars($product['product_id']) . ': ' . htmlspecialchars($product['revenue']) . '<br>';
+    }
+} else {
+    $revenue_by_product_display = 'No data available';
+}
+?>
+
+<table id="datatable" class="table data-tables table-striped">
+    <thead>
+        <tr class="light">
+            <th>Total Sales</th>
+            <th>Total Quantity</th>
+            <th>Total Profit</th>
+            <th>Total Expenses</th>
+            <th>Net Profit</th>
+            <th>Revenue</th>
+            <th>Profit Margin</th>
+            <th>Revenue by Product</th>
+            <th>Year-over-Year Growth</th>
+            <th>Cost of Selling</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?php echo htmlspecialchars($metrics_data['total_sales']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['total_quantity']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['total_profit']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['total_expenses']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['net_profit']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['revenue']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['profit_margin']); ?>%</td>
+            <td><?php echo $revenue_by_product_display; ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['year_over_year_growth']); ?>%</td>
+            <td><?php echo htmlspecialchars($metrics_data['cost_of_selling']); ?></td>
+            <td><?php echo htmlspecialchars($metrics_data['created_at']); ?></td>
+        </tr>
+    </tbody>
+</table>
+
+                        
                      </div>
                   </div>
                </div>
@@ -719,4 +724,4 @@
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</php>
+</html>
