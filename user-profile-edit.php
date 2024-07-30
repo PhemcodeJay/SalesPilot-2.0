@@ -18,7 +18,7 @@ try {
     $username = htmlspecialchars($_SESSION["username"]);
 
     // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $user_query = "SELECT id, username, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -28,52 +28,61 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
+    // Retrieve user details
+    $user_id = htmlspecialchars($user_info['id']);
     $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-    
+    $phone = htmlspecialchars($user_info['phone']);
+    $location = htmlspecialchars($user_info['location']);
+    $existing_image = htmlspecialchars($user_info['user_image']);
+
     // Check if form is submitted
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id = $_POST['id'];
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        $confirmpassword = $_POST['confirmpassword'];
-        $is_active = $_POST['is_active'];
-        $role = $_POST['role'];
+        // Sanitize and retrieve form inputs
+        $username = htmlspecialchars($_POST['username']);
+        $email = htmlspecialchars($_POST['email']);
+        $phone = htmlspecialchars($_POST['phone']);
+        $location = htmlspecialchars($_POST['location']);
+        $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : null;
+        $confirmpassword = isset($_POST['confirmpassword']) ? htmlspecialchars($_POST['confirmpassword']) : null;
+        $is_active = isset($_POST['is_active']) ? htmlspecialchars($_POST['is_active']) : null;
+        $role = isset($_POST['role']) ? htmlspecialchars($_POST['role']) : null;
 
         // Handle file upload
-        $user_image = $_FILES['user_image']['name'];
-        $target_dir = "uploads/";
-        $target_file = $target_dir . basename($user_image);
+        if (isset($_FILES['user_image']) && $_FILES['user_image']['error'] == UPLOAD_ERR_OK) {
+            $user_image = $_FILES['user_image']['name'];
+            $target_dir = "uploads/";
+            $target_file = $target_dir . basename($user_image);
 
-        if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
-            // File uploaded successfully
+            if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
+                $image_to_save = $target_file;
+            } else {
+                $image_to_save = $existing_image; // Use existing image if upload fails
+            }
         } else {
-            $target_file = $_POST['existing_image']; // Use existing image if upload fails
+            $image_to_save = $existing_image; // Use existing image if no new image is uploaded
         }
 
         // Validate passwords
-        if ($password === $confirmpassword) {
+        if ($password !== null && $password === $confirmpassword) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // Update user record
-            $sql = "UPDATE users SET username=?, email=?, password=?, is_active=?, role=?, user_image=? WHERE id=?";
-            $stmt= $connection->prepare($sql);
-            $stmt->execute([$username, $email, $hashed_password, $is_active, $role, $target_file, $id]);
+            $sql = "UPDATE users SET username=?, email=?, phone=?, location=?, password=?, is_active=?, role=?, user_image=? WHERE id=?";
+            $stmt = $connection->prepare($sql);
+            $stmt->execute([$username, $email, $phone, $location, $hashed_password, $is_active, $role, $image_to_save, $user_id]);
+
+            echo "User updated successfully!";
+        } else if ($password === null) {
+            // Update user record without password change
+            $sql = "UPDATE users SET username=?, email=?, phone=?, location=?, is_active=?, role=?, user_image=? WHERE id=?";
+            $stmt = $connection->prepare($sql);
+            $stmt->execute([$username, $email, $phone, $location, $is_active, $role, $image_to_save, $user_id]);
 
             echo "User updated successfully!";
         } else {
             echo "Passwords do not match!";
         }
     }
-
-    // Fetch user data
-    $id = $_GET['id'];
-    $sql = "SELECT * FROM users WHERE id=?";
-    $stmt = $connection->prepare($sql);
-    $stmt->execute([$id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
 } catch (PDOException $e) {
     error_log("PDO Error: " . $e->getMessage());
@@ -83,6 +92,8 @@ try {
     exit("Error: " . $e->getMessage());
 }
 ?>
+
+
 
 <!doctype html>
 <html lang="en">
@@ -591,14 +602,10 @@ try {
                               Personal Information
                               </a>
                            </li>
-                           <li class="col-md-3 p-0">
-                              <a class="nav-link" data-toggle="pill" href="#chang-pwd">
-                              Change Password
-                              </a>
-                           </li>
+                           
                            <li class="col-md-3 p-0">
                               <a class="nav-link" data-toggle="pill" href="#emailandsms">
-                              Email and SMS
+                              Email
                               </a>
                            </li>
                            <li class="col-md-3 p-0">
@@ -622,14 +629,14 @@ try {
                               </div>
                            </div>
                            <div class="card-body">
-                            <form action="edit_user.php?id=<?php echo $user['id']; ?>" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-                                <input type="hidden" name="existing_image" value="<?php echo $user['user_image']; ?>">
+                           <form action="user-profile-edit.php" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="id" value="<?php echo $user_id; ?>">
+                                <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
                                 <div class="form-group row align-items-center">
                                     <div class="col-md-12">
                                         <div class="profile-img-edit">
                                             <div class="crm-profile-img-edit">
-                                                <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $user['user_image']; ?>" alt="profile-pic">
+                                                <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $existing_image; ?>" alt="profile-pic">
                                                 <div class="crm-p-image bg-primary">
                                                     <i class="las la-pen upload-button"></i>
                                                     <input class="file-upload" type="file" accept="image/*" name="user_image">
@@ -641,33 +648,26 @@ try {
                                 <div class="row align-items-center">
                                     <div class="form-group col-sm-6">
                                         <label for="username">Username:</label>
-                                        <input type="text" class="form-control" id="username" name="username" value="<?php echo $user['username']; ?>" required>
+                                        <input type="text" class="form-control" id="username" name="username" value="<?php echo $user_info['username']; ?>" required>
                                     </div>
                                     <div class="form-group col-sm-6">
                                         <label for="email">Email:</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $user['email']; ?>" required>
+                                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $user_info['email']; ?>" required>
                                     </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="password">Password:</label>
-                                        <input type="password" class="form-control" id="password" name="password">
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="confirmpassword">Confirm Password:</label>
-                                        <input type="password" class="form-control" id="confirmpassword" name="confirmpassword">
-                                    </div>
+                                    
                                     <div class="form-group col-sm-6">
                                         <label for="role">Role:</label>
                                         <select class="form-control" id="role" name="role">
-                                            <option value="admin" <?php echo ($user['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
-                                            <option value="sales" <?php echo ($user['role'] === 'sales') ? 'selected' : ''; ?>>Sales</option>
-                                            <option value="inventory" <?php echo ($user['role'] === 'inventory') ? 'selected' : ''; ?>>Inventory</option>
+                                            <option value="admin" <?php echo ($user_info['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                                            <option value="sales" <?php echo ($user_info['role'] === 'sales') ? 'selected' : ''; ?>>Sales</option>
+                                            <option value="inventory" <?php echo ($user_info['role'] === 'inventory') ? 'selected' : ''; ?>>Inventory</option>
                                         </select>
                                     </div>
                                     <div class="form-group col-sm-6">
                                         <label for="is_active">Active:</label>
                                         <select class="form-control" id="is_active" name="is_active">
-                                            <option value="1" <?php echo ($user['is_active']) ? 'selected' : ''; ?>>Yes</option>
-                                            <option value="0" <?php echo (!$user['is_active']) ? 'selected' : ''; ?>>No</option>
+                                            <option value="1" <?php echo ($user_info['is_active']) ? 'selected' : ''; ?>>Yes</option>
+                                            <option value="0" <?php echo (!$user_info['is_active']) ? 'selected' : ''; ?>>No</option>
                                         </select>
                                     </div>
                                 </div>
@@ -681,62 +681,83 @@ try {
                         <div class="card">
                            <div class="card-header d-flex justify-content-between">
                               <div class="iq-header-title">
-                                 <h4 class="card-title">Email and SMS</h4>
+                                 <h4 class="card-title">Email</h4>
                               </div>
                            </div>
                            <div class="card-body">
-                              <form>
-                                 <div class="form-group row align-items-center">
-                                    <label class="col-md-3" for="emailnotification">Email Notification:</label>
-                                    <div class="col-md-9 custom-control custom-switch">
-                                       <input type="checkbox" class="custom-control-input" id="emailnotification" checked="">
-                                       <label class="custom-control-label" for="emailnotification"></label>
+                           <form action="user-profile-edit.php" method="post" enctype="multipart/form-data">
+                            <!-- Display Username and Email -->
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="username">Username:</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="username" name="username" value="<?php echo $user_info['username']; ?>" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="email">Email:</label>
+                                <div class="col-md-9">
+                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo $user_info['email']; ?>" readonly>
+                                </div>
+                            </div>
+                            
+                            <!-- Email and SMS Notification Settings -->
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="emailnotification">Email Notification:</label>
+                                <div class="col-md-9 custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="emailnotification" checked="">
+                                    <label class="custom-control-label" for="emailnotification"></label>
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="smsnotification">SMS Notification:</label>
+                                <div class="col-md-9 custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="smsnotification" checked="">
+                                    <label class="custom-control-label" for="smsnotification"></label>
+                                </div>
+                            </div>
+
+                            <!-- When To Email -->
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="email-options">When To Email</label>
+                                <div class="col-md-9">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email01">
+                                        <label class="custom-control-label" for="email01">You have new notifications.</label>
                                     </div>
-                                 </div>
-                                 <div class="form-group row align-items-center">
-                                    <label class="col-md-3" for="smsnotification">SMS Notification:</label>
-                                    <div class="col-md-9 custom-control custom-switch">
-                                       <input type="checkbox" class="custom-control-input" id="smsnotification" checked="">
-                                       <label class="custom-control-label" for="smsnotification"></label>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email02">
+                                        <label class="custom-control-label" for="email02">You're sent a direct message</label>
                                     </div>
-                                 </div>
-                                 <div class="form-group row align-items-center">
-                                    <label class="col-md-3" for="npass">When To Email</label>
-                                    <div class="col-md-9">
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email01">
-                                          <label class="custom-control-label" for="email01">You have new notifications.</label>
-                                       </div>
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email02">
-                                          <label class="custom-control-label" for="email02">You're sent a direct message</label>
-                                       </div>
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email03" checked="">
-                                          <label class="custom-control-label" for="email03">Someone adds you as a connection</label>
-                                       </div>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email03" checked="">
+                                        <label class="custom-control-label" for="email03">Someone adds you as a connection</label>
                                     </div>
-                                 </div>
-                                 <div class="form-group row align-items-center">
-                                    <label class="col-md-3" for="npass">When To Escalate Emails</label>
-                                    <div class="col-md-9">
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email04">
-                                          <label class="custom-control-label" for="email04"> Upon new order.</label>
-                                       </div>
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email05">
-                                          <label class="custom-control-label" for="email05"> New membership approval</label>
-                                       </div>
-                                       <div class="custom-control custom-checkbox">
-                                          <input type="checkbox" class="custom-control-input" id="email06" checked="">
-                                          <label class="custom-control-label" for="email06"> Member registration</label>
-                                       </div>
+                                </div>
+                            </div>
+
+                            <!-- When To Escalate Emails -->
+                            <div class="form-group row align-items-center">
+                                <label class="col-md-3" for="escalate-options">When To Escalate Emails</label>
+                                <div class="col-md-9">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email04">
+                                        <label class="custom-control-label" for="email04"> Upon new order.</label>
                                     </div>
-                                 </div>
-                                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
-                                 <button type="reset" class="btn iq-bg-danger">Cancel</button>
-                              </form>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email05">
+                                        <label class="custom-control-label" for="email05"> New membership approval</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="email06" checked="">
+                                        <label class="custom-control-label" for="email06"> Member registration</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit and Reset Buttons -->
+                            <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                            <button type="reset" class="btn iq-bg-danger">Cancel</button>
+                        </form>
                            </div>
                         </div>
                      </div>
@@ -748,22 +769,31 @@ try {
                               </div>
                            </div>
                            <div class="card-body">
-                              <form>
-                                 <div class="form-group">
-                                    <label for="cno">Contact Number:</label>
-                                    <input type="text" class="form-control" id="cno" value="001 2536 123 458">
-                                 </div>
-                                 <div class="form-group">
-                                    <label for="email">Email:</label>
-                                    <input type="text" class="form-control" id="email" value="Barryjone@demo.com">
-                                 </div>
-                                 <div class="form-group">
-                                    <label for="url">Url:</label>
-                                    <input type="text" class="form-control" id="url" value="https://getbootstrap.com">
-                                 </div>
-                                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
-                                 <button type="reset" class="btn iq-bg-danger">Cancel</button>
-                              </form>
+                           <form action="user-profile-edit.php" method="post" enctype="multipart/form-data">
+                            <!-- Display Username and Email -->
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" class="form-control" id="username" name="username" value="<?php echo $user_info['username']; ?>" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<?php echo $user_info['email']; ?>" readonly>
+                            </div>
+                            
+                            <!-- Contact Number and Location -->
+                            <div class="form-group">
+                                <label for="phone">Contact Number:</label>
+                                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $phone; ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="location">Location:</label>
+                                <input type="text" class="form-control" id="location" name="location" value="<?php echo $location; ?>">
+                            </div>
+                            
+                            <!-- Submit and Reset Buttons -->
+                            <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                            <button type="reset" class="btn iq-bg-danger">Cancel</button>
+                        </form>
                            </div>
                         </div>
                      </div>
@@ -782,8 +812,8 @@ try {
                     <div class="row">
                         <div class="col-lg-6">
                             <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.html">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.html">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.php">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.php">Terms of Use</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
