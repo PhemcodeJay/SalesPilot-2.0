@@ -1,7 +1,47 @@
+<?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
 
+include('config.php'); // Includes database connection
 
-<!doctype html>
-<html lang="en">
+try {
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    error_log("Error: " . $e->getMessage());
+    exit("Error: " . $e->getMessage());
+}
+?>
+
+<!doctype php>
+<php lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -183,19 +223,19 @@
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-suppliers.html">
+                                          <a href="http://localhost/project/page-list-suppliers.php">
                                               <i class="las la-minus"></i><span>Suppliers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-supplier.html">
+                                          <a href="http://localhost/project/page-add-supplier.php">
                                               <i class="las la-minus"></i><span>Add Suppliers</span>
                                           </a>
                                   </li>
                           </ul>
                       </li>
                       <li class="">
-                          <a href="http://localhost/project/analytics.html" class="">
+                          <a href="http://localhost/project/analytics.php" class="">
                               <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
                               </svg>
@@ -203,7 +243,7 @@
                           </a>
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
-                          <a href="http://localhost/project/table-data.html" class="">
+                          <a href="http://localhost/project/table-data.php" class="">
                             <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
                             </svg>
@@ -456,7 +496,7 @@
                                                 <h5 class="mb-1"><?php echo $email; ?></h5>
                                                 <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
-                                                      <a href="http://localhost/project/user-profile-edit.html" class="btn border mr-2">Profile</a>
+                                                      <a href="http://localhost/project/user-profile-edit.php" class="btn border mr-2">Profile</a>
                                                       <a href="logout.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
@@ -504,7 +544,7 @@
                                         <div class="col-sm-12">
                                             <a role="contentinfo" class="accordion-title" data-toggle="collapse"
                                                 data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                <span>Lorem ipsum dolor sit </span>
+                                                <span>Introduction </span>
                                             </a>
                                         </div>
                                     </div>
@@ -512,12 +552,8 @@
                             </div>
                             <div class="accordion-details collapse show" id="collapseOne" aria-labelledby="headingOne"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS. </p>
+                                <p class="mb-0">
+                                    Welcome to SalesPilot! These Terms of Service ("Terms") govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
                             </div>
                         </div>
                         <div class="card iq-accordion-block">
@@ -526,19 +562,25 @@
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
-                                                aria-controls="collapseTwo"><span> consectetur adipiscing elit
+                                                aria-controls="collapseTwo"><span> Use of the Service
                                                 </span> </a></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseTwo" aria-labelledby="headingTwo"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS.
+                                <p class="mb-0">
+                                    Eligibility:
+                                    You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.
+                                    
+                                    Account Registration:
+                                    To access certain features of SalesPilot, you may be required to create an account. 
+                                    You agree to:
+                                    
+                                    Provide accurate, current, and complete information during the registration process.
+                                    Maintain and promptly update your account information.
+                                    Keep your password secure and not disclose it to any third party.
+                                    Accept responsibility for all activities that occur under your account.
                                 </p>
                             </div>
                         </div>
@@ -548,19 +590,25 @@
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
-                                                aria-controls="collapseThree"><span>Etiam sit amet justo non </span> </a>
+                                                aria-controls="collapseThree"><span>User Responsibilities </span> </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseThree" aria-labelledby="headingThree"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS.
+                                <p class="mb-0">
+                                    Compliance with Laws:
+                                    You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.
+                                    
+                                    Prohibited Activities:
+                                    You agree not to:
+                                    
+                                    Use the service for any unlawful purpose.
+                                    Engage in any activity that could harm or interfere with the operation of the service.
+                                    Attempt to gain unauthorized access to any part of the service or its related systems or networks.
+                                    Use the service to store, transmit, or distribute any illegal or unauthorized content.
+                                    Use any automated means to access the service without our permission.
                                 </p>
                             </div>
                         </div>
@@ -570,19 +618,22 @@
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
-                                                aria-controls="collapseFour"><span> velit accumsan laoreet </span> </a>
+                                                aria-controls="collapseFour"><span> Intellectual Property </span> </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseFour" aria-labelledby="headingFour"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS.
+                                <p class="mb-0">
+                                    Ownership
+                                    SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.
+                                    
+                                    License
+                                    We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.
+                                    
+                                    Termination
+                                    We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
                                 </p>
                             </div>
                         </div>
@@ -592,18 +643,25 @@
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
-                                                aria-controls="collapseFive"><span> Donec volutpat metus in erat </span> </a></div>
+                                                aria-controls="collapseFive"><span> Limitation of Liability </span> </a></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseFive" aria-labelledby="headingFive"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS.
+                                <p class="mb-0">
+                                    To the maximum extent permitted by law, SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:
+                                    
+                                    Your use or inability to use the service.
+                                    Any unauthorized access to or use of our servers and/or any personal information stored therein.
+                                    Any interruption or cessation of transmission to or from the service.
+                                    Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.
+                                    Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.
+                                    Disclaimer of Warranties
+                                    The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.
+                                    
+                                    Governing Law
+                                    These Terms shall be governed and construed in accordance with the laws of the state of [State], without regard to its conflict of law provisions.
                                 </p>
                             </div>
                         </div>
@@ -613,19 +671,18 @@
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseSix" aria-expanded="false"
-                                                aria-controls="collapseSix"><span> quam quis massa tristique </span> </a>
+                                                aria-controls="collapseSix"><span> Changes to These Terms </span> </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseSix" aria-labelledby="headingSix"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">>Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia
-                                aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                                aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                                beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat
-                                craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore
-                                sustainable VHS.
+                                <p class="mb-0">>
+                                    We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.
+                                    
+                                    Contact Us
+                                    If you have any questions about these Terms, please contact us at
                                 </p>
                             </div>
                         </div>
@@ -643,8 +700,8 @@
                     <div class="row">
                         <div class="col-lg-6">
                             <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.html">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.html">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.php">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.php">Terms of Use</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
@@ -670,4 +727,4 @@
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</html>
+</php>

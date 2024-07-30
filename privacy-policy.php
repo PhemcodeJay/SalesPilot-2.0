@@ -1,7 +1,47 @@
+<?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
 
+include('config.php'); // Includes database connection
 
-<!doctype html>
-<html lang="en">
+try {
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    error_log("Error: " . $e->getMessage());
+    exit("Error: " . $e->getMessage());
+}
+?>
+
+<!doctype php>
+<php lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -121,12 +161,12 @@
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-expense.php">
+                                          <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-expense.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -144,7 +184,7 @@
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-inventory.php">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
@@ -173,29 +213,29 @@
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-suppliers.html">
+                                          <a href="http://localhost/project/page-list-suppliers.php">
                                               <i class="las la-minus"></i><span>Suppliers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-supplier.html">
+                                          <a href="http://localhost/project/page-add-supplier.php">
                                               <i class="las la-minus"></i><span>Add Suppliers</span>
                                           </a>
                                   </li>
                           </ul>
                       </li>
                       <li class="">
-                          <a href="http://localhost/project/analytics.html" class="">
+                          <a href="http://localhost/project/analytics.php" class="">
                               <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
                               </svg>
@@ -203,7 +243,7 @@
                           </a>
                           <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                           </ul>
-                          <a href="http://localhost/project/table-data.html" class="">
+                          <a href="http://localhost/project/table-data.php" class="">
                             <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
                             </svg>
@@ -458,7 +498,7 @@
                                                 <h5 class="mb-1"><?php echo $email; ?></h5>
                                                 <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
-                                                      <a href="http://localhost/project/app/user-profile-edit.html" class="btn border mr-2">Profile</a>
+                                                      <a href="http://localhost/project/app/user-profile-edit.php" class="btn border mr-2">Profile</a>
                                                       <a href="logout.php" class="btn border">Sign Out</a>
                                                   </div>
                                               </div>
@@ -501,147 +541,112 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">What is Lorem Ipsum?</h4>
+                                <h4 class="card-title">Introduction</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been
-                                the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley
-                                of type and scrambled it to make a type specimen book. It has survived not only five centuries,
-                                but also the leap into electronic typesetting, remaining essentially unchanged. It was
-                                popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
-                                and more recently with desktop publishing software like Aldus PageMaker including versions of
-                                Lorem Ipsum.</p>
+                            <p>
+                                Welcome to SalesPilot! We value your privacy and are committed to protecting your personal information. This Privacy Policy outlines our practices regarding the collection, use, and disclosure of information when you use our web application for inventory management and sales analytics.</p>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
+                                <h4 class="card-title">Information We Collect</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like). </p>
+                            <p>
+                                Personal Information
+                                User Account Information: When you register for an account, we collect your name, email address, and other contact information.
+                                Customer and Staff Data: We collect information about your customers and staff, including names, email addresses, and transaction details.
+                                Usage Data
+                                Log Data: We collect information that your browser sends whenever you visit our web app. This may include your IP address, browser type, browser version, the pages of our app that you visit, the time and date of your visit, the time spent on those pages, and other statistics.
+                                Cookies and Tracking Technologies: We use cookies and similar tracking technologies to track activity on our app and hold certain information.
+                                Inventory and Sales Data
+                                Product Information: Details about the products you manage through the app, including product types, categories, and inventory quantities.
+                                Sales Transactions: Information related to sales transactions, such as sales quantities, customer and staff involvement, and transaction dates. </p>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Where does it come from?</h4>
+                                <h4 class="card-title">How We Use Your Information</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
+                            <p>
+                                To Provide and Maintain Our Service
+                                We use the collected data to operate and maintain our web app, including managing your inventory and sales analytics.
+                                
+                                To Improve Our Service
+                                We use your information to understand how our service is used and to enhance user experience, fix issues, and develop new features.
+                                
+                                To Communicate With You
+                                We may use your contact information to send you updates, notifications, and promotional materials. You can opt out of receiving these communications at any time.
+                                
+                                To Ensure Security
+                                We use your information to monitor for and address security issues, and to prevent fraudulent activity.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Sharing and Disclosure of Information</h4>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                Third-Party Service Providers
+                                We may employ third-party companies and individuals to facilitate our service, provide the service on our behalf, perform service-related tasks, or assist us in analyzing how our service is used. These third parties have access to your personal information only to perform these tasks and are obligated not to disclose or use it for any other purpose.
+                                
+                                Legal Requirements
+                                We may disclose your personal information in the good faith belief that such action is necessary to:
+                                
+                                Comply with a legal obligation.
+                                Protect and defend the rights or property of SalesPilot.
+                                Prevent or investigate possible wrongdoing in connection with the service.
+                                Protect the personal safety of users of the service or the public.
+                                Protect against legal liability.</p>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Where can I get some?</h4>
+                                <h4 class="card-title">Data Security</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
+                            <p>
+                                We prioritize the security of your data and use commercially acceptable means to protect it. However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to use acceptable means to protect your personal information, we cannot guarantee its absolute security.
+                                
+                                </p>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
+                                <h4 class="card-title">Your Rights</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
+                            <p>Your Rights
+                                You have the right to access, correct, update, or delete your personal information. You can do this directly within your account settings or by contacting us. We will respond to your request as soon as possible..</p>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
+                                <h4 class="card-title">Changes to This Privacy Policy</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
+                            <p>
+                                We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this Privacy Policy. You are advised to review this Privacy</p>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like).</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            <div class="header-title">
-                                <h4 class="card-title">Why do we use it?</h4>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <p>It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                                distribution of letters, as opposed to using 'Content here, content here', making it look like
-                                readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as
-                                their default model text, and a search for 'lorem ipsum' will uncover many web sites still in
-                                their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on
-                                purpose (injected humour and the like). </p>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -655,8 +660,8 @@
                     <div class="row">
                         <div class="col-lg-6">
                             <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.html">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.html">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.php">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.php">Terms of Use</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
@@ -682,4 +687,4 @@
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</html>
+</php>
