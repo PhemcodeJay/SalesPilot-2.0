@@ -159,41 +159,6 @@ LOCK TABLES `inventory` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `inventory_metrics`
---
-
-DROP TABLE IF EXISTS `inventory_metrics`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `inventory_metrics` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `product_id` int(11) NOT NULL,
-  `inventory_qty` int(11) NOT NULL,
-  `available_stock` int(11) NOT NULL,
-  `inventory_turnover_rate` decimal(5,2) NOT NULL,
-  `stock_to_sales_ratio` decimal(5,2) NOT NULL,
-  `sell_through_rate` decimal(5,2) NOT NULL,
-  `gross_margin_by_product` decimal(10,2) NOT NULL,
-  `net_margin_by_product` decimal(10,2) NOT NULL,
-  `gross_margin` decimal(10,2) NOT NULL,
-  `net_margin` decimal(10,2) NOT NULL,
-  `report_date` date NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `inventory_metrics_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `inventory_metrics`
---
-
-LOCK TABLES `inventory_metrics` WRITE;
-/*!40000 ALTER TABLE `inventory_metrics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `inventory_metrics` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `password_resets`
 --
 
@@ -273,7 +238,7 @@ CREATE TABLE `reports` (
   `report_date` date NOT NULL,
   `revenue` decimal(10,2) NOT NULL,
   `profit_margin` decimal(5,2) NOT NULL,
-  `revenue_by_product` decimal(10,2) NOT NULL,
+  `revenue_by_product` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`revenue_by_product`)),
   `year_over_year_growth` decimal(5,2) NOT NULL,
   `cost_of_selling` decimal(10,2) NOT NULL,
   `inventory_turnover_rate` decimal(5,2) NOT NULL,
@@ -284,8 +249,13 @@ CREATE TABLE `reports` (
   `gross_margin` decimal(10,2) NOT NULL,
   `net_margin` decimal(10,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `total_sales` decimal(10,0) NOT NULL,
+  `total_quantity` int(11) NOT NULL,
+  `total_profit` decimal(2,0) NOT NULL,
+  `total_expenses` decimal(2,0) NOT NULL,
+  `net_profit` decimal(2,0) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -294,6 +264,7 @@ CREATE TABLE `reports` (
 
 LOCK TABLES `reports` WRITE;
 /*!40000 ALTER TABLE `reports` DISABLE KEYS */;
+INSERT INTO `reports` VALUES (1,'2024-07-30',20315.00,42.85,'[{\"product_id\":11,\"revenue\":\"12000.00\"},{\"product_id\":12,\"revenue\":\"2250.00\"},{\"product_id\":13,\"revenue\":\"4500.00\"},{\"product_id\":14,\"revenue\":\"1200.00\"},{\"product_id\":15,\"revenue\":\"350.00\"},{\"product_id\":16,\"revenue\":\"15.00\"}]',0.00,11610.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 16:29:56',20315,29,99,99,99);
 /*!40000 ALTER TABLE `reports` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -402,25 +373,21 @@ DROP TABLE IF EXISTS `sales_analytics`;
 CREATE TABLE `sales_analytics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) NOT NULL,
-  `total_sales` decimal(10,2) NOT NULL,
   `total_quantity` int(11) NOT NULL,
   `total_profit` decimal(10,2) NOT NULL,
   `total_expenses` decimal(10,2) NOT NULL,
   `net_profit` decimal(10,2) NOT NULL,
-  `most_sold_product_id` int(11) DEFAULT NULL,
-  `available_stock` int(11) NOT NULL,
   `revenue` decimal(10,2) NOT NULL,
   `profit_margin` decimal(5,2) NOT NULL,
   `revenue_by_product` decimal(10,2) NOT NULL,
   `year_over_year_growth` decimal(5,2) NOT NULL,
   `cost_of_selling` decimal(10,2) NOT NULL,
-  `report_date` date NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `product_id` (`product_id`),
-  KEY `most_sold_product_id` (`most_sold_product_id`),
-  CONSTRAINT `sales_analytics_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  CONSTRAINT `sales_analytics_ibfk_2` FOREIGN KEY (`most_sold_product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `date` datetime NOT NULL,
+  `total_sales` decimal(10,2) NOT NULL,
+  `available_stock` int(11) NOT NULL,
+  `product_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -429,6 +396,7 @@ CREATE TABLE `sales_analytics` (
 
 LOCK TABLES `sales_analytics` WRITE;
 /*!40000 ALTER TABLE `sales_analytics` DISABLE KEYS */;
+INSERT INTO `sales_analytics` VALUES (112,11,2,6000.00,6000.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',12000.00,0,'Samsung Galaxy'),(113,12,5,1250.00,1000.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',2250.00,0,'Necklace'),(114,13,3,900.00,3600.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',4500.00,0,'Iphone 15 128GB'),(115,14,8,400.00,800.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',1200.00,0,'Nike Sneakers'),(116,15,10,150.00,200.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',350.00,0,'Floral-Pleated-Weave-Dress'),(117,16,1,5.00,10.00,0.00,0.00,0.00,0.00,0.00,0.00,'2024-07-30 20:59:10',15.00,0,'Toyota-Corolla');
 /*!40000 ALTER TABLE `sales_analytics` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -508,6 +476,8 @@ CREATE TABLE `users` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `confirmpassword` varchar(255) NOT NULL,
   `user_image` varchar(255) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `location` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
@@ -520,7 +490,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'megastores','olphemie@gmail.com','$2y$10$OPc8ue60nB9dCVP6lv/M1eemDgKcTGrFuVe3iSTOKXkirCaN5r.Cy',0,'sales','2024-07-25 09:03:41','mega1234','');
+INSERT INTO `users` VALUES (2,'megastores','megastores@gmail.com','$2y$10$C0Afoh20GiefSBzZu.gRZuOXec5WnLLEPSFFD1M1jpX48EvEN0UYu',NULL,NULL,'2024-07-25 09:03:41','mega1234','uploads/.trashed-1718858585-Favicon.jpg','0111826872','Texas');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -541,4 +511,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-29 22:32:19
+-- Dump completed on 2024-07-30 21:07:49

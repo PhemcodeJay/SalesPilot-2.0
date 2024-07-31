@@ -587,7 +587,9 @@ if (!$metrics_data) {
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Images in Bootstrap are made responsive with <code>.img-fluid</code>. <code>max-width: 100%;</code> and <code>height: auto;</code> are applied to the image so that it scales with the parent element.</p>
+                     <p>Sales Analytics Report:
+
+The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
                      <div class="table-responsive">
                      <table id="datatable" class="table data-tables table-striped">
     <thead>

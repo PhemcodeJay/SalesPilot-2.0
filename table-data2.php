@@ -618,17 +618,9 @@ if (!$metrics_data) {
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Certainly! Here’s the updated description with "PHP code" removed:
+                     <p>Sales Analytics Report:
 
----
-
-**Sales Analytics Report:**
-
-The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling. It ensures data integrity by referencing the correct foreign key constraints and excluding irrelevant columns.
-
----
-
-This version provides a clear overview without mentioning "PHP code."</p>
+The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
                      <div class="table-responsive">
                      <?php
 // Assuming $metrics_data is already fetched from the database
