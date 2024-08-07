@@ -582,8 +582,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                       class="rounded profile-img img-fluid avatar-70">
                                               </div>
                                               <div class="p-3">
-                                                  <h5 class="mb-1"><?html echo $email; ?></h5>
-                                                    <p class="mb-0">Since <?html echo $date; ?></p>
+                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                    <p class="mb-0">Since <?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost/project/user-profile-edit.html" class="btn border mr-2">Profile</a>
                                                       <a href="logout.html" class="btn border">Sign Out</a>
