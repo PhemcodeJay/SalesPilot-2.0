@@ -1,88 +1,4 @@
-<?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
 
-include('config.php'); // Includes database connection
-
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-    
-    // Check if form is submitted
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id = $_POST['id'];
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        $confirmpassword = $_POST['confirmpassword'];
-        $is_active = $_POST['is_active'];
-        $role = $_POST['role'];
-
-        // Handle file upload
-        $user_image = $_FILES['user_image']['name'];
-        $target_dir = "uploads/";
-        $target_file = $target_dir . basename($user_image);
-
-        if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
-            // File uploaded successfully
-        } else {
-            $target_file = $_POST['existing_image']; // Use existing image if upload fails
-        }
-
-        // Validate passwords
-        if ($password === $confirmpassword) {
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-            // Update user record
-            $sql = "UPDATE users SET username=?, email=?, password=?, is_active=?, role=?, user_image=? WHERE id=?";
-            $stmt= $connection->prepare($sql);
-            $stmt->execute([$username, $email, $hashed_password, $is_active, $role, $target_file, $id]);
-
-            echo "User updated successfully!";
-        } else {
-            echo "Passwords do not match!";
-        }
-    }
-
-    // Fetch user data
-    $id = $_GET['id'];
-    $sql = "SELECT * FROM users WHERE id=?";
-    $stmt = $connection->prepare($sql);
-    $stmt->execute([$id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-} catch (PDOException $e) {
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
-}
-?>
 
 <!doctype html>
 <html lang="en">
@@ -654,6 +570,10 @@ try {
                                     <div class="form-group col-sm-6">
                                         <label for="confirmpassword">Confirm Password:</label>
                                         <input type="password" class="form-control" id="confirmpassword" name="confirmpassword">
+                                    </div>
+                                    <div class="form-group col-sm-6">
+                                        <label for="location">Location:</label>
+                                        <input type="text" class="form-control" id="location" name="location" value="<?php echo $user['location']; ?>" required>
                                     </div>
                                     <div class="form-group col-sm-6">
                                         <label for="role">Role:</label>

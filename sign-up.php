@@ -190,6 +190,9 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
                                       <button type="submit" name="signup" class="btn btn-lg bg-gradient-primary btn-lg w-100 mt-4 mb-0">Sign Up</button>
                                     </div>
                                   </form>
+                                  <div class="text-center">
+                                      <button type="submit" name="login" href="http://localhost/WEB/loginpage.php" class="btn btn-lg bg-gradient-primary btn-lg w-100 mt-4 mb-0">Login</button>
+                                    </div>
                               </div>
                            </div>
                            <div class="col-lg-5 content-right">

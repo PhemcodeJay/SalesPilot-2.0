@@ -589,7 +589,7 @@ if (!$metrics_data) {
                   <div class="card-body">
                      <p>Sales Analytics Report:
 
-The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
+                        The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
                      <div class="table-responsive">
                      <table id="datatable" class="table data-tables table-striped">
     <thead>

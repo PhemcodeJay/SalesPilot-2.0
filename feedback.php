@@ -1,6 +1,6 @@
 <?php
 
-require 'C:\\xampp\\htdocs\\WEB\\vendor\\autoload.php'; // Include the Composer autoloader
+require 'C:\\xampp\\htdocs\\project\\vendor\\autoload.php'; // Include the Composer autoloader
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -35,33 +35,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-try {
-    // Create a new PHPMailer instance
-    $mail = new PHPMailer(true);
 
-    // SMTP settings
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->Port = 465;
-    $mail->SMTPAuth = true;
-    $mail->Username = 'olphemie@gmail.com'; // Replace with your Gmail email
-    $mail->Password = 'itak uyjg empc blnp'; // Replace with your app password
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-
-    // Email details
-    $mail->setFrom('olphemie@gmail.com', 'SalesPilot');
-    $mail->addAddress($email); // Use $email variable instead of undefined $Email
-    $mail->Subject = 'Activate Your Account';
-    $mail->isHTML(true); // Set email format to HTML
-    $mail->Body = 'Hello,<br>Click the link below to activate your account:<br><a href="https://localhost/WEB/activate.php?token=your_activation_token">Activate Account</a>';
-
-    if ($mail->send()) {
-        header("Location: reg-success.html"); // Redirect after sending activation email
-        exit(); // Add exit to stop the script execution
-    } else {
-        echo 'Error sending activation email: ' . $mail->ErrorInfo;
-    }
-} catch (Exception $e) {
-    echo 'Mailer Error: ' . $e->getMessage();
-}
 ?>
