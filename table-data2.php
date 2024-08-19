@@ -676,18 +676,15 @@ if (!$metrics_data) {
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($metrics_data as $data): ?>
-            <?php $revenue_by_category = json_decode($data['revenue_by_category'], true); ?>
-            <?php foreach ($revenue_by_category as $category): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($category['category_name']); ?></td>
-                    <td><?php echo htmlspecialchars($category['product_name']); ?></td>
-                    <td><?php echo htmlspecialchars($category['total_sales']); ?></td>
-                    <td><?php echo htmlspecialchars($category['total_quantity']); ?></td>
-                    <td><?php echo htmlspecialchars($category['total_profit']); ?></td>
-                    <td><?php echo htmlspecialchars($category['total_expenses']); ?></td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($category_metrics_data as $data): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($data['category_name']); ?></td>
+                <td><?php echo htmlspecialchars($data['product_name']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_sales']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_quantity']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_profit']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_expenses']); ?></td>
+            </tr>
         <?php endforeach; ?>
     </tbody>
 </table>

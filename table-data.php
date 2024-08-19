@@ -676,32 +676,62 @@ if (!$metrics_data) {
                         The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
                      <div class="table-responsive">
                      <table id="datatable" class="table data-tables table-striped">
-                        <thead>
-                            <tr class="light">
-                                <th>Product ID</th>
-                                <th>Product Name</th>
-                                <th>Total Sales</th>
-                                <th>Total Quantity</th>
-                                <th>Total Profit</th>
-                                <th>Total Expenses</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($metrics_data as $data): ?>
-                                <?php $revenue_by_product = json_decode($data['revenue_by_product'], true); ?>
-                                <?php foreach ($revenue_by_product as $product): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($product['product_id']); ?></td>
-                                        <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
-                                        <td><?php echo htmlspecialchars($product['total_quantity']); ?></td>
-                                        <td><?php echo htmlspecialchars($product['total_profit']); ?></td>
-                                        <td><?php echo htmlspecialchars($product['total_expenses']); ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                    <thead>
+                                        <tr class="light">
+                                            <th>Product ID</th>
+                                            <th>Product Name</th>
+                                            <th>Total Sales</th>
+                                            <th>Total Quantity</th>
+                                            <th>Total Profit</th>
+                                            <th>Total Expenses</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // To store already displayed product IDs and avoid duplicates
+                                        $displayed_products = [];
+
+                                        foreach ($metrics_data as $data):
+                                            $revenue_by_product = json_decode($data['revenue_by_product'], true);
+
+                                            // Check if decoding was successful
+                                            if (is_array($revenue_by_product)):
+                                                foreach ($revenue_by_product as $product):
+                                                    // Ensure all required fields are present
+                                                    if (isset($product['product_id'], $product['product_name'], $product['total_sales'], $product['total_quantity'], $product['total_profit'], $product['total_expenses'])
+                                                        && !empty($product['product_id']) && !empty($product['product_name'])
+                                                        && !empty($product['total_sales']) && !empty($product['total_quantity'])
+                                                        && !empty($product['total_profit']) && !empty($product['total_expenses'])
+                                                    ):
+                                                        // Check if the product has already been displayed
+                                                        if (in_array($product['product_id'], $displayed_products)) {
+                                                            continue; // Skip this product if it has been displayed
+                                                        }
+
+                                                        // Add product ID to the list of displayed products
+                                                        $displayed_products[] = $product['product_id'];
+                                                        ?>
+                                                        <tr>
+                                                            <td><?php echo htmlspecialchars($product['product_id']); ?></td>
+                                                            <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                                            <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
+                                                            <td><?php echo htmlspecialchars($product['total_quantity']); ?></td>
+                                                            <td><?php echo htmlspecialchars($product['total_profit']); ?></td>
+                                                            <td><?php echo htmlspecialchars($product['total_expenses']); ?></td>
+                                                        </tr>
+                                                    <?php
+                                                    endif; // End check for valid product data
+                                                endforeach;
+                                            else: ?>
+                                                <tr>
+                                                    <td colspan="6">No product data available</td>
+                                                </tr>
+                                            <?php endif;
+                                        endforeach; ?>
+                                    </tbody>
+                                </table>
+
+
                         
                      </div>
                   </div>
