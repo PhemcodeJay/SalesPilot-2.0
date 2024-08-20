@@ -1,3 +1,68 @@
+<?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
+require 'config.php'; // Include your database connection script
+
+try {
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+
+    // Retrieve invoice data
+    if (isset($_GET['invoice_id'])) {
+        $invoice_id = intval($_GET['invoice_id']);
+
+        // Fetch invoice details
+        $invoice_query = "SELECT * FROM invoices WHERE id = :invoice_id";
+        $stmt = $connection->prepare($invoice_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$invoice) {
+            throw new Exception("Invoice not found.");
+        }
+
+        // Fetch invoice items
+        $items_query = "SELECT * FROM invoice_items WHERE invoice_id = :invoice_id";
+        $stmt = $connection->prepare($items_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    } else {
+        throw new Exception("No invoice ID provided.");
+    }
+
+} catch (Exception $e) {
+    echo 'Error: ' . $e->getMessage();
+    exit;
+}
+?>
 
 
 <!doctype html>
@@ -222,7 +287,7 @@
                                 </li>
                                 <li class="">
                                         <a href="http://localhost/project/product-metric.php">
-                                            <i class="las la-minus"></i><span>Product Metric</span>
+                                            <i class="las la-minus"></i><span>Product Metrics</span>
                                         </a>
                                 </li>
                                 
@@ -290,7 +355,7 @@
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -305,83 +370,6 @@
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
-                                  </div>
-                              </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
                                   </div>
                               </li>
                               <li class="nav-item nav-icon dropdown">
@@ -514,153 +502,101 @@
               </div>
           </div>
       </div>      <div class="content-page">
-        <?php
-        require 'config.php'; // Include your database connection script
         
-        // Fetch invoice details and items
-        $invoice_id = $_GET['invoice_id']; // Assume invoice_id is passed as a query parameter
         
-        // Prepare and execute the query
-        $query = "
-            SELECT 
-                i.invoice_number, i.customer_name, i.invoice_description, i.order_date, 
-                i.order_status, i.order_id, i.billing_address, i.shipping_address, 
-                i.bank, i.account_no, i.due_date, i.subtotal, i.discount, i.total_amount, 
-                i.notes, 
-                ii.item_name, ii.quantity, ii.price, ii.total
-            FROM invoices i
-            LEFT JOIN invoice_items ii ON i.id = ii.invoice_id
-            WHERE i.id = :invoice_id
-        ";
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->execute(['invoice_id' => $invoice_id]);
-        
-        // Fetch data
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Separate invoice details and items
-        $invoice_details = [];
-        $invoice_items = [];
-        
-        foreach ($data as $row) {
-            if (empty($invoice_details)) {
-                // First row contains invoice details
-                $invoice_details = array(
-                    'invoice_number' => $row['invoice_number'],
-                    'customer_name' => $row['customer_name'],
-                    'invoice_description' => $row['invoice_description'],
-                    'order_date' => $row['order_date'],
-                    'order_status' => $row['order_status'],
-                    'order_id' => $row['order_id'],
-                    'billing_address' => $row['billing_address'],
-                    'shipping_address' => $row['shipping_address'],
-                    'bank' => $row['bank'],
-                    'account_no' => $row['account_no'],
-                    'due_date' => $row['due_date'],
-                    'subtotal' => $row['subtotal'],
-                    'discount' => $row['discount'],
-                    'total_amount' => $row['total_amount'],
-                    'notes' => $row['notes'],
-                );
-            }
-        
-            if ($row['item_name']) {
-                // Subsequent rows contain invoice items
-                $invoice_items[] = array(
-                    'item_name' => $row['item_name'],
-                    'quantity' => $row['quantity'],
-                    'price' => $row['price'],
-                    'total' => $row['total']
-                );
-            }
-        }
-        ?>
-        
-        <div class="container-fluid">
-            <div class="row">                  
-                <div class="col-lg-12">
-                    <div class="card card-block card-stretch card-height print rounded">
-                        <div class="card-header d-flex justify-content-between bg-primary header-invoice">
-                            <div class="iq-header-title">
-                                <h4 class="card-title mb-0">Invoice#<?php echo htmlspecialchars($invoice_details['invoice_number']); ?></h4>
-                            </div>
-                            <div class="invoice-btn">
-                                <button type="button" class="btn btn-primary-dark mr-2"><i class="las la-print"></i> Print</button>
-                                <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i>PDF</button>
+      <div class="container-fluid">
+        <div class="row">                  
+            <div class="col-lg-12">
+                <div class="card card-block card-stretch card-height print rounded">
+                    <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                        <div class="iq-header-title">
+                            <h4 class="card-title mb-0">Invoice #<?php echo htmlspecialchars($invoice_details['invoice_number']); ?></h4>
+                        </div>
+                        <div class="invoice-btn">
+                            <button type="button" class="btn btn-primary-dark">
+                            <a href="pdf_generate.php?invoice_id=<?php echo urlencode($invoice_id); ?>" class="text-white">
+                                <i class="las la-file-download"></i> PDF
+                            </a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Company Logo">
+                                <h5 class="mb-0">Hello, <?php echo htmlspecialchars($invoice_details['customer_name']); ?></h5>
+                                <p><?php echo htmlspecialchars($invoice_details['invoice_description']); ?></p>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-12">                                  
-                                    <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
-                                    <h5 class="mb-0">Hello, <?php echo htmlspecialchars($invoice_details['customer_name']); ?></h5>
-                                    <p><?php echo htmlspecialchars($invoice_details['invoice_description']); ?></p>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="table-responsive-sm">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Order Date</th>
+                                                <th scope="col">Order Status</th>
+                                                <th scope="col">Order ID</th>
+                                                <th scope="col">Billing Address</th>
+                                                <th scope="col">Shipping Address</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($invoice_details['order_date']); ?></td>
+                                                <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice_details['order_status']); ?></span></td>
+                                                <td><?php echo htmlspecialchars($invoice_details['order_id']); ?></td>
+                                                <td>
+                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['billing_address'])); ?></p>
+                                                </td>
+                                                <td>
+                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['shipping_address'])); ?></p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="table-responsive-sm">
-                                        <table class="table">
-                                            <thead>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h5 class="mb-3">Order Summary</h5>
+                                <div class="table-responsive-sm">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center" scope="col">#</th>
+                                                <th scope="col">Item</th>
+                                                <th class="text-center" scope="col">Quantity</th>
+                                                <th class="text-center" scope="col">Price</th>
+                                                <th class="text-center" scope="col">Totals</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php $index = 1; ?>
+                                            <?php foreach ($invoice_items as $item): ?>
                                                 <tr>
-                                                    <th scope="col">Order Date</th>
-                                                    <th scope="col">Order Status</th>
-                                                    <th scope="col">Order ID</th>
-                                                    <th scope="col">Billing Address</th>
-                                                    <th scope="col">Shipping Address</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($invoice_details['order_date']); ?></td>
-                                                    <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice_details['order_status']); ?></span></td>
-                                                    <td><?php echo htmlspecialchars($invoice_details['order_id']); ?></td>
+                                                    <th class="text-center" scope="row"><?php echo $index++; ?></th>
                                                     <td>
-                                                        <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['billing_address'])); ?></p>
+                                                        <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
+                                                        <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
                                                     </td>
-                                                    <td>
-                                                        <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['shipping_address'])); ?></p>
-                                                    </td>
+                                                    <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
+                                                    <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
+                                                    <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
                                                 </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <h5 class="mb-3">Order Summary</h5>
-                                    <div class="table-responsive-sm">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center" scope="col">#</th>
-                                                    <th scope="col">Item</th>
-                                                    <th class="text-center" scope="col">Quantity</th>
-                                                    <th class="text-center" scope="col">Price</th>
-                                                    <th class="text-center" scope="col">Totals</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php $index = 1; ?>
-                                                <?php foreach ($invoice_items as $item): ?>
-                                                    <tr>
-                                                        <th class="text-center" scope="row"><?php echo $index++; ?></th>
-                                                        <td>
-                                                            <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
-                                                            <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-                                                        </td>
-                                                        <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                                        <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
-                                                        <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>                              
-                            </div>
+                            </div>                              
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
                             <div class="row">
                                 <div class="col-sm-12">
                                     <b class="text-danger">Notes:</b>

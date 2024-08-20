@@ -1,84 +1,128 @@
-
 <?php
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
 require 'config.php'; // Include your database connection script
 
-// Capture form data
-$invoice_number = $_POST['invoice_number'];
-$customer_name = $_POST['customer_name'];
-$invoice_description = $_POST['invoice_description'];
-$order_date = $_POST['order_date'];
-$order_status = $_POST['order_status'];
-$order_id = $_POST['order_id'];
-$billing_address = $_POST['billing_address'];
-$shipping_address = $_POST['shipping_address'];
-$bank = $_POST['bank'];
-$account_no = $_POST['account_no'];
-$due_date = $_POST['due_date'];
-$subtotal = $_POST['subtotal'];
-$discount = $_POST['discount'];
-$total_amount = $_POST['total_amount'];
-$notes = $_POST['notes'];
-
-// Begin a transaction
-$pdo->beginTransaction();
-
 try {
-    // Prepare the insert statement
-    $stmt = $pdo->prepare("
-        INSERT INTO invoices (
-            invoice_number, customer_name, invoice_description, order_date, 
-            order_status, order_id, billing_address, shipping_address, 
-            bank, account_no, due_date, subtotal, discount, total_amount, notes, 
-            item_name, quantity, price, total
-        ) VALUES (
-            :invoice_number, :customer_name, :invoice_description, :order_date, 
-            :order_status, :order_id, :billing_address, :shipping_address, 
-            :bank, :account_no, :due_date, :subtotal, :discount, :total_amount, :notes,
-            :item_name, :quantity, :price, :total
-        )
-    ");
-
-    // Extract item data
-    $item_names = $_POST['item_name'];
-    $quantities = $_POST['quantity'];
-    $prices = $_POST['price'];
-    $totals = $_POST['total'];
-
-    // Insert each invoice item
-    foreach ($item_names as $index => $item_name) {
-        $stmt->execute([
-            ':invoice_number' => $invoice_number,
-            ':customer_name' => $customer_name,
-            ':invoice_description' => $invoice_description,
-            ':order_date' => $order_date,
-            ':order_status' => $order_status,
-            ':order_id' => $order_id,
-            ':billing_address' => $billing_address,
-            ':shipping_address' => $shipping_address,
-            ':bank' => $bank,
-            ':account_no' => $account_no,
-            ':due_date' => $due_date,
-            ':subtotal' => $subtotal,
-            ':discount' => $discount,
-            ':total_amount' => $total_amount,
-            ':notes' => $notes,
-            ':item_name' => $item_name,
-            ':quantity' => $quantities[$index],
-            ':price' => $prices[$index],
-            ':total' => $totals[$index]
-        ]);
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
     }
 
-    // Commit the transaction
-    $pdo->commit();
+    $username = htmlspecialchars($_SESSION["username"]);
 
-    echo "Invoice has been successfully saved!";
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Retrieve form data
+        $invoice_number = $_POST['invoice_number'] ?? '';
+        $customer_name = $_POST['customer_name'] ?? '';
+        $invoice_description = $_POST['invoice_description'] ?? '';
+        $order_date = $_POST['order_date'] ?? '';
+        $order_status = $_POST['order_status'] ?? '';
+        $order_id = $_POST['order_id'] ?? '';
+        $billing_address = $_POST['billing_address'] ?? '';
+        $shipping_address = $_POST['shipping_address'] ?? '';
+        $items = $_POST['item_name'] ?? [];
+        $quantities = $_POST['quantity'] ?? [];
+        $prices = $_POST['price'] ?? [];
+        $totals = $_POST['total'] ?? [];
+        $notes = $_POST['notes'] ?? '';
+        $bank = $_POST['bank'] ?? '';
+        $account_no = $_POST['account_no'] ?? '';
+        $due_date = $_POST['due_date'] ?? '';
+        $subtotal = $_POST['subtotal'] ?? '';
+        $discount = $_POST['discount'] ?? '';
+        $total_amount = $_POST['total_amount'] ?? '';
+
+        try {
+            // Insert invoice data
+            $invoice_query = "
+                INSERT INTO invoices 
+                (invoice_number, customer_name, invoice_description, order_date, order_status, 
+                order_id, billing_address, shipping_address, bank, account_no, due_date, 
+                subtotal, discount, total_amount, notes)
+                VALUES 
+                (:invoice_number, :customer_name, :invoice_description, :order_date, :order_status, 
+                :order_id, :billing_address, :shipping_address, :bank, :account_no, :due_date, 
+                :subtotal, :discount, :total_amount, :notes)
+            ";
+
+            $stmt = $connection->prepare($invoice_query);
+
+            $stmt->execute([
+                ':invoice_number' => $invoice_number,
+                ':customer_name' => $customer_name,
+                ':invoice_description' => $invoice_description,
+                ':order_date' => $order_date,
+                ':order_status' => $order_status,
+                ':order_id' => $order_id,
+                ':billing_address' => $billing_address,
+                ':shipping_address' => $shipping_address,
+                ':bank' => $bank,
+                ':account_no' => $account_no,
+                ':due_date' => $due_date,
+                ':subtotal' => $subtotal,
+                ':discount' => $discount,
+                ':total_amount' => $total_amount,
+                ':notes' => $notes,
+            ]);
+
+            // Get the last inserted invoice ID
+            $invoice_id = $connection->lastInsertId();
+
+            // Insert invoice items
+            $item_query = "
+                INSERT INTO invoice_items 
+                (invoice_id, item_name, quantity, price, total)
+                VALUES 
+                (:invoice_id, :item_name, :quantity, :price, :total)
+            ";
+
+            $stmt = $connection->prepare($item_query);
+
+            foreach ($items as $index => $item_name) {
+                $stmt->execute([
+                    ':invoice_id' => $invoice_id,
+                    ':item_name' => $item_name,
+                    ':quantity' => $quantities[$index] ?? 0,
+                    ':price' => $prices[$index] ?? 0.00,
+                    ':total' => $totals[$index] ?? 0.00,
+                ]);
+            }
+
+            // Redirect to pages-invoice.php with a success message
+            header('Location: pages-invoice.php?status=success');
+            exit;
+        } catch (PDOException $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
+    }
 } catch (Exception $e) {
-    // Rollback the transaction if something failed
-    $pdo->rollBack();
-    echo "Failed to save invoice: " . $e->getMessage();
+    echo 'Error: ' . $e->getMessage();
 }
 ?>
+
+
 
 <!doctype html>
 <html lang="en">
@@ -302,7 +346,7 @@ try {
                                 </li>
                                 <li class="">
                                         <a href="http://localhost/project/product-metric.php">
-                                            <i class="las la-minus"></i><span>Product Metric</span>
+                                            <i class="las la-minus"></i><span>Product Metrics</span>
                                         </a>
                                 </li>
                                 
@@ -370,7 +414,7 @@ try {
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -385,83 +429,6 @@ try {
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
-                                  </div>
-                              </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
                                   </div>
                               </li>
                               <li class="nav-item nav-icon dropdown">
@@ -572,163 +539,174 @@ try {
           </div>
       </div>
       <div class="modal fade" id="new-order" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-              <div class="modal-content">
-                  <div class="modal-body">
-                      <div class="popup text-left">
-                          <h4 class="mb-3">New Invoice</h4>
-                          <div class="content create-workform bg-body">
-                              <div class="pb-3">
-                                  <label class="mb-2">Name</label>
-                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
-                              </div>
-                              <div class="col-lg-12 mt-4">
-                                  <div class="d-flex flex-wrap align-items-ceter justify-content-center">
-                                      <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
-                                      <div class="btn btn-outline-primary" data-dismiss="modal">Create</div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-        </div>      <div class="content-page">
-<div class="container-fluid">
-    <form action="submit_invoice.php" method="POST">
-        <div class="row">                  
-            <div class="col-lg-12">
-                <div class="card card-block card-stretch card-height print rounded">
-                    <div class="card-header d-flex justify-content-between bg-primary header-invoice">
-                        <div class="iq-header-title">
-                            <h4 class="card-title mb-0">Invoice#<input type="text" name="invoice_number" value="1234567"></h4>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="popup text-left">
+                    <h4 class="mb-3">New Invoice</h4>
+                    <div class="content create-workform bg-body">
+                        <div class="pb-3">
+                            <label class="mb-2">Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter Customer Name">
                         </div>
-                        <div class="invoice-btn">
-                            <button type="button" class="btn btn-primary-dark mr-2"><i class="las la-print"></i> Print</button>
-                            <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i>PDF</button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-12">                                  
-                                <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
-                                <h5 class="mb-0">Hello, <input type="text" name="customer_name" value="Barry Techs"></h5>
-                                <textarea name="invoice_description">It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout...</textarea>
+                        <div class="col-lg-12 mt-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-center">
+                                <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
+                                <div class="btn btn-outline-primary" id="createButton">Create</div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="table-responsive-sm">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Order Date</th>
-                                                <th scope="col">Order Status</th>
-                                                <th scope="col">Order ID</th>
-                                                <th scope="col">Billing Address</th>
-                                                <th scope="col">Shipping Address</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><input type="date" name="order_date" value="2016-01-17"></td>
-                                                <td>
-                                                    <select name="order_status">
-                                                        <option value="unpaid">Unpaid</option>
-                                                        <option value="paid">Paid</option>
-                                                    </select>
-                                                </td>
-                                                <td><input type="text" name="order_id" value="250028"></td>
-                                                <td>
-                                                    <textarea name="billing_address">PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
-                                                </td>
-                                                <td>
-                                                    <textarea name="shipping_address">PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h5 class="mb-3">Order Summary</h5>
-                                <div class="table-responsive-sm">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center" scope="col">#</th>
-                                                <th scope="col">Item</th>
-                                                <th class="text-center" scope="col">Quantity</th>
-                                                <th class="text-center" scope="col">Price</th>
-                                                <th class="text-center" scope="col">Totals</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Repeat these rows as needed -->
-                                            <tr>
-                                                <th class="text-center" scope="row">1</th>
-                                                <td><input type="text" name="item_name[]" value="Web Design"></td>
-                                                <td class="text-center"><input type="number" name="quantity[]" value="5"></td>
-                                                <td class="text-center"><input type="text" name="price[]" value="120.00"></td>
-                                                <td class="text-center"><b>$<input type="text" name="total[]" value="600.00" readonly></b></td>
-                                            </tr>
-                                            <!-- Repeat ends -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>                              
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <b class="text-danger">Notes:</b>
-                                <textarea name="notes">It is a long established fact that a reader will be distracted by the readable content...</textarea>
-                            </div>
-                        </div>
-                        <div class="row mt-4 mb-3">
-                            <div class="offset-lg-8 col-lg-4">
-                                <div class="or-detail rounded">
-                                    <div class="p-3">
-                                        <h5 class="mb-3">Order Details</h5>
-                                        <div class="mb-2">
-                                            <h6>Bank</h6>
-                                            <input type="text" name="bank" value="Threadneedle St">
-                                        </div>
-                                        <div class="mb-2">
-                                            <h6>Acc. No</h6>
-                                            <input type="text" name="account_no" value="12333456789">
-                                        </div>
-                                        <div class="mb-2">
-                                            <h6>Due Date</h6>
-                                            <input type="date" name="due_date" value="2020-08-12">
-                                        </div>
-                                        <div class="mb-2">
-                                            <h6>Sub Total</h6>
-                                            <input type="text" name="subtotal" value="4597.50">
-                                        </div>
-                                        <div>
-                                            <h6>Discount</h6>
-                                            <input type="text" name="discount" value="10%">
-                                        </div>
-                                    </div>
-                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                        <h6>Total</h6>
-                                        <h3 class="text-primary font-weight-700">$<input type="text" name="total_amount" value="4137.75" readonly></h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <button type="submit" class="btn btn-primary">Submit Invoice</button>
-                            </div>
-                        </div>                            
                     </div>
                 </div>
-            </div>                                    
+            </div>
         </div>
-    </form>
+    </div>
+</div>
+
+
+
+        </div>      <div class="content-page">
+<div class="container-fluid">
+<form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card card-block card-stretch card-height print rounded">
+                <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                    <div class="iq-header-title">
+                        <h4 class="card-title mb-0">Invoice#</h4>
+                        <input type="text" class="form-control" name="invoice_number" value="1234567" required>
+                    </div>
+                    <div class="invoice-btn">
+                    <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
+                            <i class="las la-print"></i> View Invoice
+                        </a>
+
+                        <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i> PDF</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Logo">
+                            <h5 class="mb-0">Hello,</h5>
+                            <input type="text" class="form-control" name="customer_name" value="Barry Techs" required>
+                            <textarea name="invoice_description" class="form-control mt-2" required>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout...</textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="table-responsive-sm mt-3">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Order Date</th>
+                                            <th scope="col">Order Status</th>
+                                            <th scope="col">Order ID</th>
+                                            <th scope="col">Billing Address</th>
+                                            <th scope="col">Shipping Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="date" class="form-control" name="order_date" value="2016-01-17" required></td>
+                                            <td>
+                                                <select name="order_status" class="form-control" required>
+                                                    <option value="unpaid" selected>Unpaid</option>
+                                                    <option value="paid">Paid</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="text" class="form-control" name="order_id" value="250028" required></td>
+                                            <td>
+                                                <textarea name="billing_address" class="form-control" required>PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                            </td>
+                                            <td>
+                                                <textarea name="shipping_address" class="form-control" required>PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h5 class="mb-3">Order Summary</h5>
+                            <div class="table-responsive-sm">
+                                <table class="table" id="invoice-items">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" scope="col">#</th>
+                                            <th scope="col">Item</th>
+                                            <th class="text-center" scope="col">Quantity</th>
+                                            <th class="text-center" scope="col">Price ($)</th>
+                                            <th class="text-center" scope="col">Total ($)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Example item row -->
+                                        <tr>
+                                            <th class="text-center" scope="row">1</th>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                                        </tr>
+                                        <!-- More rows can be added dynamically as needed -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label for="notes" class="text-danger">Notes:</label>
+                            <textarea id="notes" name="notes" class="form-control mt-2">It is a long established fact that a reader will be distracted by the readable content...</textarea>
+                        </div>
+                    </div>
+                    <div class="row mt-4 mb-3">
+                        <div class="offset-lg-8 col-lg-4">
+                            <div class="or-detail rounded">
+                                <div class="p-3">
+                                    <h5 class="mb-3">Order Details</h5>
+                                    <div class="mb-2">
+                                        <label for="bank">Bank</label>
+                                        <input type="text" id="bank" name="bank" class="form-control" value="Threadneedle St" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="account_no">Acc. No</label>
+                                        <input type="text" id="account_no" name="account_no" class="form-control" value="12333456789" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="due_date">Due Date</label>
+                                        <input type="date" id="due_date" name="due_date" class="form-control" value="2020-08-12" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="subtotal">Sub Total</label>
+                                        <input type="number" step="0.01" id="subtotal" name="subtotal" class="form-control" value="4597.50" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="discount">Discount</label>
+                                        <input type="text" id="discount" name="discount" class="form-control" value="10%" required>
+                                    </div>
+                                </div>
+                                <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                    <h6>Total</h6>
+                                    <h3 class="text-primary font-weight-700">$<input type="number" class="form-control" name="total_amount" value="4137.75" required></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button type="submit" class="btn btn-primary">Submit Invoice</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
 </div>
 <!-- Wrapper End-->
 <footer class="iq-footer">
@@ -758,5 +736,13 @@ try {
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
+<script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
 </body>
 </html>
