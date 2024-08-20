@@ -426,107 +426,63 @@
         <button class="print-btn" onclick="printPDF()">Save as PDF</button>
     </div>
 
-    <!-- Charts Tables -->
-    <div class="charts-table">
-        <!-- Bar Chart Table -->
-        <table class="chart-table">
-            <thead>
-                <tr>
-                    <th colspan="2">Total Sales Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="chart-container">
-                            <canvas id="barChart"></canvas>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="date-range-buttons">
-                            <button class="weekly" onclick="updateBarChart('weekly')">Weekly</button>
-                            <button class="monthly" onclick="updateBarChart('monthly')">Monthly</button>
-                            <button class="yearly" onclick="updateBarChart('yearly')">Yearly</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <h2>Bar Chart Data</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Total Sales Quantity</th>
+        </tr>
+    </thead>
+    <tbody id="barTableBody">
+        <!-- Data rows will be inserted here -->
+    </tbody>
+</table>
 
-        <!-- Pie Chart Table -->
-        <table class="chart-table">
-            <thead>
-                <tr>
-                    <th colspan="2">Sell-Through Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="chart-container">
-                            <canvas id="pieChart"></canvas>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="date-range-buttons">
-                            <button class="weekly" onclick="updatePieChart('weekly')">Weekly</button>
-                            <button class="monthly" onclick="updatePieChart('monthly')">Monthly</button>
-                            <button class="yearly" onclick="updatePieChart('yearly')">Yearly</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<h2>Pie Chart Data</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Avg Sell-Through Rate</th>
+            <th>Avg Inventory Turnover Rate</th>
+        </tr>
+    </thead>
+    <tbody id="pieTableBody">
+        <!-- Data rows will be inserted here -->
+    </tbody>
+</table>
 
-        <!-- Candlestick Chart Table -->
-        <table class="chart-table">
-            <thead>
-                <tr>
-                    <th colspan="2">Revenue & Profit Margin</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="chart-container">
-                            <canvas id="candleChart"></canvas>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="date-range-buttons">
-                            <button class="weekly" onclick="updateCandleChart('weekly')">Weekly</button>
-                            <button class="monthly" onclick="updateCandleChart('monthly')">Monthly</button>
-                            <button class="yearly" onclick="updateCandleChart('yearly')">Yearly</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<h2>Candlestick Chart Data</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Open</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Close</th>
+        </tr>
+    </thead>
+    <tbody id="candleTableBody">
+        <!-- Data rows will be inserted here -->
+    </tbody>
+</table>
 
-        <!-- Area Chart Table -->
-        <table class="chart-table">
-            <thead>
-                <tr>
-                    <th colspan="2">Revenue vs Expenses</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="chart-container">
-                            <canvas id="areaChart"></canvas>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="date-range-buttons">
-                            <button class="weekly" onclick="updateAreaChart('weekly')">Weekly</button>
-                            <button class="monthly" onclick="updateAreaChart('monthly')">Monthly</button>
-                            <button class="yearly" onclick="updateAreaChart('yearly')">Yearly</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<h2>Area Chart Data</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Total Revenue</th>
+            <th>Total Expenses</th>
+        </tr>
+    </thead>
+    <tbody id="areaTableBody">
+        <!-- Data rows will be inserted here -->
+    </tbody>
+</table>
+
     </div>
 </div>
  <!-- Page end  -->
@@ -561,221 +517,109 @@
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
+
 <script>
-    function updateCharts(range) {
-        $.ajax({
-            url: 'chart-data.php',
-            type: 'GET',
-            data: { range: range },
-            success: function(response) {
-                const data = JSON.parse(response);
-                updateBarChartData(data.barData);
-                updatePieChartData(data.pieData);
-                updateCandleChartData(data.candleData);
-                updateAreaChartData(data.areaData);
-            }
-        });
-    }
+function updateTables(range) {
+    $.ajax({
+        url: 'table.php',
+        type: 'GET',
+        data: { range: range },
+        success: function(response) {
+            const data = JSON.parse(response);
+            updateBarTableData(data.barData);
+            updatePieTableData(data.pieData);
+            updateCandleTableData(data.candleData);
+            updateAreaTableData(data.areaData);
+        }
+    });
+}
 
-    function updateBarChart(range) {
-        updateCharts(range);
-    }
+function updateBarTableData(barData) {
+    const barTableBody = document.getElementById('barTableBody');
+    barTableBody.innerHTML = ''; // Clear existing data
+    barData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.date}</td>
+            <td>${item.total_sales}</td>
+        `;
+        barTableBody.appendChild(row);
+    });
+}
 
-    function updatePieChart(range) {
-        updateCharts(range);
-    }
+function updatePieTableData(pieData) {
+    const pieTableBody = document.getElementById('pieTableBody');
+    pieTableBody.innerHTML = ''; // Clear existing data
+    pieData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.date}</td>
+            <td>${item.avg_sell_through_rate}</td>
+            <td>${item.avg_inventory_turnover_rate}</td>
+        `;
+        pieTableBody.appendChild(row);
+    });
+}
 
-    function updateCandleChart(range) {
-        updateCharts(range);
-    }
+function updateCandleTableData(candleData) {
+    const candleTableBody = document.getElementById('candleTableBody');
+    candleTableBody.innerHTML = ''; // Clear existing data
+    candleData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.date}</td>
+            <td>${item.open}</td>
+            <td>${item.high}</td>
+            <td>${item.low}</td>
+            <td>${item.close}</td>
+        `;
+        candleTableBody.appendChild(row);
+    });
+}
 
-    function updateAreaChart(range) {
-        updateCharts(range);
-    }
+function updateAreaTableData(areaData) {
+    const areaTableBody = document.getElementById('areaTableBody');
+    areaTableBody.innerHTML = ''; // Clear existing data
+    areaData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.date}</td>
+            <td>${item.total_revenue}</td>
+            <td>${item.total_expenses}</td>
+        `;
+        areaTableBody.appendChild(row);
+    });
+}
 
-    function updateBarChartData(barData) {
-        const barLabels = barData.map(item => item.date);
-        const barSales = barData.map(item => item.total_sales);
-        barChart.data.labels = barLabels;
-        barChart.data.datasets[0].data = barSales;
-        barChart.update();
-    }
+function printPDF() {
+    html2canvas(document.getElementById('dashboard')).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210; 
+        const pageHeight = 295;  
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
 
-    function updatePieChartData(pieData) {
-        const pieLabels = pieData.map(item => item.date);
-        const pieSellThrough = pieData.map(item => item.avg_sell_through_rate);
-        pieChart.data.labels = pieLabels;
-        pieChart.data.datasets[0].data = pieSellThrough;
-        pieChart.update();
-    }
+        let position = 0;
 
-    function updateCandleChartData(candleData) {
-        const candleLabels = candleData.map(item => item.date);
-        const candleDataPoints = candleData.map(item => ({
-            t: item.date,
-            o: item.open,
-            h: item.high,
-            l: item.low,
-            c: item.close
-        }));
-        candleChart.data.labels = candleLabels;
-        candleChart.data.datasets[0].data = candleDataPoints;
-        candleChart.update();
-    }
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
 
-    function updateAreaChartData(areaData) {
-        const areaLabels = areaData.map(item => item.date);
-        const areaRevenue = areaData.map(item => item.total_revenue);
-        const areaExpenses = areaData.map(item => item.total_expenses);
-        areaChart.data.labels = areaLabels;
-        areaChart.data.datasets[0].data = areaRevenue;
-        areaChart.data.datasets[1].data = areaExpenses;
-        areaChart.update();
-    }
-
-    function printPDF() {
-        html2canvas(document.getElementById('dashboard')).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 210; 
-            const pageHeight = 295;  
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            let heightLeft = imgHeight;
-
-            let position = 0;
-
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            pdf.save('dashboard.pdf');
-        });
-    }
-
-    $(document).ready(function() {
-        updateCharts('monthly');
-    });
-
-    // Bar Chart
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    const barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Total Sales Quantity',
-                data: [],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
         }
-    });
 
-    // Pie Chart
-    const ctxPie = document.getElementById('pieChart').getContext('2d');
-    const pieChart = new Chart(ctxPie, {
-        type: 'pie',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Sell-Through Rate',
-                data: [],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true
-        }
+        pdf.save('dashboard.pdf');
     });
+}
 
-    // Candlestick Chart
-    const ctxCandle = document.getElementById('candleChart').getContext('2d');
-    const candleChart = new Chart(ctxCandle, {
-        type: 'candlestick',
-        data: {
-            datasets: [{
-                label: 'Revenue and Profit Margin',
-                data: [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    }
-                }
-            }
-        }
-    });
+$(document).ready(function() {
+    updateTables('monthly');
+});
 
-    // Area Chart
-    const ctxArea = document.getElementById('areaChart').getContext('2d');
-    const areaChart = new Chart(ctxArea, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: 'Revenue',
-                    data: [],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    fill: true
-                },
-                {
-                    label: 'Expenses',
-                    data: [],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
 </script>
-
 </body>
 </html>

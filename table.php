@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: application/json');
+header('Content-Type: text/html');
 require 'config.php'; // Include your database connection script
 
 // Retrieve the time range from the request
@@ -23,7 +23,7 @@ switch ($range) {
         break;
 }
 
-// Fetch sales data for Bar Chart
+// Fetch sales data for Bar Chart and convert to table format
 $salesQuery = $connection->prepare("SELECT DATE(sale_date) AS date, SUM(sales_qty) AS total_sales 
                                     FROM sales 
                                     WHERE sale_date BETWEEN :startDate AND :endDate 
@@ -31,7 +31,7 @@ $salesQuery = $connection->prepare("SELECT DATE(sale_date) AS date, SUM(sales_qt
 $salesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $salesData = $salesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch revenue and profit data for Candlestick and Area Charts
+// Fetch revenue and profit data for Candlestick and Area Charts and convert to table format
 $revenueProfitQuery = $connection->prepare("SELECT DATE(sale_date) AS date, 
                                             SUM(sales_qty * price) AS revenue, 
                                             SUM(sales_qty * (price - cost)) AS profit 
@@ -42,7 +42,7 @@ $revenueProfitQuery = $connection->prepare("SELECT DATE(sale_date) AS date,
 $revenueProfitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $revenueProfitData = $revenueProfitQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch expense and inventory data for Area Chart
+// Fetch expense and inventory data for Area Chart and convert to table format
 $expenseQuery = $connection->prepare("SELECT DATE(expense_date) AS date, 
                                       SUM(amount) AS total_expenses 
                                       FROM expenses 
@@ -51,30 +51,7 @@ $expenseQuery = $connection->prepare("SELECT DATE(expense_date) AS date,
 $expenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $expenseData = $expenseQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Combine revenue and expenses for Area Chart
-$combinedRevenueExpense = [];
-foreach ($revenueProfitData as $data) {
-    $date = $data['date'];
-    $revenue = $data['revenue'];
-    $profit = $data['profit'];
-
-    // Find matching expense data
-    $expenses = 0;
-    foreach ($expenseData as $expense) {
-        if ($expense['date'] === $date) {
-            $expenses = $expense['total_expenses'];
-            break;
-        }
-    }
-    
-    $combinedRevenueExpense[] = [
-        'date' => $date,
-        'total_revenue' => $revenue,
-        'total_expenses' => $expenses + $revenue // Combined revenue and expense
-    ];
-}
-
-// Fetch sell-through rate and inventory turnover rate from reports
+// Fetch sell-through rate and inventory turnover rate from reports and convert to table format
 $metricsQuery = $connection->prepare("SELECT DATE(report_date) AS date, 
                                       AVG(sell_through_rate) AS avg_sell_through_rate, 
                                       AVG(inventory_turnover_rate) AS avg_inventory_turnover_rate 
@@ -84,13 +61,34 @@ $metricsQuery = $connection->prepare("SELECT DATE(report_date) AS date,
 $metricsQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $metricsData = $metricsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Prepare final data
-$response = [
-    'barData' => $salesData,
-    'pieData' => $metricsData,
-    'candleData' => $revenueProfitData,
-    'areaData' => $combinedRevenueExpense
-];
+// Function to generate HTML table
+function generateTable($data, $columns) {
+    echo '<table border="1">';
+    echo '<tr>';
+    foreach ($columns as $column) {
+        echo "<th>{$column}</th>";
+    }
+    echo '</tr>';
+    foreach ($data as $row) {
+        echo '<tr>';
+        foreach ($columns as $column) {
+            echo "<td>{$row[$column]}</td>";
+        }
+        echo '</tr>';
+    }
+    echo '</table>';
+}
 
-echo json_encode($response);
+// Output tables
+echo '<h2>Sales Data</h2>';
+generateTable($salesData, ['date', 'total_sales']);
+
+echo '<h2>Revenue and Profit Data</h2>';
+generateTable($revenueProfitData, ['date', 'revenue', 'profit']);
+
+echo '<h2>Expense Data</h2>';
+generateTable($expenseData, ['date', 'total_expenses']);
+
+echo '<h2>Metrics Data</h2>';
+generateTable($metricsData, ['date', 'avg_sell_through_rate', 'avg_inventory_turnover_rate']);
 ?>

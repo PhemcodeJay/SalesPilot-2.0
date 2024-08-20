@@ -1,4 +1,84 @@
 
+<?php
+require 'config.php'; // Include your database connection script
+
+// Capture form data
+$invoice_number = $_POST['invoice_number'];
+$customer_name = $_POST['customer_name'];
+$invoice_description = $_POST['invoice_description'];
+$order_date = $_POST['order_date'];
+$order_status = $_POST['order_status'];
+$order_id = $_POST['order_id'];
+$billing_address = $_POST['billing_address'];
+$shipping_address = $_POST['shipping_address'];
+$bank = $_POST['bank'];
+$account_no = $_POST['account_no'];
+$due_date = $_POST['due_date'];
+$subtotal = $_POST['subtotal'];
+$discount = $_POST['discount'];
+$total_amount = $_POST['total_amount'];
+$notes = $_POST['notes'];
+
+// Begin a transaction
+$pdo->beginTransaction();
+
+try {
+    // Prepare the insert statement
+    $stmt = $pdo->prepare("
+        INSERT INTO invoices (
+            invoice_number, customer_name, invoice_description, order_date, 
+            order_status, order_id, billing_address, shipping_address, 
+            bank, account_no, due_date, subtotal, discount, total_amount, notes, 
+            item_name, quantity, price, total
+        ) VALUES (
+            :invoice_number, :customer_name, :invoice_description, :order_date, 
+            :order_status, :order_id, :billing_address, :shipping_address, 
+            :bank, :account_no, :due_date, :subtotal, :discount, :total_amount, :notes,
+            :item_name, :quantity, :price, :total
+        )
+    ");
+
+    // Extract item data
+    $item_names = $_POST['item_name'];
+    $quantities = $_POST['quantity'];
+    $prices = $_POST['price'];
+    $totals = $_POST['total'];
+
+    // Insert each invoice item
+    foreach ($item_names as $index => $item_name) {
+        $stmt->execute([
+            ':invoice_number' => $invoice_number,
+            ':customer_name' => $customer_name,
+            ':invoice_description' => $invoice_description,
+            ':order_date' => $order_date,
+            ':order_status' => $order_status,
+            ':order_id' => $order_id,
+            ':billing_address' => $billing_address,
+            ':shipping_address' => $shipping_address,
+            ':bank' => $bank,
+            ':account_no' => $account_no,
+            ':due_date' => $due_date,
+            ':subtotal' => $subtotal,
+            ':discount' => $discount,
+            ':total_amount' => $total_amount,
+            ':notes' => $notes,
+            ':item_name' => $item_name,
+            ':quantity' => $quantities[$index],
+            ':price' => $prices[$index],
+            ':total' => $totals[$index]
+        ]);
+    }
+
+    // Commit the transaction
+    $pdo->commit();
+
+    echo "Invoice has been successfully saved!";
+} catch (Exception $e) {
+    // Rollback the transaction if something failed
+    $pdo->rollBack();
+    echo "Failed to save invoice: " . $e->getMessage();
+}
+?>
 
 <!doctype html>
 <html lang="en">
@@ -513,228 +593,170 @@
                   </div>
               </div>
           </div>
-      </div>      <div class="content-page">
-        <?php
-        require 'config.php'; // Include your database connection script
-        
-        // Fetch invoice details and items
-        $invoice_id = $_GET['invoice_id']; // Assume invoice_id is passed as a query parameter
-        
-        // Prepare and execute the query
-        $query = "
-            SELECT 
-                i.invoice_number, i.customer_name, i.invoice_description, i.order_date, 
-                i.order_status, i.order_id, i.billing_address, i.shipping_address, 
-                i.bank, i.account_no, i.due_date, i.subtotal, i.discount, i.total_amount, 
-                i.notes, 
-                ii.item_name, ii.quantity, ii.price, ii.total
-            FROM invoices i
-            LEFT JOIN invoice_items ii ON i.id = ii.invoice_id
-            WHERE i.id = :invoice_id
-        ";
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->execute(['invoice_id' => $invoice_id]);
-        
-        // Fetch data
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Separate invoice details and items
-        $invoice_details = [];
-        $invoice_items = [];
-        
-        foreach ($data as $row) {
-            if (empty($invoice_details)) {
-                // First row contains invoice details
-                $invoice_details = array(
-                    'invoice_number' => $row['invoice_number'],
-                    'customer_name' => $row['customer_name'],
-                    'invoice_description' => $row['invoice_description'],
-                    'order_date' => $row['order_date'],
-                    'order_status' => $row['order_status'],
-                    'order_id' => $row['order_id'],
-                    'billing_address' => $row['billing_address'],
-                    'shipping_address' => $row['shipping_address'],
-                    'bank' => $row['bank'],
-                    'account_no' => $row['account_no'],
-                    'due_date' => $row['due_date'],
-                    'subtotal' => $row['subtotal'],
-                    'discount' => $row['discount'],
-                    'total_amount' => $row['total_amount'],
-                    'notes' => $row['notes'],
-                );
-            }
-        
-            if ($row['item_name']) {
-                // Subsequent rows contain invoice items
-                $invoice_items[] = array(
-                    'item_name' => $row['item_name'],
-                    'quantity' => $row['quantity'],
-                    'price' => $row['price'],
-                    'total' => $row['total']
-                );
-            }
-        }
-        ?>
-        
-        <div class="container-fluid">
-            <div class="row">                  
-                <div class="col-lg-12">
-                    <div class="card card-block card-stretch card-height print rounded">
-                        <div class="card-header d-flex justify-content-between bg-primary header-invoice">
-                            <div class="iq-header-title">
-                                <h4 class="card-title mb-0">Invoice#<?php echo htmlspecialchars($invoice_details['invoice_number']); ?></h4>
-                            </div>
-                            <div class="invoice-btn">
-                                <button type="button" class="btn btn-primary-dark mr-2"><i class="las la-print"></i> Print</button>
-                                <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i>PDF</button>
-                            </div>
+        </div>      <div class="content-page">
+<div class="container-fluid">
+    <form action="submit_invoice.php" method="POST">
+        <div class="row">                  
+            <div class="col-lg-12">
+                <div class="card card-block card-stretch card-height print rounded">
+                    <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                        <div class="iq-header-title">
+                            <h4 class="card-title mb-0">Invoice#<input type="text" name="invoice_number" value="1234567"></h4>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-12">                                  
-                                    <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
-                                    <h5 class="mb-0">Hello, <?php echo htmlspecialchars($invoice_details['customer_name']); ?></h5>
-                                    <p><?php echo htmlspecialchars($invoice_details['invoice_description']); ?></p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="table-responsive-sm">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Order Date</th>
-                                                    <th scope="col">Order Status</th>
-                                                    <th scope="col">Order ID</th>
-                                                    <th scope="col">Billing Address</th>
-                                                    <th scope="col">Shipping Address</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($invoice_details['order_date']); ?></td>
-                                                    <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice_details['order_status']); ?></span></td>
-                                                    <td><?php echo htmlspecialchars($invoice_details['order_id']); ?></td>
-                                                    <td>
-                                                        <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['billing_address'])); ?></p>
-                                                    </td>
-                                                    <td>
-                                                        <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['shipping_address'])); ?></p>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <h5 class="mb-3">Order Summary</h5>
-                                    <div class="table-responsive-sm">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center" scope="col">#</th>
-                                                    <th scope="col">Item</th>
-                                                    <th class="text-center" scope="col">Quantity</th>
-                                                    <th class="text-center" scope="col">Price</th>
-                                                    <th class="text-center" scope="col">Totals</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php $index = 1; ?>
-                                                <?php foreach ($invoice_items as $item): ?>
-                                                    <tr>
-                                                        <th class="text-center" scope="row"><?php echo $index++; ?></th>
-                                                        <td>
-                                                            <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
-                                                            <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-                                                        </td>
-                                                        <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                                        <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
-                                                        <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>                              
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <b class="text-danger">Notes:</b>
-                                    <p class="mb-0"><?php echo htmlspecialchars($invoice_details['notes']); ?></p>
-                                </div>
-                            </div>
-                            <div class="row mt-4 mb-3">
-                                <div class="offset-lg-8 col-lg-4">
-                                    <div class="or-detail rounded">
-                                        <div class="p-3">
-                                            <h5 class="mb-3">Order Details</h5>
-                                            <div class="mb-2">
-                                                <h6>Bank</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['bank']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Acc. No</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['account_no']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Due Date</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['due_date']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Sub Total</h6>
-                                                <p>$<?php echo number_format($invoice_details['subtotal'], 2); ?></p>
-                                            </div>
-                                            <div>
-                                                <h6>Discount</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['discount']); ?>%</p>
-                                            </div>
-                                        </div>
-                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                            <h6>Total</h6>
-                                            <h3 class="text-primary font-weight-700">$<?php echo number_format($invoice_details['total_amount'], 2); ?></h3>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>                            
+                        <div class="invoice-btn">
+                            <button type="button" class="btn btn-primary-dark mr-2"><i class="las la-print"></i> Print</button>
+                            <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i>PDF</button>
                         </div>
                     </div>
-                </div>                                    
-            </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">                                  
+                                <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
+                                <h5 class="mb-0">Hello, <input type="text" name="customer_name" value="Barry Techs"></h5>
+                                <textarea name="invoice_description">It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout...</textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="table-responsive-sm">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Order Date</th>
+                                                <th scope="col">Order Status</th>
+                                                <th scope="col">Order ID</th>
+                                                <th scope="col">Billing Address</th>
+                                                <th scope="col">Shipping Address</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><input type="date" name="order_date" value="2016-01-17"></td>
+                                                <td>
+                                                    <select name="order_status">
+                                                        <option value="unpaid">Unpaid</option>
+                                                        <option value="paid">Paid</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="text" name="order_id" value="250028"></td>
+                                                <td>
+                                                    <textarea name="billing_address">PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                                </td>
+                                                <td>
+                                                    <textarea name="shipping_address">PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h5 class="mb-3">Order Summary</h5>
+                                <div class="table-responsive-sm">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center" scope="col">#</th>
+                                                <th scope="col">Item</th>
+                                                <th class="text-center" scope="col">Quantity</th>
+                                                <th class="text-center" scope="col">Price</th>
+                                                <th class="text-center" scope="col">Totals</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Repeat these rows as needed -->
+                                            <tr>
+                                                <th class="text-center" scope="row">1</th>
+                                                <td><input type="text" name="item_name[]" value="Web Design"></td>
+                                                <td class="text-center"><input type="number" name="quantity[]" value="5"></td>
+                                                <td class="text-center"><input type="text" name="price[]" value="120.00"></td>
+                                                <td class="text-center"><b>$<input type="text" name="total[]" value="600.00" readonly></b></td>
+                                            </tr>
+                                            <!-- Repeat ends -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>                              
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <b class="text-danger">Notes:</b>
+                                <textarea name="notes">It is a long established fact that a reader will be distracted by the readable content...</textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-4 mb-3">
+                            <div class="offset-lg-8 col-lg-4">
+                                <div class="or-detail rounded">
+                                    <div class="p-3">
+                                        <h5 class="mb-3">Order Details</h5>
+                                        <div class="mb-2">
+                                            <h6>Bank</h6>
+                                            <input type="text" name="bank" value="Threadneedle St">
+                                        </div>
+                                        <div class="mb-2">
+                                            <h6>Acc. No</h6>
+                                            <input type="text" name="account_no" value="12333456789">
+                                        </div>
+                                        <div class="mb-2">
+                                            <h6>Due Date</h6>
+                                            <input type="date" name="due_date" value="2020-08-12">
+                                        </div>
+                                        <div class="mb-2">
+                                            <h6>Sub Total</h6>
+                                            <input type="text" name="subtotal" value="4597.50">
+                                        </div>
+                                        <div>
+                                            <h6>Discount</h6>
+                                            <input type="text" name="discount" value="10%">
+                                        </div>
+                                    </div>
+                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                        <h6>Total</h6>
+                                        <h3 class="text-primary font-weight-700">$<input type="text" name="total_amount" value="4137.75" readonly></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary">Submit Invoice</button>
+                            </div>
+                        </div>                            
+                    </div>
+                </div>
+            </div>                                    
         </div>
-        
-      </div>
-    </div>
-    <!-- Wrapper End-->
-    <footer class="iq-footer">
-            <div class="container-fluid">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.php">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.php">Terms of Use</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost/project/dashboard.php" class="">SalesPilot</a>.
-                        </div>
-                    </div>
+    </form>
+</div>
+<!-- Wrapper End-->
+<footer class="iq-footer">
+    <div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="http://localhost/project/privacy-policy.php">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="http://localhost/project/terms-of-service.php">Terms of Use</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 text-right">
+                    <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost/project/dashboard.php" class="">SalesPilot</a>.
                 </div>
             </div>
         </div>
-    </footer>
-    <!-- Backend Bundle JavaScript -->
-    <script src="http://localhost/project/assets/js/backend-bundle.min.js"></script>
-    
-    <!-- Table Treeview JavaScript -->
-    <script src="http://localhost/project/assets/js/table-treeview.js"></script>
-    
-    <!-- app JavaScript -->
-    <script src="http://localhost/project/assets/js/app.js"></script>
-  </body>
+    </div>
+</div>
+</footer>
+<!-- Backend Bundle JavaScript -->
+<script src="http://localhost/project/assets/js/backend-bundle.min.js"></script>
+
+<!-- Table Treeview JavaScript -->
+<script src="http://localhost/project/assets/js/table-treeview.js"></script>
+
+<!-- app JavaScript -->
+<script src="http://localhost/project/assets/js/app.js"></script>
+</body>
 </html>

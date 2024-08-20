@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Sales Dashboard</title>
+    <title>Analytics</title>
     <link rel="stylesheet" href="analysis.css">
     <!-- Favicon -->
     <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -123,12 +123,12 @@
                         </a>
                         <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                 <li class="">
-                                        <a href="http://localhost/project/backend/page-list-expense.php">
+                                        <a href="http://localhost/project/page-list-expense.php">
                                             <i class="las la-minus"></i><span>List Expenses</span>
                                         </a>
                                 </li>
                                 <li class="">
-                                        <a href="http://localhost/project/backend/page-add-expense.php">
+                                        <a href="http://localhost/project/page-add-expense.php">
                                             <i class="las la-minus"></i><span>Add Expenses</span>
                                         </a>
                                 </li>
@@ -508,59 +508,57 @@
 <!-- Table Treeview JavaScript -->
 <script src="http://localhost/project/assets/js/table-treeview.js"></script>
 
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
 <script>
     function updateCharts(range) {
-        $.ajax({
-            url: 'chart-data.php',
-            type: 'GET',
-            data: { range: range },
-            success: function(response) {
-                const data = JSON.parse(response);
-                updateBarChartData(data.barData);
-                updatePieChartData(data.pieData);
-                updateCandleChartData(data.candleData);
-                updateAreaChartData(data.areaData);
-            }
-        });
-    }
+    $.ajax({
+        url: 'chart-data.php',
+        type: 'GET',
+        data: { range: range },
+        success: function(response) {
+            const data = JSON.parse(response);
+            console.log(data); // Debugging line to check data structure
+            updateBarChartData(data.barData);
+            updatePieChartData(data.pieData);
+            updateCandleChartData(data.candleData);
+            updateAreaChartData(data.areaData);
+        }
+    });
+}
 
-    function updateBarChart(range) {
-        updateCharts(range);
-    }
-
-    function updatePieChart(range) {
-        updateCharts(range);
-    }
-
-    function updateCandleChart(range) {
-        updateCharts(range);
-    }
-
-    function updateAreaChart(range) {
-        updateCharts(range);
-    }
-
-    function updateBarChartData(barData) {
+function updateBarChartData(barData) {
+    if (barData.length > 0) {
         const barLabels = barData.map(item => item.date);
         const barSales = barData.map(item => item.total_sales);
         barChart.data.labels = barLabels;
         barChart.data.datasets[0].data = barSales;
         barChart.update();
+    } else {
+        barChart.data.labels = [];
+        barChart.data.datasets[0].data = [];
+        barChart.update();
     }
+}
 
-    function updatePieChartData(pieData) {
+function updatePieChartData(pieData) {
+    if (pieData.length > 0) {
         const pieLabels = pieData.map(item => item.date);
         const pieSellThrough = pieData.map(item => item.avg_sell_through_rate);
         pieChart.data.labels = pieLabels;
         pieChart.data.datasets[0].data = pieSellThrough;
         pieChart.update();
+    } else {
+        pieChart.data.labels = [];
+        pieChart.data.datasets[0].data = [];
+        pieChart.update();
     }
+}
 
-    function updateCandleChartData(candleData) {
+function updateCandleChartData(candleData) {
+    if (candleData.length > 0) {
         const candleLabels = candleData.map(item => item.date);
         const candleDataPoints = candleData.map(item => ({
             t: item.date,
@@ -572,9 +570,15 @@
         candleChart.data.labels = candleLabels;
         candleChart.data.datasets[0].data = candleDataPoints;
         candleChart.update();
+    } else {
+        candleChart.data.labels = [];
+        candleChart.data.datasets[0].data = [];
+        candleChart.update();
     }
+}
 
-    function updateAreaChartData(areaData) {
+function updateAreaChartData(areaData) {
+    if (areaData.length > 0) {
         const areaLabels = areaData.map(item => item.date);
         const areaRevenue = areaData.map(item => item.total_revenue);
         const areaExpenses = areaData.map(item => item.total_expenses);
@@ -582,125 +586,127 @@
         areaChart.data.datasets[0].data = areaRevenue;
         areaChart.data.datasets[1].data = areaExpenses;
         areaChart.update();
+    } else {
+        areaChart.data.labels = [];
+        areaChart.data.datasets[0].data = [];
+        areaChart.data.datasets[1].data = [];
+        areaChart.update();
     }
+}
+// Initialize Bar Chart
+const ctxBar = document.getElementById('barChart').getContext('2d');
+const barChart = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Total Sales Quantity',
+            data: [],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
 
-    $(document).ready(function() {
-        updateCharts('monthly');
-    });
+// Initialize Pie Chart
+const ctxPie = document.getElementById('pieChart').getContext('2d');
+const pieChart = new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Sell-Through Rate',
+            data: [],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
 
-    // Bar Chart
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    const barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Total Sales Quantity',
-                data: [],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+// Initialize Candlestick Chart (Make sure to use a valid chart type for candlestick)
+const ctxCandle = document.getElementById('candleChart').getContext('2d');
+const candleChart = new Chart(ctxCandle, {
+    type: 'line', // Chart.js does not support candlestick charts directly; consider using a library or plugin for this.
+    data: {
+        datasets: [{
+            label: 'Revenue and Profit Margin',
+            data: [],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'day'
                 }
             }
         }
-    });
+    }
+});
 
-    // Pie Chart
-    const ctxPie = document.getElementById('pieChart').getContext('2d');
-    const pieChart = new Chart(ctxPie, {
-        type: 'pie',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Sell-Through Rate',
+// Initialize Area Chart
+const ctxArea = document.getElementById('areaChart').getContext('2d');
+const areaChart = new Chart(ctxArea, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: 'Revenue',
                 data: [],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
-
-    // Candlestick Chart
-    const ctxCandle = document.getElementById('candleChart').getContext('2d');
-    const candleChart = new Chart(ctxCandle, {
-        type: 'candlestick',
-        data: {
-            datasets: [{
-                label: 'Revenue and Profit Margin',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                fill: true
+            },
+            {
+                label: 'Expenses',
                 data: [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    }
-                }
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
             }
         }
-    });
+    }
+});
 
-    // Area Chart
-    const ctxArea = document.getElementById('areaChart').getContext('2d');
-    const areaChart = new Chart(ctxArea, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: 'Revenue',
-                    data: [],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    fill: true
-                },
-                {
-                    label: 'Expenses',
-                    data: [],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
 </script>
 
 </body>
