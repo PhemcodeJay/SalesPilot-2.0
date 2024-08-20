@@ -46,8 +46,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 ?>
 
 
-<!doctype php>
-<php lang="en">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -240,22 +240,40 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                                   </li>
                           </ul>
                       </li>
-                      <li class="">
-                          <a href="http://localhost/project/analytics.php" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                      <li class=" ">
+                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                               </svg>
-                              <span class="ml-4">Analytics</span>
+                              <span class="ml-4">Analytics and Reports</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
                           </a>
-                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics.php">
+                                              <i class="las la-minus"></i><span>Analytics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics-report.php">
+                                              <i class="las la-minus"></i><span>Reports</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/category-metric.php">
+                                              <i class="las la-minus"></i><span>Category Metrics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/product-metric.php">
+                                              <i class="las la-minus"></i><span>Product Metrics</span>
+                                          </a>
+                                  </li>
+                                  
                           </ul>
-                          <a href="http://localhost/project/table-data.php" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                              </svg>
-                              <span class="ml-4">Reports</span>
-                          </a>
-                      </li>
+                      </li>   
                                 
                   </ul>
               </nav>
@@ -311,7 +329,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -328,83 +346,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
                                       </form>
                                   </div>
                               </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
+                            
                               <li class="nav-item nav-icon dropdown">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -517,11 +459,11 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
               <div class="modal-content">
                   <div class="modal-body">
                       <div class="popup text-left">
-                          <h4 class="mb-3">New Order</h4>
+                          <h4 class="mb-3">New Invoice</h4>
                           <div class="content create-workform bg-body">
                               <div class="pb-3">
-                                  <label class="mb-2">Email</label>
-                                  <input type="text" class="form-control" placeholder="Enter Name or Email">
+                                  <label class="mb-2">Name</label>
+                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
                               </div>
                               <div class="col-lg-12 mt-4">
                                   <div class="d-flex flex-wrap align-items-ceter justify-content-center">
@@ -589,33 +531,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
         </div>
         <!-- Page end  -->
     </div>
-    <!-- Modal Edit -->
-    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="popup text-left">
-                        <div class="media align-items-top justify-content-between">                            
-                            <h3 class="mb-3">Product</h3>
-                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
-                        </div>
-                        <div class="content edit-notes">
-                            <div class="card card-transparent card-block card-stretch event-note mb-0">
-                                <div class="card-body px-0 bukmark">
-                                </div>
-                                <div class="card-footer border-0">
-                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
-                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
-                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
       </div>
     </div>
     <!-- Wrapper End-->
@@ -644,13 +560,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
     
-    <!-- Chart Custom JavaScript -->
-    <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
-    
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</php>
+</html>

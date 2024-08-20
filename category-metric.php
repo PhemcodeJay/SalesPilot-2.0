@@ -31,42 +31,39 @@ if (!$user_info) {
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
-// Calculate metrics for each product
-$product_metrics_query = "
+// Calculate metrics for each product category
+$category_metrics_query = "
     SELECT 
-        products.id AS product_id,
+        categories.category_name AS category_name,
         products.name AS product_name,
         SUM(sales.sales_qty * products.price) AS total_sales,
         SUM(sales.sales_qty) AS total_quantity,
         SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
-        SUM(sales.sales_qty * products.cost) AS total_expenses,
-        SUM(products.cost) AS cost_of_selling,  -- Assume cost of selling is the sum of product costs
-        (SUM(sales.sales_qty * products.price) - SUM(products.cost)) / SUM(sales.sales_qty * products.price) * 100 AS profit_margin
-    FROM sales
-    INNER JOIN products ON sales.product_id = products.id
-    GROUP BY products.id";
-$stmt = $connection->query($product_metrics_query);
-$product_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        SUM(sales.sales_qty * products.cost) AS total_expenses  -- Total expenses calculation
+    FROM products
+    INNER JOIN categories ON products.category_id = categories.category_id  -- Join on category_id
+    LEFT JOIN sales ON sales.product_id = products.id  -- Join on product_id
+    GROUP BY categories.category_name, products.name";
+$stmt = $connection->query($category_metrics_query);
+$category_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Prepare data for the reports table
 $report_date = date('Y-m-d');  // Use current date for report
 $total_sales = 0;
 $total_quantity = 0;
 $total_profit = 0;
-$total_expenses = 0;
 
-foreach ($product_metrics_data as $product) {
-    $total_sales += $product['total_sales'];
-    $total_quantity += $product['total_quantity'];
-    $total_profit += $product['total_profit'];
-    $total_expenses += $product['total_expenses'];
+foreach ($category_metrics_data as $category) {
+    $total_sales += $category['total_sales'];
+    $total_quantity += $category['total_quantity'];
+    $total_profit += $category['total_profit'];
 }
 
 // Additional calculations for the report table
-$revenue_by_product = json_encode($product_metrics_data);
+$revenue_by_category = json_encode($category_metrics_data);
 $year_over_year_growth = 0; // Assuming this is calculated elsewhere
-$gross_margin = $total_sales - $total_expenses;
-$net_margin = $total_profit - $total_expenses;
+$gross_margin = $total_sales - $total_profit;
+$net_margin = $total_profit;  // Assuming total profit represents net margin
 $inventory_turnover_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) : 0;
 $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 100 : 0;
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
@@ -84,9 +81,8 @@ if ($existing_report) {
         SET 
             revenue = :revenue,
             profit_margin = :profit_margin,
-            revenue_by_product = :revenue_by_product,
+            revenue_by_category = :revenue_by_category,
             year_over_year_growth = :year_over_year_growth,
-            cost_of_selling = :cost_of_selling,
             inventory_turnover_rate = :inventory_turnover_rate,
             stock_to_sales_ratio = :stock_to_sales_ratio,
             sell_through_rate = :sell_through_rate,
@@ -94,17 +90,14 @@ if ($existing_report) {
             net_margin = :net_margin,
             total_sales = :total_sales,
             total_quantity = :total_quantity,
-            total_profit = :total_profit,
-            total_expenses = :total_expenses,
-            net_profit = :net_profit
+            total_profit = :total_profit
         WHERE id = :id";
     $stmt = $connection->prepare($update_query);
     $stmt->execute([
         ':revenue' => $total_sales,
         ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        ':revenue_by_product' => $revenue_by_product,
+        ':revenue_by_category' => $revenue_by_category,
         ':year_over_year_growth' => $year_over_year_growth,
-        ':cost_of_selling' => $total_expenses,
         ':inventory_turnover_rate' => $inventory_turnover_rate,
         ':stock_to_sales_ratio' => $stock_to_sales_ratio,
         ':sell_through_rate' => $sell_through_rate,
@@ -113,30 +106,27 @@ if ($existing_report) {
         ':total_sales' => $total_sales,
         ':total_quantity' => $total_quantity,
         ':total_profit' => $total_profit,
-        ':total_expenses' => $total_expenses,
-        ':net_profit' => $total_profit - $total_expenses,
         ':id' => $existing_report['id']
     ]);
 } else {
     // Insert new report
     $insert_query = "
         INSERT INTO reports (
-            report_date, revenue, profit_margin, revenue_by_product, year_over_year_growth,
-            cost_of_selling, inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
-            gross_margin, net_margin, total_sales, total_quantity, total_profit, total_expenses, net_profit
+            report_date, revenue, profit_margin, revenue_by_category, year_over_year_growth,
+            inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
+            gross_margin, net_margin, total_sales, total_quantity, total_profit
         ) VALUES (
-            :report_date, :revenue, :profit_margin, :revenue_by_product, :year_over_year_growth,
-            :cost_of_selling, :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
-            :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit, :total_expenses, :net_profit
+            :report_date, :revenue, :profit_margin, :revenue_by_category, :year_over_year_growth,
+            :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
+            :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit
         )";
     $stmt = $connection->prepare($insert_query);
     $stmt->execute([
         ':report_date' => $report_date,
         ':revenue' => $total_sales,
         ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        ':revenue_by_product' => $revenue_by_product,
+        ':revenue_by_category' => $revenue_by_category,
         ':year_over_year_growth' => $year_over_year_growth,
-        ':cost_of_selling' => $total_expenses,
         ':inventory_turnover_rate' => $inventory_turnover_rate,
         ':stock_to_sales_ratio' => $stock_to_sales_ratio,
         ':sell_through_rate' => $sell_through_rate,
@@ -144,13 +134,11 @@ if ($existing_report) {
         ':net_margin' => $net_margin,
         ':total_sales' => $total_sales,
         ':total_quantity' => $total_quantity,
-        ':total_profit' => $total_profit,
-        ':total_expenses' => $total_expenses,
-        ':net_profit' => $total_profit - $total_expenses
+        ':total_profit' => $total_profit
     ]);
 }
 
-echo "Report data has been processed successfully.";
+echo "Category-specific sales analytics data has been processed successfully.";
 
 // Fetch metrics data from the `reports` table for the current date
 $metrics_query = "SELECT * FROM reports WHERE report_date = :report_date";
@@ -164,6 +152,7 @@ if (!$metrics_data) {
 
 // Display metrics data in a table
 ?>
+
 
 
 <!doctype html>
@@ -360,24 +349,41 @@ if (!$metrics_data) {
                                   </li>
                           </ul>
                       </li>
-                      <li class="">
-                          <a href="http://localhost/project/analytics.php" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                      <li class=" ">
+                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                               </svg>
-                              <span class="ml-4">Analytics</span>
+                              <span class="ml-4">Analytics and Reports</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
                           </a>
-                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics.php">
+                                              <i class="las la-minus"></i><span>Analytics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics-report.php">
+                                              <i class="las la-minus"></i><span>Reports</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/category-metric.php">
+                                              <i class="las la-minus"></i><span>Category Metrics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/product-metric.php">
+                                              <i class="las la-minus"></i><span>Product Metrics</span>
+                                          </a>
+                                  </li>
+                                  
                           </ul>
-                          <a href="http://localhost/project/table-data.php" class="">
-                            <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            <span class="ml-4">Reports</span>
-                        </a>
-                      </li>
-                          </ul>
-                      </li>
+                      </li>   
+                      
                   </ul>
               </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
@@ -437,7 +443,7 @@ if (!$metrics_data) {
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -454,83 +460,7 @@ if (!$metrics_data) {
                                       </form>
                                   </div>
                               </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
+                              
                               <li class="nav-item nav-icon dropdown">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -643,11 +573,11 @@ if (!$metrics_data) {
               <div class="modal-content">
                   <div class="modal-body">
                       <div class="popup text-left">
-                          <h4 class="mb-3">New Order</h4>
+                          <h4 class="mb-3">New Invoice</h4>
                           <div class="content create-workform bg-body">
                               <div class="pb-3">
-                                  <label class="mb-2">Email</label>
-                                  <input type="text" class="form-control" placeholder="Enter Name or Email">
+                                  <label class="mb-2">Name</label>
+                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
                               </div>
                               <div class="col-lg-12 mt-4">
                                   <div class="d-flex flex-wrap align-items-ceter justify-content-center">
@@ -667,70 +597,38 @@ if (!$metrics_data) {
                <div class="card">
                   <div class="card-header d-flex justify-content-between">
                      <div class="header-title">
-                        <h4 class="card-title">Reports</h4>
+                        <h4 class="card-title">Category Metrics</h4>
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Sales Analytics Report:
+                     <p>Category Metrics Report:</p>
 
-                        The report generates sales analytics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
+                     <p>The report generates Category Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
                      <div class="table-responsive">
                      <table id="datatable" class="table data-tables table-striped">
-                                    <thead>
-                                        <tr class="light">
-                                            <th>Product ID</th>
-                                            <th>Product Name</th>
-                                            <th>Total Sales</th>
-                                            <th>Total Quantity</th>
-                                            <th>Total Profit</th>
-                                            <th>Total Expenses</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        // To store already displayed product IDs and avoid duplicates
-                                        $displayed_products = [];
-
-                                        foreach ($metrics_data as $data):
-                                            $revenue_by_product = json_decode($data['revenue_by_product'], true);
-
-                                            // Check if decoding was successful
-                                            if (is_array($revenue_by_product)):
-                                                foreach ($revenue_by_product as $product):
-                                                    // Ensure all required fields are present
-                                                    if (isset($product['product_id'], $product['product_name'], $product['total_sales'], $product['total_quantity'], $product['total_profit'], $product['total_expenses'])
-                                                        && !empty($product['product_id']) && !empty($product['product_name'])
-                                                        && !empty($product['total_sales']) && !empty($product['total_quantity'])
-                                                        && !empty($product['total_profit']) && !empty($product['total_expenses'])
-                                                    ):
-                                                        // Check if the product has already been displayed
-                                                        if (in_array($product['product_id'], $displayed_products)) {
-                                                            continue; // Skip this product if it has been displayed
-                                                        }
-
-                                                        // Add product ID to the list of displayed products
-                                                        $displayed_products[] = $product['product_id'];
-                                                        ?>
-                                                        <tr>
-                                                            <td><?php echo htmlspecialchars($product['product_id']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_quantity']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_profit']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_expenses']); ?></td>
-                                                        </tr>
-                                                    <?php
-                                                    endif; // End check for valid product data
-                                                endforeach;
-                                            else: ?>
-                                                <tr>
-                                                    <td colspan="6">No product data available</td>
-                                                </tr>
-                                            <?php endif;
-                                        endforeach; ?>
-                                    </tbody>
-                                </table>
-
+    <thead>
+        <tr class="light">
+            <th>Category Name</th>
+            <th>Product Name</th>
+            <th>Total Sales</th>
+            <th>Total Quantity</th>
+            <th>Total Profit</th>
+            <th>Total Expenses</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($category_metrics_data as $data): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($data['category_name']); ?></td>
+                <td><?php echo htmlspecialchars($data['product_name']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_sales']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_quantity']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_profit']); ?></td>
+                <td><?php echo htmlspecialchars($data['total_expenses']); ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
                         
                      </div>
@@ -766,12 +664,6 @@ if (!$metrics_data) {
     
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>

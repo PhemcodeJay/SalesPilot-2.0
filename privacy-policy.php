@@ -40,8 +40,8 @@ try {
 }
 ?>
 
-<!doctype php>
-<php lang="en">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -234,23 +234,40 @@ try {
                                   </li>
                           </ul>
                       </li>
-                      <li class="">
-                          <a href="http://localhost/project/analytics.php" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                      <li class=" ">
+                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                               </svg>
-                              <span class="ml-4">Analytics</span>
+                              <span class="ml-4">Analytics and Reports</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
                           </a>
-                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics.php">
+                                              <i class="las la-minus"></i><span>Analytics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics-report.php">
+                                              <i class="las la-minus"></i><span>Reports</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/category-metric.php">
+                                              <i class="las la-minus"></i><span>Category Metrics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/product-metric.php">
+                                              <i class="las la-minus"></i><span>Product Metrics</span>
+                                          </a>
+                                  </li>
+                                  
                           </ul>
-                          <a href="http://localhost/project/table-data.php" class="">
-                            <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            <span class="ml-4">Reports</span>
-                        </a>
-                      </li>
-                                               </ul>
+                      </li>   
                       </li>
                   </ul>
               </nav>
@@ -311,7 +328,7 @@ try {
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -326,83 +343,6 @@ try {
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
-                                  </div>
-                              </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
                                   </div>
                               </li>
                               <li class="nav-item nav-icon dropdown">
@@ -517,11 +457,11 @@ try {
               <div class="modal-content">
                   <div class="modal-body">
                       <div class="popup text-left">
-                          <h4 class="mb-3">New Order</h4>
+                          <h4 class="mb-3">New Invoice</h4>
                           <div class="content create-workform bg-body">
                               <div class="pb-3">
-                                  <label class="mb-2">Email</label>
-                                  <input type="text" class="form-control" placeholder="Enter Name or Email">
+                                  <label class="mb-2">Name</label>
+                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
                               </div>
                               <div class="col-lg-12 mt-4">
                                   <div class="d-flex flex-wrap align-items-ceter justify-content-center">
@@ -545,8 +485,9 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>
-                                Welcome to SalesPilot! We value your privacy and are committed to protecting your personal information. This Privacy Policy outlines our practices regarding the collection, use, and disclosure of information when you use our web application for inventory management and sales analytics.</p>
+                            <p style="font-weight: bold; text-decoration: underline;">Welcome to SalesPilot! </p>
+                            <p>We value your privacy and are committed to protecting your personal information. </p>
+                            <p>This Privacy Policy outlines our practices regarding the collection, use, and disclosure of information when you use our web application for inventory management and sales analytics.</p>
                         </div>
                     </div>
                     <div class="card">
@@ -557,15 +498,21 @@ try {
                         </div>
                         <div class="card-body">
                             <p>
-                                Personal Information
-                                User Account Information: When you register for an account, we collect your name, email address, and other contact information.
-                                Customer and Staff Data: We collect information about your customers and staff, including names, email addresses, and transaction details.
-                                Usage Data
-                                Log Data: We collect information that your browser sends whenever you visit our web app. This may include your IP address, browser type, browser version, the pages of our app that you visit, the time and date of your visit, the time spent on those pages, and other statistics.
-                                Cookies and Tracking Technologies: We use cookies and similar tracking technologies to track activity on our app and hold certain information.
-                                Inventory and Sales Data
-                                Product Information: Details about the products you manage through the app, including product types, categories, and inventory quantities.
-                                Sales Transactions: Information related to sales transactions, such as sales quantities, customer and staff involvement, and transaction dates. </p>
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>Personal Information</strong></p>
+                            <p style="text-decoration: underline;"><strong>User Account Information</strong></p>
+                            <p> When you register for an account, we collect your name, email address, and other contact information.</p>
+                            <p style="text-decoration: underline;"><strong>Customer and Staff Data</strong> </p>
+                            <p>We collect information about your customers and staff, including names, email addresses, and transaction details.</p>
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>Usage Data</strong></p>
+                            <p style="text-decoration: underline;"><strong>Log Data</strong> </p>
+                            <p>We collect information that your browser sends whenever you visit our web app. This may include your IP address, browser type, browser version, the pages of our app that you visit, the time and date of your visit, the time spent on those pages, and other statistics.</p>
+                            <p style="text-decoration: underline;"><strong>Cookies and Tracking Technologies</strong> </p>
+                            <p>We use cookies and similar tracking technologies to track activity on our app and hold certain information.</p>
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>Inventory and Sales Data</strong></p>
+                            <p style="text-decoration: underline;"><strong>Product Information</strong> </p>
+                            <p>Details about the products you manage through the app, including product types, categories, and inventory quantities.</p>
+                            <p style="text-decoration: underline;"><strong>Sales Transactions</strong> </p>
+                            <p>Information related to sales transactions, such as sales quantities, customer and staff involvement, and transaction dates. </p>
                         </div>
                     </div>
                     <div class="card">
@@ -575,18 +522,17 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>
-                                To Provide and Maintain Our Service
-                                We use the collected data to operate and maintain our web app, including managing your inventory and sales analytics.
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>To Provide and Maintain Our Service</strong></p>
+                            <p>We use the collected data to operate and maintain our web app, including managing your inventory and sales analytics.</p>
                                 
-                                To Improve Our Service
-                                We use your information to understand how our service is used and to enhance user experience, fix issues, and develop new features.
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>To Improve Our Service</strong></p>
+                            <p>We use your information to understand how our service is used and to enhance user experience, fix issues, and develop new features.</p>
                                 
-                                To Communicate With You
-                                We may use your contact information to send you updates, notifications, and promotional materials. You can opt out of receiving these communications at any time.
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>To Communicate With You</strong></p>
+                            <p> We may use your contact information to send you updates, notifications, and promotional materials. You can opt out of receiving these communications at any time.</p>
                                 
-                                To Ensure Security
-                                We use your information to monitor for and address security issues, and to prevent fraudulent activity.</p>
+                            <p style="font-weight: bold; text-decoration: underline;"><strong>To Ensure Security</strong></p>
+                            <p>We use your information to monitor for and address security issues, and to prevent fraudulent activity.</p>
                         </div>
                     </div>
                     
@@ -597,18 +543,17 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>
-                                Third-Party Service Providers
-                                We may employ third-party companies and individuals to facilitate our service, provide the service on our behalf, perform service-related tasks, or assist us in analyzing how our service is used. These third parties have access to your personal information only to perform these tasks and are obligated not to disclose or use it for any other purpose.
+                            <p style="font-weight: bold; text-decoration: underline;">Third-Party Service Providers</p>
+                            <p>We may employ third-party companies and individuals to facilitate our service, provide the service on our behalf, perform service-related tasks, or assist us in analyzing how our service is used. These third parties have access to your personal information only to perform these tasks and are obligated not to disclose or use it for any other purpose.</p>
                                 
-                                Legal Requirements
-                                We may disclose your personal information in the good faith belief that such action is necessary to:
+                            <p style="font-weight: bold; text-decoration: underline;">Legal Requirements</p>
+                            <p>We may disclose your personal information in the good faith belief that such action is necessary to:</p>
                                 
-                                Comply with a legal obligation.
-                                Protect and defend the rights or property of SalesPilot.
-                                Prevent or investigate possible wrongdoing in connection with the service.
-                                Protect the personal safety of users of the service or the public.
-                                Protect against legal liability.</p>
+                            <p>Comply with a legal obligation.</p>
+                            <p>Protect and defend the rights or property of SalesPilot.</p>
+                            <p>Prevent or investigate possible wrongdoing in connection with the service.</p>
+                            <p>Protect the personal safety of users of the service or the public.</p>
+                            <p>Protect against legal liability.</p>
                         </div>
                     </div>
                     <div class="card">
@@ -618,10 +563,8 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>
-                                We prioritize the security of your data and use commercially acceptable means to protect it. However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to use acceptable means to protect your personal information, we cannot guarantee its absolute security.
-                                
-                                </p>
+                            <p>We prioritize the security of your data and use commercially acceptable means to protect it. However, no method of transmission over the internet or electronic storage is 100% secure. </p>
+                            <p>While we strive to use acceptable means to protect your personal information, we cannot guarantee its absolute security.</p>
                         </div>
                     </div>
                     <div class="card">
@@ -631,8 +574,8 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>Your Rights
-                                You have the right to access, correct, update, or delete your personal information. You can do this directly within your account settings or by contacting us. We will respond to your request as soon as possible..</p>
+                            <p>You have the right to access, correct, update, or delete your personal information. </p>
+                            <p>You can do this directly within your account settings or by contacting us. We will respond to your request as soon as possible..</p>
                         </div>
                     </div>
                     <div class="card">
@@ -642,8 +585,9 @@ try {
                             </div>
                         </div>
                         <div class="card-body">
-                            <p>
-                                We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this Privacy Policy. You are advised to review this Privacy</p>
+                            <p>We may update our Privacy Policy from time to time. </p>
+                            <p>We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this Privacy Policy. </p>
+                            <p>You are advised to review this Privacy Policy</p>
                         </div>
                     </div>
                     
@@ -678,13 +622,7 @@ try {
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
     
-    <!-- Chart Custom JavaScript -->
-    <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
-    
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</php>
+  </html>

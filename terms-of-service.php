@@ -40,8 +40,8 @@ try {
 }
 ?>
 
-<!doctype php>
-<php lang="en">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -234,22 +234,40 @@ try {
                                   </li>
                           </ul>
                       </li>
-                      <li class="">
-                          <a href="http://localhost/project/analytics.php" class="">
-                              <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                      <li class=" ">
+                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                               </svg>
-                              <span class="ml-4">Analytics</span>
+                              <span class="ml-4">Analytics and Reports</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
                           </a>
-                          <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics.php">
+                                              <i class="las la-minus"></i><span>Analytics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/analytics-report.php">
+                                              <i class="las la-minus"></i><span>Reports</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/category-metric.php">
+                                              <i class="las la-minus"></i><span>Category Metrics</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="http://localhost/project/product-metric.php">
+                                              <i class="las la-minus"></i><span>Product Metrics</span>
+                                          </a>
+                                  </li>
+                                  
                           </ul>
-                          <a href="http://localhost/project/table-data.php" class="">
-                            <svg class="svg-icon" id="p-dash7" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            <span class="ml-4">Reports</span>
-                        </a>
-                      </li>
+                      </li>   
                       
                   </ul>
               </nav>
@@ -309,7 +327,7 @@ try {
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
+                                      Invoice</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -324,83 +342,6 @@ try {
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
-                                  </div>
-                              </li>
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-mail">
-                                          <path
-                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                          </path>
-                                          <polyline points="22,6 12,13 2,6"></polyline>
-                                      </svg>
-                                      <span class="bg-primary"></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">All Messages</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
                                   </div>
                               </li>
                               <li class="nav-item nav-icon dropdown">
@@ -515,11 +456,11 @@ try {
               <div class="modal-content">
                   <div class="modal-body">
                       <div class="popup text-left">
-                          <h4 class="mb-3">New Order</h4>
+                          <h4 class="mb-3">New Invoice</h4>
                           <div class="content create-workform bg-body">
                               <div class="pb-3">
-                                  <label class="mb-2">Email</label>
-                                  <input type="text" class="form-control" placeholder="Enter Name or Email">
+                                  <label class="mb-2">Name</label>
+                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
                               </div>
                               <div class="col-lg-12 mt-4">
                                   <div class="d-flex flex-wrap align-items-ceter justify-content-center">
@@ -544,7 +485,7 @@ try {
                                         <div class="col-sm-12">
                                             <a role="contentinfo" class="accordion-title" data-toggle="collapse"
                                                 data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                <span>Introduction </span>
+                                                <span><p style="font-weight: bold; text-decoration: underline;"><strong>Introduction</strong></p></span>
                                             </a>
                                         </div>
                                     </div>
@@ -553,7 +494,8 @@ try {
                             <div class="accordion-details collapse show" id="collapseOne" aria-labelledby="headingOne"
                                 data-parent="#faqAccordion">
                                 <p class="mb-0">
-                                    Welcome to SalesPilot! These Terms of Service ("Terms") govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
+                                <p style="text-decoration: underline;"><strong>Welcome to SalesPilot!</strong> </p>
+                                <p>These Terms of Service govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
                             </div>
                         </div>
                         <div class="card iq-accordion-block">
@@ -562,25 +504,25 @@ try {
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
-                                                aria-controls="collapseTwo"><span> Use of the Service
-                                                </span> </a></div>
+                                                aria-controls="collapseTwo"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Use of the Service
+                                            </p></strong></span> </a></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseTwo" aria-labelledby="headingTwo"
                                 data-parent="#faqAccordion">
                                 <p class="mb-0">
-                                    Eligibility:
-                                    You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.
+                                <p style="text-decoration: underline;"><strong>Eligibility</strong></p>
+                                <p>You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.</p>
                                     
-                                    Account Registration:
-                                    To access certain features of SalesPilot, you may be required to create an account. 
-                                    You agree to:
-                                    
-                                    Provide accurate, current, and complete information during the registration process.
-                                    Maintain and promptly update your account information.
-                                    Keep your password secure and not disclose it to any third party.
-                                    Accept responsibility for all activities that occur under your account.
+                                <p style="text-decoration: underline;"><strong>Account Registration</strong></p>
+                                <p>To access certain features of SalesPilot, you may be required to create an account.</p> 
+                                
+                                <p style="text-decoration: underline;"><strong>You agree to</strong></p>   
+                                <p>Provide accurate, current, and complete information during the registration process.</p>
+                                <p>Maintain and promptly update your account information.</p>
+                                <p>Keep your password secure and not disclose it to any third party.</p>
+                                <p>Accept responsibility for all activities that occur under your account.
                                 </p>
                             </div>
                         </div>
@@ -590,7 +532,7 @@ try {
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
-                                                aria-controls="collapseThree"><span>User Responsibilities </span> </a>
+                                                aria-controls="collapseThree"><span><p style="font-weight: bold; text-decoration: underline;"><strong>User Responsibilities</p></strong> </span> </a>
                                         </div>
                                     </div>
                                 </div>
@@ -598,17 +540,17 @@ try {
                             <div class="accordion-details collapse" id="collapseThree" aria-labelledby="headingThree"
                                 data-parent="#faqAccordion">
                                 <p class="mb-0">
-                                    Compliance with Laws:
-                                    You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.
+                                <p style="text-decoration: underline;"><strong>Compliance with Laws</strong></p>
+                                <p>You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.</p>
                                     
-                                    Prohibited Activities:
-                                    You agree not to:
+                                <p style="text-decoration: underline;"><strong>Prohibited Activities</strong></p>
+                                <p style="text-decoration: underline;"><strong> You agree not to</strong></p>
                                     
-                                    Use the service for any unlawful purpose.
-                                    Engage in any activity that could harm or interfere with the operation of the service.
-                                    Attempt to gain unauthorized access to any part of the service or its related systems or networks.
-                                    Use the service to store, transmit, or distribute any illegal or unauthorized content.
-                                    Use any automated means to access the service without our permission.
+                                <p>Use the service for any unlawful purposes.</p>
+                                <p>Engage in any activity that could harm or interfere with the operation of the service.</p>
+                                <p>Attempt to gain unauthorized access to any part of the service or its related systems or networks.</p>
+                                <p>Use the service to store, transmit, or distribute any illegal or unauthorized content.</p>
+                                <p>Use any automated means to access the service without our permission.
                                 </p>
                             </div>
                         </div>
@@ -618,7 +560,7 @@ try {
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
-                                                aria-controls="collapseFour"><span> Intellectual Property </span> </a>
+                                                aria-controls="collapseFour"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Intellectual Property</strong></p> </span> </a>
                                         </div>
                                     </div>
                                 </div>
@@ -626,14 +568,14 @@ try {
                             <div class="accordion-details collapse" id="collapseFour" aria-labelledby="headingFour"
                                 data-parent="#faqAccordion">
                                 <p class="mb-0">
-                                    Ownership
-                                    SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.
+                                <p style="text-decoration: underline;"><strong>Ownership</strong></p>
+                                <p>SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.</p>
                                     
-                                    License
-                                    We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.
+                                <p style="text-decoration: underline;"><strong>License</strong></p>
+                                <p>We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.</p>
                                     
-                                    Termination
-                                    We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
+                                <p style="text-decoration: underline;"><strong>Termination</strong></p>
+                                <p>We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
                                 </p>
                             </div>
                         </div>
@@ -643,25 +585,26 @@ try {
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
-                                                aria-controls="collapseFive"><span> Limitation of Liability </span> </a></div>
+                                                aria-controls="collapseFive"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Limitation of Liability</strong></p> </span> </a></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseFive" aria-labelledby="headingFive"
                                 data-parent="#faqAccordion">
                                 <p class="mb-0">
-                                    To the maximum extent permitted by law, SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:
+                                <p><strong>To the maximum extent permitted by law, </strong></p>
+                                <p>SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:</p>
                                     
-                                    Your use or inability to use the service.
-                                    Any unauthorized access to or use of our servers and/or any personal information stored therein.
-                                    Any interruption or cessation of transmission to or from the service.
-                                    Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.
-                                    Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.
-                                    Disclaimer of Warranties
-                                    The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.
+                                    <p>Your use or inability to use the service.</p>
+                                    <p>Any unauthorized access to or use of our servers and/or any personal information stored therein.</p>
+                                    <p>Any interruption or cessation of transmission to or from the service.</p>
+                                    <p>Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.</p>
+                                    <p>Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.</p>
+                                    <p style="text-decoration: underline;"><strong>Disclaimer of Warranties</strong></p>
+                                    <p>The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
                                     
-                                    Governing Law
-                                    These Terms shall be governed and construed in accordance with the laws of the state of [State], without regard to its conflict of law provisions.
+                                    <p style="text-decoration: underline;"><strong>Governing Law</strong></p>
+                                    <p>These Terms shall be governed and construed in accordance with the global laws governing application develpoment and usage, without regard to its conflict of law provisions.
                                 </p>
                             </div>
                         </div>
@@ -671,18 +614,19 @@ try {
                                     <div class="row">
                                         <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
                                                 data-toggle="collapse" data-target="#collapseSix" aria-expanded="false"
-                                                aria-controls="collapseSix"><span> Changes to These Terms </span> </a>
+                                                aria-controls="collapseSix"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Changes to These Terms</strong></p> </span> </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-details collapse" id="collapseSix" aria-labelledby="headingSix"
                                 data-parent="#faqAccordion">
-                                <p class="mb-0">>
-                                    We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.
+                                <p class="mb-0">
+                                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. </p>
+                                <p>By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.</p>
                                     
-                                    Contact Us
-                                    If you have any questions about these Terms, please contact us at
+                                <p style="text-decoration: underline;"><strong>Contact Us</strong></p>
+                                <p>If you have any questions about these Terms, please contact us at
                                 </p>
                             </div>
                         </div>
@@ -718,13 +662,7 @@ try {
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
     
-    <!-- Chart Custom JavaScript -->
-    <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
-    
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
-</php>
+ </html>

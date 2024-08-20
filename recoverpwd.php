@@ -130,12 +130,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost/project/assets/js/table-treeview.js"></script>
     
-    <!-- Chart Custom JavaScript -->
-    <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
-    
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
   </body>
