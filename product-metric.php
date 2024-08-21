@@ -171,7 +171,7 @@ if (!$metrics_data) {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Reports</title>
+      <title>Products Metrics</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -292,7 +292,7 @@ if (!$metrics_data) {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-expense.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -310,7 +310,7 @@ if (!$metrics_data) {
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-inventory.php">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
@@ -334,17 +334,17 @@ if (!$metrics_data) {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-customers.php">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -580,27 +580,28 @@ if (!$metrics_data) {
           </div>
       </div>
       <div class="modal fade" id="new-order" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-              <div class="modal-content">
-                  <div class="modal-body">
-                      <div class="popup text-left">
-                          <h4 class="mb-3">New Invoice</h4>
-                          <div class="content create-workform bg-body">
-                              <div class="pb-3">
-                                  <label class="mb-2">Name</label>
-                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
-                              </div>
-                              <div class="col-lg-12 mt-4">
-                                  <div class="d-flex flex-wrap align-items-ceter justify-content-center">
-                                      <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
-                                      <div class="btn btn-outline-primary" data-dismiss="modal">Create</div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="popup text-left">
+                    <h4 class="mb-3">New Invoice</h4>
+                    <div class="content create-workform bg-body">
+                        <div class="pb-3">
+                            <label class="mb-2">Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter Customer Name">
+                        </div>
+                        <div class="col-lg-12 mt-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-center">
+                                <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
+                                <div class="btn btn-outline-primary" id="createButton">Create</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
       </div>      <div class="content-page">
       <div class="container-fluid">
          <div class="row">
@@ -710,5 +711,13 @@ if (!$metrics_data) {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
   </body>
 </html>

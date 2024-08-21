@@ -28,11 +28,10 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve invoice data
+    // Check if invoice_id is set
     if (isset($_GET['invoice_id'])) {
         $invoice_id = intval($_GET['invoice_id']);
 
@@ -48,14 +47,18 @@ try {
         }
 
         // Fetch invoice items
-        $items_query = "SELECT * FROM invoice_items WHERE invoice_id = :invoice_id";
+        $items_query = "SELECT item_name, quantity, price, total FROM invoices WHERE id = :invoice_id";
         $stmt = $connection->prepare($items_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
         $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     } else {
-        throw new Exception("No invoice ID provided.");
+        // Retrieve invoices if no invoice_id is provided
+        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices";
+        $stmt = $connection->prepare($invoices_query);
+        $stmt->execute();
+        $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
 } catch (Exception $e) {
@@ -501,31 +504,35 @@ try {
                   </div>
               </div>
           </div>
-      </div>      <div class="content-page">
-        
-        
+      </div>      <div class="content-page">  
       <div class="container-fluid">
-        <div class="row">                  
-            <div class="col-lg-12">
-                <div class="card card-block card-stretch card-height print rounded">
-                    <div class="card-header d-flex justify-content-between bg-primary header-invoice">
-                        <div class="iq-header-title">
-                            <h4 class="card-title mb-0">Invoice #<?php echo htmlspecialchars($invoice_details['invoice_number']); ?></h4>
-                        </div>
-                        <div class="invoice-btn">
-                            <button type="button" class="btn btn-primary-dark">
-                            <a href="pdf_generate.php?invoice_id=<?php echo urlencode($invoice_id); ?>" class="text-white">
-                                <i class="las la-file-download"></i> PDF
-                            </a>
-                            </button>
+      <div class="container">
+        <?php if (isset($invoice_id)): ?>
+            <!-- Invoice Details View -->
+            <div class="container-fluid">
+                <div class="row">                  
+                    <div class="col-lg-12">
+                        <div class="card card-block card-stretch card-height print rounded">
+                            <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                                <div class="iq-header-title">
+                                    <h4 class="card-title mb-0">Invoice#<?php echo htmlspecialchars($invoice['invoice_number']); ?></h4>
+                                </div>
+                                <div class="invoice-btn">
+                                    <button type="button" class="btn btn-primary-dark">
+                                        <a href="generate_pdf.php?invoice_id=<?php echo urlencode($invoice_id); ?>" class="text-white">
+                                            <i class="las la-file-download"></i> PDF
+                                        </a>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-sm-12">
-                                <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Company Logo">
-                                <h5 class="mb-0">Hello, <?php echo htmlspecialchars($invoice_details['customer_name']); ?></h5>
-                                <p><?php echo htmlspecialchars($invoice_details['invoice_description']); ?></p>
+                            <div class="col-sm-12">                                  
+                                <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3">
+                                <h5 class="mb-0">Hello, <?php echo htmlspecialchars($invoice['customer_name']); ?></h5>
+                                <p><?php echo htmlspecialchars($invoice['invoice_description']); ?></p>
                             </div>
                         </div>
                         <div class="row">
@@ -543,14 +550,14 @@ try {
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td><?php echo htmlspecialchars($invoice_details['order_date']); ?></td>
-                                                <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice_details['order_status']); ?></span></td>
-                                                <td><?php echo htmlspecialchars($invoice_details['order_id']); ?></td>
+                                                <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
+                                                <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice['order_status']); ?></span></td>
+                                                <td><?php echo htmlspecialchars($invoice['order_id']); ?></td>
                                                 <td>
-                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['billing_address'])); ?></p>
+                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice['billing_address'])); ?></p>
                                                 </td>
                                                 <td>
-                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice_details['shipping_address'])); ?></p>
+                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice['shipping_address'])); ?></p>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -574,7 +581,7 @@ try {
                                         </thead>
                                         <tbody>
                                             <?php $index = 1; ?>
-                                            <?php foreach ($invoice_items as $item): ?>
+                                            <?php foreach ($items as $item): ?>
                                                 <tr>
                                                     <th class="text-center" scope="row"><?php echo $index++; ?></th>
                                                     <td>
@@ -594,54 +601,40 @@ try {
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        <?php else: ?>
+            <!-- List Invoices -->
+            <h1>Invoice List</h1>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Invoice Number</th>
+                        <th>Customer Name</th>
+                        <th>Order Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($invoices as $invoice): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
+                            <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
+                            <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+                            <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
+                            <td>
+                                        <div class="d-flex align-items-center list-action">
+                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
+                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
+                                        </div>
+                            </td>
 
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <b class="text-danger">Notes:</b>
-                                    <p class="mb-0"><?php echo htmlspecialchars($invoice_details['notes']); ?></p>
-                                </div>
-                            </div>
-                            <div class="row mt-4 mb-3">
-                                <div class="offset-lg-8 col-lg-4">
-                                    <div class="or-detail rounded">
-                                        <div class="p-3">
-                                            <h5 class="mb-3">Order Details</h5>
-                                            <div class="mb-2">
-                                                <h6>Bank</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['bank']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Acc. No</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['account_no']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Due Date</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['due_date']); ?></p>
-                                            </div>
-                                            <div class="mb-2">
-                                                <h6>Sub Total</h6>
-                                                <p>$<?php echo number_format($invoice_details['subtotal'], 2); ?></p>
-                                            </div>
-                                            <div>
-                                                <h6>Discount</h6>
-                                                <p><?php echo htmlspecialchars($invoice_details['discount']); ?>%</p>
-                                            </div>
-                                        </div>
-                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                            <h6>Total</h6>
-                                            <h3 class="text-primary font-weight-700">$<?php echo number_format($invoice_details['total_amount'], 2); ?></h3>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>                            
-                        </div>
-                    </div>
-                </div>                                    
-            </div>
-        </div>
-        
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
       </div>
     </div>
     <!-- Wrapper End-->

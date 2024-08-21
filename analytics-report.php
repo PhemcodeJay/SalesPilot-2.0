@@ -418,7 +418,30 @@
             </nav>
         </div>
     </div>
-    
+    <div class="modal fade" id="new-order" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="popup text-left">
+                    <h4 class="mb-3">New Invoice</h4>
+                    <div class="content create-workform bg-body">
+                        <div class="pb-3">
+                            <label class="mb-2">Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter Customer Name">
+                        </div>
+                        <div class="col-lg-12 mt-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-center">
+                                <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
+                                <div class="btn btn-outline-primary" id="createButton">Create</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div class="dashboard" id="dashboard">
     <!-- Control Panel -->
@@ -621,6 +644,14 @@ $(document).ready(function() {
     updateTables('monthly');
 });
 
+</script>
+<script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
 </script>
 </body>
 </html>

@@ -597,7 +597,7 @@ try {
                                     </div>
                                     <div class="form-group col-sm-6">
                                         <label for="location">Location:</label>
-                                        <input type="text" class="form-control" id="location" name="location" value="<?php echo $user['location']; ?>" required>
+                                        <input type="text" class="form-control" id="location" name="location" value="<?php echo $user_info['location']; ?>" required>
                                     </div>
                                     <div class="form-group col-sm-6">
                                         <label for="role">Role:</label>

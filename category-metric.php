@@ -47,8 +47,8 @@ $category_metrics_query = "
 $stmt = $connection->query($category_metrics_query);
 $category_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Prepare data for the reports table
-$report_date = date('Y-m-d');  // Use current date for report
+// Prepare data for the sales_analytics table
+$date = date('Y-m-d');  // Use current date for report
 $total_sales = 0;
 $total_quantity = 0;
 $total_profit = 0;
@@ -69,15 +69,15 @@ $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
 
 // Check if a report for the current date already exists
-$check_report_query = "SELECT id FROM reports WHERE report_date = :report_date";
+$check_report_query = "SELECT id FROM sales_analytics WHERE date = :date";
 $stmt = $connection->prepare($check_report_query);
-$stmt->execute([':report_date' => $report_date]);
+$stmt->execute([':date' => $date]);
 $existing_report = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($existing_report) {
     // Update existing report
     $update_query = "
-        UPDATE reports
+        UPDATE sales_analytics
         SET 
             revenue = :revenue,
             profit_margin = :profit_margin,
@@ -111,18 +111,18 @@ if ($existing_report) {
 } else {
     // Insert new report
     $insert_query = "
-        INSERT INTO reports (
-            report_date, revenue, profit_margin, revenue_by_category, year_over_year_growth,
+        INSERT INTO sales_analytics (
+            date, revenue, profit_margin, revenue_by_category, year_over_year_growth,
             inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
             gross_margin, net_margin, total_sales, total_quantity, total_profit
         ) VALUES (
-            :report_date, :revenue, :profit_margin, :revenue_by_category, :year_over_year_growth,
+            :date, :revenue, :profit_margin, :revenue_by_category, :year_over_year_growth,
             :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
             :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit
         )";
     $stmt = $connection->prepare($insert_query);
     $stmt->execute([
-        ':report_date' => $report_date,
+        ':date' => $date,
         ':revenue' => $total_sales,
         ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
         ':revenue_by_category' => $revenue_by_category,
@@ -140,10 +140,10 @@ if ($existing_report) {
 
 echo "Category-specific sales analytics data has been processed successfully.";
 
-// Fetch metrics data from the `reports` table for the current date
-$metrics_query = "SELECT * FROM reports WHERE report_date = :report_date";
+// Fetch metrics data from the `sales_analytics` table for the current date
+$metrics_query = "SELECT * FROM sales_analytics WHERE date = :date";
 $stmt = $connection->prepare($metrics_query);
-$stmt->execute([':report_date' => $report_date]);
+$stmt->execute([':date' => $date]);
 $metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$metrics_data) {
@@ -160,7 +160,7 @@ if (!$metrics_data) {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Reports</title>
+      <title>Category Metrics</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -281,7 +281,7 @@ if (!$metrics_data) {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-expense.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -299,7 +299,7 @@ if (!$metrics_data) {
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-inventory.php">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
@@ -323,17 +323,17 @@ if (!$metrics_data) {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-customers.php">
+                                          <a href="http://localhost/project/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-staffs.php">
+                                          <a href="http://localhost/project/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-staffs.php">
+                                          <a href="http://localhost/project/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -382,7 +382,7 @@ if (!$metrics_data) {
                                   </li>
                                   
                           </ul>
-                      </li>   
+                      </li> 
                       
                   </ul>
               </nav>
@@ -569,27 +569,28 @@ if (!$metrics_data) {
           </div>
       </div>
       <div class="modal fade" id="new-order" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-              <div class="modal-content">
-                  <div class="modal-body">
-                      <div class="popup text-left">
-                          <h4 class="mb-3">New Invoice</h4>
-                          <div class="content create-workform bg-body">
-                              <div class="pb-3">
-                                  <label class="mb-2">Name</label>
-                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
-                              </div>
-                              <div class="col-lg-12 mt-4">
-                                  <div class="d-flex flex-wrap align-items-ceter justify-content-center">
-                                      <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
-                                      <div class="btn btn-outline-primary" data-dismiss="modal">Create</div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="popup text-left">
+                    <h4 class="mb-3">New Invoice</h4>
+                    <div class="content create-workform bg-body">
+                        <div class="pb-3">
+                            <label class="mb-2">Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter Customer Name">
+                        </div>
+                        <div class="col-lg-12 mt-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-center">
+                                <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
+                                <div class="btn btn-outline-primary" id="createButton">Create</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
       </div>      <div class="content-page">
       <div class="container-fluid">
          <div class="row">
@@ -603,7 +604,7 @@ if (!$metrics_data) {
                   <div class="card-body">
                      <p>Category Metrics Report:</p>
 
-                     <p>The report generates Category Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
+                     <p>The report generates Category Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
                      <div class="table-responsive">
                      <table id="datatable" class="table data-tables table-striped">
     <thead>
@@ -667,5 +668,13 @@ if (!$metrics_data) {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
   </body>
 </html>

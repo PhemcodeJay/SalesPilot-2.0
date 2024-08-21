@@ -523,6 +523,8 @@ try {
                                     <td><?php echo htmlspecialchars($staff['position']); ?></td>
                                     <td>
                                         <div class="d-flex align-items-center list-action">
+                                            
+                                        <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
                                             <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
                                             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
                                             <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
@@ -542,34 +544,7 @@ try {
         </div>
         <!-- Page end  -->
     </div>
-    <!-- Modal Edit -->
-    <div class="modal fade" id="edit-note" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="popup text-left">
-                        <div class="media align-items-top justify-content-between">                            
-                            <h3 class="mb-3">Product</h3>
-                            <div class="btn-cancel p-0" data-dismiss="modal"><i class="las la-times"></i></div>
-                        </div>
-                        <div class="content edit-notes">
-                            <div class="card card-transparent card-block card-stretch event-note mb-0">
-                                <div class="card-body px-0 bukmark">
-                                    
-                                </div>
-                                <div class="card-footer border-0">
-                                    <div class="d-flex flex-wrap align-items-ceter justify-content-end">
-                                        <div class="btn btn-primary mr-3" data-dismiss="modal">Cancel</div>
-                                        <div class="btn btn-outline-primary" data-dismiss="modal">Save</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
       </div>
     </div>
     <!-- Wrapper End-->

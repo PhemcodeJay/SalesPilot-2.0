@@ -245,12 +245,12 @@ try {
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-expense.php">
+                                          <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-add-expense.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -268,7 +268,7 @@ try {
                           </a>
                           <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/backend/page-list-inventory.php">
+                                          <a href="http://localhost/project/page-list-inventory.php">
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
@@ -573,7 +573,7 @@ try {
                 <div class="card-header d-flex justify-content-between bg-primary header-invoice">
                     <div class="iq-header-title">
                         <h4 class="card-title mb-0">Invoice#</h4>
-                        <input type="text" class="form-control" name="invoice_number" value="1234567" required>
+                        <input type="text" class="form-control" name="invoice_number" value="Enter invoice no" required>
                     </div>
                     <div class="invoice-btn">
                     <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
@@ -587,9 +587,9 @@ try {
                     <div class="row">
                         <div class="col-sm-12">
                             <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Logo">
-                            <h5 class="mb-0">Hello,</h5>
-                            <input type="text" class="form-control" name="customer_name" value="Barry Techs" required>
-                            <textarea name="invoice_description" class="form-control mt-2" required>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout...</textarea>
+                            <h5 class="mb-0">Hello, <?php echo $username; ?></h5>
+                            <input type="text" class="form-control" name="customer_name" value="Customer Name" required>
+                            <textarea name="invoice_description" class="form-control mt-2" required>Product or Services Details</textarea>
                         </div>
                     </div>
                     <div class="row">
@@ -614,12 +614,12 @@ try {
                                                     <option value="paid">Paid</option>
                                                 </select>
                                             </td>
-                                            <td><input type="text" class="form-control" name="order_id" value="250028" required></td>
+                                            <td><input type="text" class="form-control" name="order_id" value="Enter order id number" required></td>
                                             <td>
-                                                <textarea name="billing_address" class="form-control" required>PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                                <textarea name="billing_address" class="form-control" required>Enter billing address</textarea>
                                             </td>
                                             <td>
-                                                <textarea name="shipping_address" class="form-control" required>PO Box 16122 Collins Street West, Victoria 8007 Australia, Phone: +123 456 7890, Email: demo@example.com, Web: www.example.com</textarea>
+                                                <textarea name="shipping_address" class="form-control" required>Enter shipping address</textarea>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -651,6 +651,20 @@ try {
                                             <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
                                         </tr>
                                         <!-- More rows can be added dynamically as needed -->
+                                        <tr>
+                                            <th class="text-center" scope="row">2</th>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-center" scope="row">3</th>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -659,20 +673,20 @@ try {
                     <div class="row">
                         <div class="col-sm-12">
                             <label for="notes" class="text-danger">Notes:</label>
-                            <textarea id="notes" name="notes" class="form-control mt-2">It is a long established fact that a reader will be distracted by the readable content...</textarea>
+                            <textarea id="notes" name="notes" class="form-control mt-2">Invoice Details</textarea>
                         </div>
                     </div>
                     <div class="row mt-4 mb-3">
-                        <div class="offset-lg-8 col-lg-4">
+                    <div class="col-sm-12">
                             <div class="or-detail rounded">
                                 <div class="p-3">
                                     <h5 class="mb-3">Order Details</h5>
                                     <div class="mb-2">
-                                        <label for="bank">Bank</label>
-                                        <input type="text" id="bank" name="bank" class="form-control" value="Threadneedle St" required>
+                                        <label for="bank">Payment Mode</label>
+                                        <input type="text" id="bank" name="bank" class="form-control" value="MasterCard" required>
                                     </div>
                                     <div class="mb-2">
-                                        <label for="account_no">Acc. No</label>
+                                        <label for="account_no">Account No</label>
                                         <input type="text" id="account_no" name="account_no" class="form-control" value="12333456789" required>
                                     </div>
                                     <div class="mb-2">
@@ -689,8 +703,8 @@ try {
                                     </div>
                                 </div>
                                 <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                    <h6>Total</h6>
-                                    <h3 class="text-primary font-weight-700">$<input type="number" class="form-control" name="total_amount" value="4137.75" required></h3>
+                                    <h6>Total Amount</h6>
+                                    <h3 class="text-primary font-weight-500">$<input type="number" class="form-control" name="total_amount" value="1000" required></h3>
                                 </div>
                             </div>
                         </div>
