@@ -23,11 +23,11 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 // Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = ?";
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
-$stmt->bindParam('s', $username);
+$stmt->bindParam(':username', $username);
 $stmt->execute();
-$user_info = $stmt->get_result()->fetch_assoc();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
 echo "Checkpoint 2"; // Debugging statement
 
@@ -52,8 +52,8 @@ $category_metrics_query = "
     INNER JOIN categories ON products.category_id = categories.category_id
     LEFT JOIN sales ON sales.product_id = products.id
     GROUP BY categories.category_name";
-$result = $connection->query($category_metrics_query);
-$category_metrics_data = $result->fetch_all(MYSQLI_ASSOC);
+$stmt = $connection->query($category_metrics_query);
+$category_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo "Checkpoint 3"; // Debugging statement
 
@@ -78,11 +78,11 @@ $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
 
 // Check if a report for the current date already exists
-$check_report_query = "SELECT id FROM sales_analytics WHERE date = ?";
+$check_report_query = "SELECT id FROM sales_analytics WHERE date = :date";
 $stmt = $connection->prepare($check_report_query);
-$stmt->bindParam('s', $date);
+$stmt->bindParam(':date', $date);
 $stmt->execute();
-$existing_report = $stmt->get_result()->fetch_assoc();
+$existing_report = $stmt->fetch(PDO::FETCH_ASSOC);
 
 echo "Checkpoint 4"; // Debugging statement
 
@@ -91,36 +91,35 @@ if ($existing_report) {
     $update_query = "
         UPDATE sales_analytics
         SET 
-            revenue = ?,
-            profit_margin = ?,
-            revenue_by_category = ?,
-            year_over_year_growth = ?,
-            inventory_turnover_rate = ?,
-            stock_to_sales_ratio = ?,
-            sell_through_rate = ?,
-            gross_margin = ?,
-            net_margin = ?,
-            total_sales = ?,
-            total_quantity = ?,
-            total_profit = ?
-        WHERE id = ?";
+            revenue = :revenue,
+            profit_margin = :profit_margin,
+            revenue_by_category = :revenue_by_category,
+            year_over_year_growth = :year_over_year_growth,
+            inventory_turnover_rate = :inventory_turnover_rate,
+            stock_to_sales_ratio = :stock_to_sales_ratio,
+            sell_through_rate = :sell_through_rate,
+            gross_margin = :gross_margin,
+            net_margin = :net_margin,
+            total_sales = :total_sales,
+            total_quantity = :total_quantity,
+            total_profit = :total_profit
+        WHERE id = :id";
     $stmt = $connection->prepare($update_query);
-    $stmt->bindParam('dddsdddddddi', 
-        $total_sales,
-        ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        $revenue_by_category,
-        $year_over_year_growth,
-        $inventory_turnover_rate,
-        $stock_to_sales_ratio,
-        $sell_through_rate,
-        $gross_margin,
-        $net_margin,
-        $total_sales,
-        $total_quantity,
-        $total_profit,
-        $existing_report['id']
-    );
-    $stmt->execute();
+    $stmt->execute([
+        ':revenue' => $total_sales,
+        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        ':revenue_by_category' => $revenue_by_category,
+        ':year_over_year_growth' => $year_over_year_growth,
+        ':inventory_turnover_rate' => $inventory_turnover_rate,
+        ':stock_to_sales_ratio' => $stock_to_sales_ratio,
+        ':sell_through_rate' => $sell_through_rate,
+        ':gross_margin' => $gross_margin,
+        ':net_margin' => $net_margin,
+        ':total_sales' => $total_sales,
+        ':total_quantity' => $total_quantity,
+        ':total_profit' => $total_profit,
+        ':id' => $existing_report['id']
+    ]);
 } else {
     // Insert new report
     $insert_query = "
@@ -128,34 +127,37 @@ if ($existing_report) {
             date, revenue, profit_margin, revenue_by_category, year_over_year_growth,
             inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
             gross_margin, net_margin, total_sales, total_quantity, total_profit
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        ) VALUES (
+            :date, :revenue, :profit_margin, :revenue_by_category, :year_over_year_growth,
+            :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
+            :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit
+        )";
     $stmt = $connection->prepare($insert_query);
-    $stmt->bindParam('sdddsddddddd', 
-        $date,
-        $total_sales,
-        ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        $revenue_by_category,
-        $year_over_year_growth,
-        $inventory_turnover_rate,
-        $stock_to_sales_ratio,
-        $sell_through_rate,
-        $gross_margin,
-        $net_margin,
-        $total_sales,
-        $total_quantity,
-        $total_profit
-    );
-    $stmt->execute();
+    $stmt->execute([
+        ':date' => $date,
+        ':revenue' => $total_sales,
+        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        ':revenue_by_category' => $revenue_by_category,
+        ':year_over_year_growth' => $year_over_year_growth,
+        ':inventory_turnover_rate' => $inventory_turnover_rate,
+        ':stock_to_sales_ratio' => $stock_to_sales_ratio,
+        ':sell_through_rate' => $sell_through_rate,
+        ':gross_margin' => $gross_margin,
+        ':net_margin' => $net_margin,
+        ':total_sales' => $total_sales,
+        ':total_quantity' => $total_quantity,
+        ':total_profit' => $total_profit
+    ]);
 }
 
 echo "Checkpoint 5"; // Debugging statement
 
 // Fetch metrics data from the `sales_analytics` table for the current date
-$metrics_query = "SELECT * FROM sales_analytics WHERE date = ?";
+$metrics_query = "SELECT * FROM sales_analytics WHERE date = :date";
 $stmt = $connection->prepare($metrics_query);
-$stmt->bindParam('s', $date);
+$stmt->bindParam(':date', $date);
 $stmt->execute();
-$metrics_data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo "Checkpoint 6"; // Debugging statement
 
@@ -165,6 +167,7 @@ if (!$metrics_data) {
 
 // Display metrics data in a table
 ?>
+
 
 
 
