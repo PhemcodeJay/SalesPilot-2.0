@@ -1,3 +1,117 @@
+<?php
+header('Content-Type: text/html'); // Set content type to HTML
+require 'config.php'; // Include your database connection script
+
+// Retrieve the time range from the request
+$range = $_GET['range'] ?? 'monthly';
+$startDate = '';
+$endDate = '';
+
+// Define the date range based on the selected period
+switch ($range) {
+    case 'weekly':
+        $startDate = date('Y-m-d', strtotime('last week Monday'));
+        $endDate = date('Y-m-d', strtotime('last week Sunday'));
+        break;
+    case 'monthly':
+        $startDate = date('Y-m-01');
+        $endDate = date('Y-m-t');
+        break;
+    case 'yearly':
+        $startDate = date('Y-01-01');
+        $endDate = date('Y-12-31');
+        break;
+}
+
+// Fetch sales data for Bar Chart
+$salesQuery = $connection->prepare("SELECT DATE(sale_date) AS date, SUM(sales_qty) AS total_sales 
+                                    FROM sales 
+                                    WHERE sale_date BETWEEN :startDate AND :endDate 
+                                    GROUP BY DATE(sale_date)");
+$salesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$salesData = $salesQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch revenue and profit data for Candlestick and Area Charts
+$revenueProfitQuery = $connection->prepare("SELECT DATE(sale_date) AS date, 
+                                            SUM(sales_qty * price) AS revenue, 
+                                            SUM(sales_qty * (price - cost)) AS profit 
+                                            FROM sales 
+                                            JOIN products ON sales.product_id = products.id 
+                                            WHERE sale_date BETWEEN :startDate AND :endDate 
+                                            GROUP BY DATE(sale_date)");
+$revenueProfitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$revenueProfitData = $revenueProfitQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch expense data for Area Chart
+$expenseQuery = $connection->prepare("SELECT DATE(expense_date) AS date, 
+                                      SUM(amount) AS total_expenses 
+                                      FROM expenses 
+                                      WHERE expense_date BETWEEN :startDate AND :endDate 
+                                      GROUP BY DATE(expense_date)");
+$expenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$expenseData = $expenseQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Combine revenue and expenses for Area Chart
+$combinedRevenueExpense = [];
+foreach ($revenueProfitData as $data) {
+    $date = $data['date'];
+    $revenue = $data['revenue'];
+    $profit = $data['profit'];
+
+    // Find matching expense data
+    $expenses = 0;
+    foreach ($expenseData as $expense) {
+        if ($expense['date'] === $date) {
+            $expenses = $expense['total_expenses'];
+            break;
+        }
+    }
+    
+    $combinedRevenueExpense[] = [
+        'date' => $date,
+        'total_revenue' => $revenue,
+        'total_expenses' => $expenses // Only expenses, no combination with revenue here
+    ];
+}
+
+// Fetch sell-through rate and inventory turnover rate for Histogram Chart
+$metricsQuery = $connection->prepare("SELECT DATE(report_date) AS date, 
+                                      AVG(sell_through_rate) AS avg_sell_through_rate, 
+                                      AVG(inventory_turnover_rate) AS avg_inventory_turnover_rate 
+                                      FROM reports 
+                                      WHERE report_date BETWEEN :startDate AND :endDate 
+                                      GROUP BY DATE(report_date)");
+$metricsQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$metricsData = $metricsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Prepare table data
+function prepareTableData($data, $columns) {
+    $tableData = [];
+
+    // Add column headers
+    $tableData[] = $columns;
+
+    // Add rows of data
+    foreach ($data as $row) {
+        $tableRow = [];
+        foreach ($columns as $column) {
+            // Handle cases where data might not have a value for a column
+            $tableRow[] = isset($row[$column]) ? htmlspecialchars($row[$column], ENT_QUOTES, 'UTF-8') : '';
+        }
+        $tableData[] = $tableRow;
+    }
+
+    return $tableData;
+}
+
+// Prepare table data
+$barTableData = prepareTableData($salesData, ['Date', 'Total Sales Quantity']);
+$pieTableData = prepareTableData($metricsData, ['Date', 'Avg Sell-Through Rate', 'Avg Inventory Turnover Rate']);
+$candleTableData = prepareTableData($revenueProfitData, ['Date', 'Revenue', 'Profit']);
+$areaTableData = prepareTableData($combinedRevenueExpense, ['Date', 'Total Revenue', 'Total Expenses']);
+
+      
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -18,6 +132,99 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
 </head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard {
+    width: 90%;
+    margin: auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.print-btn, .time-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.print-btn {
+    background-color: #007bff;
+}
+
+.print-btn:hover {
+    background-color: #0056b3;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.time-btn {
+    background-color: #28a745;
+}
+
+.time-btn:hover {
+    background-color: #218838;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.data-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.data-table tr:hover {
+    background-color: #ddd;
+}
+
+
+</style>
 <body>
     <!-- loader Start -->
 <div id="loading">
@@ -441,72 +648,66 @@
         </div>
     </div>
 </div>
+</div>      <div class="content-page">
 
+<div class="dashboard" id="dashboard">
+        <div class="control-panel">
+            <h1>Analytics Report</h1>
+            <button class="print-btn" onclick="printPDF()">Save as PDF</button>
+            <div class="button-group">
+                <button class="time-btn" onclick="fetchData('weekly')">Weekly</button>
+                <button class="time-btn" onclick="fetchData('monthly')">Monthly</button>
+                <button class="time-btn" onclick="fetchData('yearly')">Yearly</button>
+            </div>
+        </div>
 
-    <div class="dashboard" id="dashboard">
-    <!-- Control Panel -->
-    <div class="control-panel">
-        <h1>Analytics Report</h1>
-        <button class="print-btn" onclick="printPDF()">Save as PDF</button>
-    </div>
+        <h2>Bar Chart Data</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    
+                </tr>
+            </thead>
+            <tbody id="barTableBody">
+                <!-- Data rows will be inserted here -->
+            </tbody>
+        </table>
 
-    <h2>Bar Chart Data</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Total Sales Quantity</th>
-        </tr>
-    </thead>
-    <tbody id="barTableBody">
-        <!-- Data rows will be inserted here -->
-    </tbody>
-</table>
+        <h2>Pie Chart Data</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    
+                </tr>
+            </thead>
+            <tbody id="pieTableBody">
+                <!-- Data rows will be inserted here -->
+            </tbody>
+        </table>
 
-<h2>Pie Chart Data</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Avg Sell-Through Rate</th>
-            <th>Avg Inventory Turnover Rate</th>
-        </tr>
-    </thead>
-    <tbody id="pieTableBody">
-        <!-- Data rows will be inserted here -->
-    </tbody>
-</table>
+        <h2>Candlestick Chart Data</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    
+                </tr>
+            </thead>
+            <tbody id="candleTableBody">
+                <!-- Data rows will be inserted here -->
+            </tbody>
+        </table>
 
-<h2>Candlestick Chart Data</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Open</th>
-            <th>High</th>
-            <th>Low</th>
-            <th>Close</th>
-        </tr>
-    </thead>
-    <tbody id="candleTableBody">
-        <!-- Data rows will be inserted here -->
-    </tbody>
-</table>
-
-<h2>Area Chart Data</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Total Revenue</th>
-            <th>Total Expenses</th>
-        </tr>
-    </thead>
-    <tbody id="areaTableBody">
-        <!-- Data rows will be inserted here -->
-    </tbody>
-</table>
-
+        <h2>Area Chart Data</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    
+                </tr>
+            </thead>
+            <tbody id="areaTableBody">
+                <!-- Data rows will be inserted here -->
+            </tbody>
+        </table>
     </div>
 </div>
  <!-- Page end  -->
@@ -543,108 +744,44 @@
 <script src="http://localhost/project/assets/js/app.js"></script>
 
 <script>
-function updateTables(range) {
-    $.ajax({
-        url: 'table.php',
-        type: 'GET',
-        data: { range: range },
-        success: function(response) {
-            const data = JSON.parse(response);
-            updateBarTableData(data.barData);
-            updatePieTableData(data.pieData);
-            updateCandleTableData(data.candleData);
-            updateAreaTableData(data.areaData);
-        }
-    });
-}
-
-function updateBarTableData(barData) {
-    const barTableBody = document.getElementById('barTableBody');
-    barTableBody.innerHTML = ''; // Clear existing data
-    barData.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.date}</td>
-            <td>${item.total_sales}</td>
-        `;
-        barTableBody.appendChild(row);
-    });
-}
-
-function updatePieTableData(pieData) {
-    const pieTableBody = document.getElementById('pieTableBody');
-    pieTableBody.innerHTML = ''; // Clear existing data
-    pieData.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.date}</td>
-            <td>${item.avg_sell_through_rate}</td>
-            <td>${item.avg_inventory_turnover_rate}</td>
-        `;
-        pieTableBody.appendChild(row);
-    });
-}
-
-function updateCandleTableData(candleData) {
-    const candleTableBody = document.getElementById('candleTableBody');
-    candleTableBody.innerHTML = ''; // Clear existing data
-    candleData.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.date}</td>
-            <td>${item.open}</td>
-            <td>${item.high}</td>
-            <td>${item.low}</td>
-            <td>${item.close}</td>
-        `;
-        candleTableBody.appendChild(row);
-    });
-}
-
-function updateAreaTableData(areaData) {
-    const areaTableBody = document.getElementById('areaTableBody');
-    areaTableBody.innerHTML = ''; // Clear existing data
-    areaData.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.date}</td>
-            <td>${item.total_revenue}</td>
-            <td>${item.total_expenses}</td>
-        `;
-        areaTableBody.appendChild(row);
-    });
-}
-
-function printPDF() {
-    html2canvas(document.getElementById('dashboard')).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 210; 
-        const pageHeight = 295;  
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft = imgHeight;
-
-        let position = 0;
-
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        function fetchData(range) {
+            fetch(`chart-data.php?range=${range}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateTable('barTableBody', data.barData, ['date', 'total_sales']);
+                    updateTable('pieTableBody', data.histogramData, ['date', 'avg_sell_through_rate', 'avg_inventory_turnover_rate']);
+                    updateTable('candleTableBody', data.candlestickData, ['date', 'open', 'high', 'low', 'close']);
+                    updateTable('areaTableBody', data.areaData, ['date', 'total_revenue', 'total_expenses']);
+                })
+                .catch(error => console.error('Error fetching data:', error));
         }
 
-        pdf.save('dashboard.pdf');
-    });
-}
+        function updateTable(tableId, data, headers) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = ''; // Clear existing data
 
-$(document).ready(function() {
-    updateTables('monthly');
-});
+            // Create table header row
+            let headerRow = '<tr>';
+            headers.forEach(header => headerRow += `<th>${header.replace(/_/g, ' ').toUpperCase()}</th>`);
+            headerRow += '</tr>';
+            tableBody.innerHTML += headerRow;
 
-</script>
+            // Create data rows
+            data.forEach(row => {
+                let dataRow = '<tr>';
+                headers.forEach(header => dataRow += `<td>${row[header] || ''}</td>`);
+                dataRow += '</tr>';
+                tableBody.innerHTML += dataRow;
+            });
+        }
+
+        function printPDF() {
+            // Your print PDF logic here
+        }
+
+        // Initialize with default data
+        fetchData('monthly');
+    </script>
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

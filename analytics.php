@@ -438,6 +438,7 @@
         </div>
     </div>
 </div>
+</div>      <div class="content-page">
 <div class="dashboard">
     <!-- Control Panel -->
     <div class="control-panel">
