@@ -9,6 +9,12 @@ session_start([
 
 include('config.php'); // Includes database connection
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+echo "Checkpoint 1"; // Debugging statement
+
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     exit("Error: No username found in session.");
@@ -17,11 +23,13 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 // Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$user_query = "SELECT username, email, date FROM users WHERE username = ?";
 $stmt = $connection->prepare($user_query);
-$stmt->bindParam(':username', $username);
+$stmt->bindParam('s', $username);
 $stmt->execute();
-$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+$user_info = $stmt->get_result()->fetch_assoc();
+
+echo "Checkpoint 2"; // Debugging statement
 
 if (!$user_info) {
     exit("Error: User not found.");
@@ -35,20 +43,21 @@ $date = htmlspecialchars($user_info['date']);
 $category_metrics_query = "
     SELECT 
         categories.category_name AS category_name,
-        products.name AS product_name,
+        COUNT(products.id) AS num_products,
         SUM(sales.sales_qty * products.price) AS total_sales,
         SUM(sales.sales_qty) AS total_quantity,
         SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
-        SUM(sales.sales_qty * products.cost) AS total_expenses  -- Total expenses calculation
+        SUM(sales.sales_qty * products.cost) AS total_expenses
     FROM products
-    INNER JOIN categories ON products.category_id = categories.category_id  -- Join on category_id
-    LEFT JOIN sales ON sales.product_id = products.id  -- Join on product_id
-    GROUP BY categories.category_name, products.name";
-$stmt = $connection->query($category_metrics_query);
-$category_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    INNER JOIN categories ON products.category_id = categories.category_id
+    LEFT JOIN sales ON sales.product_id = products.id
+    GROUP BY categories.category_name";
+$result = $connection->query($category_metrics_query);
+$category_metrics_data = $result->fetch_all(MYSQLI_ASSOC);
 
-// Prepare data for the sales_analytics table
-$date = date('Y-m-d');  // Use current date for report
+echo "Checkpoint 3"; // Debugging statement
+
+// Initialize metrics for the entire report
 $total_sales = 0;
 $total_quantity = 0;
 $total_profit = 0;
@@ -69,45 +78,49 @@ $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
 
 // Check if a report for the current date already exists
-$check_report_query = "SELECT id FROM sales_analytics WHERE date = :date";
+$check_report_query = "SELECT id FROM sales_analytics WHERE date = ?";
 $stmt = $connection->prepare($check_report_query);
-$stmt->execute([':date' => $date]);
-$existing_report = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->bindParam('s', $date);
+$stmt->execute();
+$existing_report = $stmt->get_result()->fetch_assoc();
+
+echo "Checkpoint 4"; // Debugging statement
 
 if ($existing_report) {
     // Update existing report
     $update_query = "
         UPDATE sales_analytics
         SET 
-            revenue = :revenue,
-            profit_margin = :profit_margin,
-            revenue_by_category = :revenue_by_category,
-            year_over_year_growth = :year_over_year_growth,
-            inventory_turnover_rate = :inventory_turnover_rate,
-            stock_to_sales_ratio = :stock_to_sales_ratio,
-            sell_through_rate = :sell_through_rate,
-            gross_margin = :gross_margin,
-            net_margin = :net_margin,
-            total_sales = :total_sales,
-            total_quantity = :total_quantity,
-            total_profit = :total_profit
-        WHERE id = :id";
+            revenue = ?,
+            profit_margin = ?,
+            revenue_by_category = ?,
+            year_over_year_growth = ?,
+            inventory_turnover_rate = ?,
+            stock_to_sales_ratio = ?,
+            sell_through_rate = ?,
+            gross_margin = ?,
+            net_margin = ?,
+            total_sales = ?,
+            total_quantity = ?,
+            total_profit = ?
+        WHERE id = ?";
     $stmt = $connection->prepare($update_query);
-    $stmt->execute([
-        ':revenue' => $total_sales,
-        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        ':revenue_by_category' => $revenue_by_category,
-        ':year_over_year_growth' => $year_over_year_growth,
-        ':inventory_turnover_rate' => $inventory_turnover_rate,
-        ':stock_to_sales_ratio' => $stock_to_sales_ratio,
-        ':sell_through_rate' => $sell_through_rate,
-        ':gross_margin' => $gross_margin,
-        ':net_margin' => $net_margin,
-        ':total_sales' => $total_sales,
-        ':total_quantity' => $total_quantity,
-        ':total_profit' => $total_profit,
-        ':id' => $existing_report['id']
-    ]);
+    $stmt->bindParam('dddsdddddddi', 
+        $total_sales,
+        ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        $revenue_by_category,
+        $year_over_year_growth,
+        $inventory_turnover_rate,
+        $stock_to_sales_ratio,
+        $sell_through_rate,
+        $gross_margin,
+        $net_margin,
+        $total_sales,
+        $total_quantity,
+        $total_profit,
+        $existing_report['id']
+    );
+    $stmt->execute();
 } else {
     // Insert new report
     $insert_query = "
@@ -115,36 +128,36 @@ if ($existing_report) {
             date, revenue, profit_margin, revenue_by_category, year_over_year_growth,
             inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
             gross_margin, net_margin, total_sales, total_quantity, total_profit
-        ) VALUES (
-            :date, :revenue, :profit_margin, :revenue_by_category, :year_over_year_growth,
-            :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
-            :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit
-        )";
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $connection->prepare($insert_query);
-    $stmt->execute([
-        ':date' => $date,
-        ':revenue' => $total_sales,
-        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
-        ':revenue_by_category' => $revenue_by_category,
-        ':year_over_year_growth' => $year_over_year_growth,
-        ':inventory_turnover_rate' => $inventory_turnover_rate,
-        ':stock_to_sales_ratio' => $stock_to_sales_ratio,
-        ':sell_through_rate' => $sell_through_rate,
-        ':gross_margin' => $gross_margin,
-        ':net_margin' => $net_margin,
-        ':total_sales' => $total_sales,
-        ':total_quantity' => $total_quantity,
-        ':total_profit' => $total_profit
-    ]);
+    $stmt->bindParam('sdddsddddddd', 
+        $date,
+        $total_sales,
+        ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        $revenue_by_category,
+        $year_over_year_growth,
+        $inventory_turnover_rate,
+        $stock_to_sales_ratio,
+        $sell_through_rate,
+        $gross_margin,
+        $net_margin,
+        $total_sales,
+        $total_quantity,
+        $total_profit
+    );
+    $stmt->execute();
 }
 
-echo "Category-specific sales analytics data has been processed successfully.";
+echo "Checkpoint 5"; // Debugging statement
 
 // Fetch metrics data from the `sales_analytics` table for the current date
-$metrics_query = "SELECT * FROM sales_analytics WHERE date = :date";
+$metrics_query = "SELECT * FROM sales_analytics WHERE date = ?";
 $stmt = $connection->prepare($metrics_query);
-$stmt->execute([':date' => $date]);
-$metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->bindParam('s', $date);
+$stmt->execute();
+$metrics_data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+echo "Checkpoint 6"; // Debugging statement
 
 if (!$metrics_data) {
     exit("Error: No report data found.");
@@ -606,33 +619,32 @@ if (!$metrics_data) {
 
                      <p>The report generates Category Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
                      <div class="table-responsive">
-                     <table id="datatable" class="table data-tables table-striped">
-    <thead>
-        <tr class="light">
-            <th>Category Name</th>
-            <th>Product Name</th>
-            <th>Total Sales</th>
-            <th>Total Quantity</th>
-            <th>Total Profit</th>
-            <th>Total Expenses</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($category_metrics_data as $data): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($data['category_name']); ?></td>
-                <td><?php echo htmlspecialchars($data['product_name']); ?></td>
-                <td><?php echo htmlspecialchars($data['total_sales']); ?></td>
-                <td><?php echo htmlspecialchars($data['total_quantity']); ?></td>
-                <td><?php echo htmlspecialchars($data['total_profit']); ?></td>
-                <td><?php echo htmlspecialchars($data['total_expenses']); ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+                        <table id="datatable" class="table data-tables table-striped">
+                            <thead>
+                                <tr class="light">
+                                    <th>Category Name</th>
+                                    <th>Number of Products</th>
+                                    <th>Total Sales</th>
+                                    <th>Total Quantity</th>
+                                    <th>Total Profit</th>
+                                    <th>Total Expenses</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($category_metrics_data as $data): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($data['category_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($data['num_products']); ?></td>
+                                        <td><?php echo number_format($data['total_sales'], 2); ?></td>
+                                        <td><?php echo number_format($data['total_quantity']); ?></td>
+                                        <td><?php echo number_format($data['total_profit'], 2); ?></td>
+                                        <td><?php echo number_format($data['total_expenses'], 2); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
-                        
-                     </div>
                   </div>
                </div>
             </div>

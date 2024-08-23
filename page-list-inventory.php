@@ -18,7 +18,6 @@ echo "Session started.<br>";
 // Include database connection
 include('config.php');
 
-
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     echo json_encode(['success' => false, 'message' => "No username found in session."]);
@@ -46,16 +45,16 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
     // Fetch products from the database including their categories
-    $fetch_products_query = "SELECT id, name, description, price, image_path, category, inventory_qty FROM products";
+    $fetch_products_query = "SELECT id, name, description, price, image_path, category, inventory_qty, stock_qty, supply_qty FROM products";
     $stmt = $connection->prepare($fetch_products_query);
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     // Handle database errors
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
     exit;
 }
-
 
 // Handle POST requests for updating product information
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -94,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
 try {
     // SQL query to fetch sales and product data
     $sql = "
@@ -104,6 +102,8 @@ try {
             p.name AS product_name, 
             s.sales_qty, 
             p.inventory_qty, 
+            p.stock_qty,
+            p.supply_qty,
             (p.inventory_qty - s.sales_qty) AS available_stock,
             s.product_id
         FROM 
@@ -115,11 +115,65 @@ try {
     $stmt = $connection->query($sql);
     $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Prepare the insert and update queries
+    $check_query = "SELECT COUNT(*) FROM inventory WHERE product_id = :product_id";
+    $insert_query = "
+        INSERT INTO inventory (product_id, product_name, inventory_qty, sales_qty, available_stock, supply_qty, stock_qty)
+        VALUES (:product_id, :product_name, :inventory_qty, :sales_qty, :available_stock, :supply_qty, :stock_qty)
+    ";
+    $update_query = "
+        UPDATE inventory 
+        SET product_name = :product_name, 
+            inventory_qty = :inventory_qty, 
+            sales_qty = :sales_qty, 
+            available_stock = :available_stock, 
+            supply_qty = :supply_qty, 
+            stock_qty = :stock_qty
+        WHERE product_id = :product_id
+    ";
+
+    $check_stmt = $connection->prepare($check_query);
+    $insert_stmt = $connection->prepare($insert_query);
+    $update_stmt = $connection->prepare($update_query);
+
+    // Loop through the sales data
+    foreach ($sales_data as $data) {
+        // Check if the product exists in the inventory table
+        $check_stmt->bindParam(':product_id', $data['product_id']);
+        $check_stmt->execute();
+        $exists = $check_stmt->fetchColumn();
+
+        if ($exists) {
+            // Update the existing record
+            $update_stmt->bindParam(':product_id', $data['product_id']);
+            $update_stmt->bindParam(':product_name', $data['product_name']);
+            $update_stmt->bindParam(':inventory_qty', $data['inventory_qty']);
+            $update_stmt->bindParam(':sales_qty', $data['sales_qty']);
+            $update_stmt->bindParam(':available_stock', $data['available_stock']);
+            $update_stmt->bindParam(':supply_qty', $data['supply_qty']);
+            $update_stmt->bindParam(':stock_qty', $data['stock_qty']);
+            $update_stmt->execute();
+        } else {
+            // Insert a new record
+            $insert_stmt->bindParam(':product_id', $data['product_id']);
+            $insert_stmt->bindParam(':product_name', $data['product_name']);
+            $insert_stmt->bindParam(':inventory_qty', $data['inventory_qty']);
+            $insert_stmt->bindParam(':sales_qty', $data['sales_qty']);
+            $insert_stmt->bindParam(':available_stock', $data['available_stock']);
+            $insert_stmt->bindParam(':supply_qty', $data['supply_qty']);
+            $insert_stmt->bindParam(':stock_qty', $data['stock_qty']);
+            $insert_stmt->execute();
+        }
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Inventory data updated successfully']);
+
 } catch (PDOException $e) {
     // Handle database errors
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
     exit;
 }
+
 ?>
 
 

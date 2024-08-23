@@ -450,7 +450,7 @@
         <!-- Bar Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Total Sales Quantity</h2>
+                <h2>Revenue vs Expenses</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateBarChart('weekly')">Weekly</button>
                     <button onclick="updateBarChart('monthly')">Monthly</button>
@@ -463,7 +463,7 @@
         <!-- Pie Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Sell-Through Rate</h2>
+                <h2>Revenue vs Net Profit</h2>
                 <div class="date-range-buttons">
                     <button onclick="updatePieChart('weekly')">Weekly</button>
                     <button onclick="updatePieChart('monthly')">Monthly</button>
@@ -476,7 +476,7 @@
         <!-- Candlestick Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue & Profit Margin</h2>
+                <h2>Sales Qty by Category</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateCandleChart('weekly')">Weekly</button>
                     <button onclick="updateCandleChart('monthly')">Monthly</button>
@@ -489,7 +489,7 @@
         <!-- Area Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Expenses</h2>
+                <h2>Revenue vs Profit (Category)</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateAreaChart('weekly')">Weekly</button>
                     <button onclick="updateAreaChart('monthly')">Monthly</button>

@@ -9,6 +9,12 @@ session_start([
 
 include('config.php'); // Includes database connection
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+echo "Checkpoint 1"; // Debugging statement
+
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     exit("Error: No username found in session.");
@@ -23,6 +29,8 @@ $stmt->bindParam(':username', $username);
 $stmt->execute();
 $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
+echo "Checkpoint 2"; // Debugging statement
+
 if (!$user_info) {
     exit("Error: User not found.");
 }
@@ -36,46 +44,55 @@ $product_metrics_query = "
     SELECT 
         products.id AS product_id,
         products.name AS product_name,
-        SUM(sales.sales_qty * products.price) AS total_sales,
         SUM(sales.sales_qty) AS total_quantity,
+        SUM(sales.sales_qty * products.price) AS total_sales,
+        SUM(sales.sales_qty * products.cost) AS total_cost,
         SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
-        SUM(sales.sales_qty * products.cost) AS total_expenses,
-        SUM(products.cost) AS cost_of_selling,  -- Assume cost of selling is the sum of product costs
-        (SUM(sales.sales_qty * products.price) - SUM(products.cost)) / SUM(sales.sales_qty * products.price) * 100 AS profit_margin
+        SUM(sales.sales_qty) / NULLIF(SUM(products.stock_qty), 0) AS inventory_turnover_rate, -- Adding inventory turnover rate
+        (SUM(sales.sales_qty) / NULLIF(SUM(sales.sales_qty), 0)) * 100 AS sell_through_rate -- Adding sell-through rate
     FROM sales
     INNER JOIN products ON sales.product_id = products.id
     GROUP BY products.id";
 $stmt = $connection->query($product_metrics_query);
 $product_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Prepare data for the reports table
-$report_date = date('Y-m-d');  // Use current date for report
+echo "Checkpoint 3"; // Debugging statement
+
+// Initialize metrics for the entire report
 $total_sales = 0;
 $total_quantity = 0;
 $total_profit = 0;
-$total_expenses = 0;
+$total_cost = 0;
 
 foreach ($product_metrics_data as $product) {
     $total_sales += $product['total_sales'];
     $total_quantity += $product['total_quantity'];
     $total_profit += $product['total_profit'];
-    $total_expenses += $product['total_expenses'];
+    $total_cost += $product['total_cost'];
 }
 
-// Additional calculations for the report table
-$revenue_by_product = json_encode($product_metrics_data);
-$year_over_year_growth = 0; // Assuming this is calculated elsewhere
-$gross_margin = $total_sales - $total_expenses;
-$net_margin = $total_profit - $total_expenses;
+// Ensure total expenses are calculated correctly
+$total_expenses = $total_cost;
+
+// Additional calculations
+$gross_margin = ($total_sales > 0) ? $total_sales - $total_expenses : 0;
+$net_margin = ($total_sales > 0) ? $total_profit - $total_expenses : 0;
+$profit_margin = ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0;
 $inventory_turnover_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) : 0;
 $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 100 : 0;
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
 
+// Encode revenue by product as JSON
+$revenue_by_product = json_encode($product_metrics_data);
+
 // Check if a report for the current date already exists
+$report_date = date('Y-m-d');
 $check_report_query = "SELECT id FROM reports WHERE report_date = :report_date";
 $stmt = $connection->prepare($check_report_query);
 $stmt->execute([':report_date' => $report_date]);
 $existing_report = $stmt->fetch(PDO::FETCH_ASSOC);
+
+echo "Checkpoint 4"; // Debugging statement
 
 if ($existing_report) {
     // Update existing report
@@ -85,13 +102,11 @@ if ($existing_report) {
             revenue = :revenue,
             profit_margin = :profit_margin,
             revenue_by_product = :revenue_by_product,
-            year_over_year_growth = :year_over_year_growth,
-            cost_of_selling = :cost_of_selling,
+            gross_margin = :gross_margin,
+            net_margin = :net_margin,
             inventory_turnover_rate = :inventory_turnover_rate,
             stock_to_sales_ratio = :stock_to_sales_ratio,
             sell_through_rate = :sell_through_rate,
-            gross_margin = :gross_margin,
-            net_margin = :net_margin,
             total_sales = :total_sales,
             total_quantity = :total_quantity,
             total_profit = :total_profit,
@@ -101,56 +116,52 @@ if ($existing_report) {
     $stmt = $connection->prepare($update_query);
     $stmt->execute([
         ':revenue' => $total_sales,
-        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        ':profit_margin' => $profit_margin,
         ':revenue_by_product' => $revenue_by_product,
-        ':year_over_year_growth' => $year_over_year_growth,
-        ':cost_of_selling' => $total_expenses,
+        ':gross_margin' => $gross_margin,
+        ':net_margin' => $net_margin,
         ':inventory_turnover_rate' => $inventory_turnover_rate,
         ':stock_to_sales_ratio' => $stock_to_sales_ratio,
         ':sell_through_rate' => $sell_through_rate,
-        ':gross_margin' => $gross_margin,
-        ':net_margin' => $net_margin,
         ':total_sales' => $total_sales,
         ':total_quantity' => $total_quantity,
         ':total_profit' => $total_profit,
         ':total_expenses' => $total_expenses,
-        ':net_profit' => $total_profit - $total_expenses,
+        ':net_profit' => $net_margin,  // This should be net margin, which is profit - expenses
         ':id' => $existing_report['id']
     ]);
 } else {
     // Insert new report
     $insert_query = "
         INSERT INTO reports (
-            report_date, revenue, profit_margin, revenue_by_product, year_over_year_growth,
-            cost_of_selling, inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
-            gross_margin, net_margin, total_sales, total_quantity, total_profit, total_expenses, net_profit
+            report_date, revenue, profit_margin, revenue_by_product, gross_margin,
+            net_margin, inventory_turnover_rate, stock_to_sales_ratio, sell_through_rate,
+            total_sales, total_quantity, total_profit, total_expenses, net_profit
         ) VALUES (
-            :report_date, :revenue, :profit_margin, :revenue_by_product, :year_over_year_growth,
-            :cost_of_selling, :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
-            :gross_margin, :net_margin, :total_sales, :total_quantity, :total_profit, :total_expenses, :net_profit
+            :report_date, :revenue, :profit_margin, :revenue_by_product, :gross_margin,
+            :net_margin, :inventory_turnover_rate, :stock_to_sales_ratio, :sell_through_rate,
+            :total_sales, :total_quantity, :total_profit, :total_expenses, :net_profit
         )";
     $stmt = $connection->prepare($insert_query);
     $stmt->execute([
         ':report_date' => $report_date,
         ':revenue' => $total_sales,
-        ':profit_margin' => ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0,
+        ':profit_margin' => $profit_margin,
         ':revenue_by_product' => $revenue_by_product,
-        ':year_over_year_growth' => $year_over_year_growth,
-        ':cost_of_selling' => $total_expenses,
+        ':gross_margin' => $gross_margin,
+        ':net_margin' => $net_margin,
         ':inventory_turnover_rate' => $inventory_turnover_rate,
         ':stock_to_sales_ratio' => $stock_to_sales_ratio,
         ':sell_through_rate' => $sell_through_rate,
-        ':gross_margin' => $gross_margin,
-        ':net_margin' => $net_margin,
         ':total_sales' => $total_sales,
         ':total_quantity' => $total_quantity,
         ':total_profit' => $total_profit,
         ':total_expenses' => $total_expenses,
-        ':net_profit' => $total_profit - $total_expenses
+        ':net_profit' => $net_margin  // This should be net margin, which is profit - expenses
     ]);
 }
 
-echo "Report data has been processed successfully.";
+echo "Checkpoint 5"; // Debugging statement
 
 // Fetch metrics data from the `reports` table for the current date
 $metrics_query = "SELECT * FROM reports WHERE report_date = :report_date";
@@ -158,11 +169,8 @@ $stmt = $connection->prepare($metrics_query);
 $stmt->execute([':report_date' => $report_date]);
 $metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-if (!$metrics_data) {
-    exit("Error: No report data found.");
-}
+echo "Checkpoint 6"; // Debugging statement
 
-// Display metrics data in a table
 ?>
 
 
@@ -617,65 +625,66 @@ if (!$metrics_data) {
 
                      <p>The report generates product metrics by calculating key metrics from sales and products data. It computes product metrcis to compute key performance indicators. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
                      <div class="table-responsive">
-                     <table id="datatable" class="table data-tables table-striped">
-                                    <thead>
-                                        <tr class="light">
-                                            <th>Product ID</th>
-                                            <th>Product Name</th>
-                                            <th>Total Sales</th>
-                                            <th>Total Quantity</th>
-                                            <th>Total Profit</th>
-                                            <th>Total Expenses</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        // To store already displayed product IDs and avoid duplicates
-                                        $displayed_products = [];
+                     
 
-                                        foreach ($metrics_data as $data):
-                                            $revenue_by_product = json_decode($data['revenue_by_product'], true);
+<table id="datatable" class="table data-tables table-striped">
+    <thead>
+        <tr class="light">
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>Total Sales</th>
+            <th>Total Quantity</th>
+            <th>Total Profit</th>
+            <th>Sell-Through Rate (%)</th>
+            <th>Inventory Turnover Rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        // To store already displayed product IDs and avoid duplicates
+        $displayed_products = [];
 
-                                            // Check if decoding was successful
-                                            if (is_array($revenue_by_product)):
-                                                foreach ($revenue_by_product as $product):
-                                                    // Ensure all required fields are present
-                                                    if (isset($product['product_id'], $product['product_name'], $product['total_sales'], $product['total_quantity'], $product['total_profit'], $product['total_expenses'])
-                                                        && !empty($product['product_id']) && !empty($product['product_name'])
-                                                        && !empty($product['total_sales']) && !empty($product['total_quantity'])
-                                                        && !empty($product['total_profit']) && !empty($product['total_expenses'])
-                                                    ):
-                                                        // Check if the product has already been displayed
-                                                        if (in_array($product['product_id'], $displayed_products)) {
-                                                            continue; // Skip this product if it has been displayed
-                                                        }
+        foreach ($metrics_data as $data):
+            $revenue_by_product = json_decode($data['revenue_by_product'], true);
 
-                                                        // Add product ID to the list of displayed products
-                                                        $displayed_products[] = $product['product_id'];
-                                                        ?>
-                                                        <tr>
-                                                            <td><?php echo htmlspecialchars($product['product_id']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_quantity']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_profit']); ?></td>
-                                                            <td><?php echo htmlspecialchars($product['total_expenses']); ?></td>
-                                                        </tr>
-                                                    <?php
-                                                    endif; // End check for valid product data
-                                                endforeach;
-                                            else: ?>
-                                                <tr>
-                                                    <td colspan="6">No product data available</td>
-                                                </tr>
-                                            <?php endif;
-                                        endforeach; ?>
-                                    </tbody>
-                                </table>
+            // Check if decoding was successful
+            if (is_array($revenue_by_product)):
+                foreach ($revenue_by_product as $product):
+                    // Ensure all required fields are present
+                    if (isset($product['product_id'], $product['product_name'], $product['total_sales'], $product['total_quantity'], $product['total_profit'], $product['sell_through_rate'], $product['inventory_turnover_rate'])
+                        && !empty($product['product_id']) && !empty($product['product_name'])
+                        && !empty($product['total_sales']) && !empty($product['total_quantity'])
+                        && !empty($product['total_profit']) && !empty($product['sell_through_rate']) && !empty($product['inventory_turnover_rate'])
+                    ):
+                        // Check if the product has already been displayed
+                        if (in_array($product['product_id'], $displayed_products)) {
+                            continue; // Skip this product if it has been displayed
+                        }
 
+                        // Add product ID to the list of displayed products
+                        $displayed_products[] = $product['product_id'];
+                        ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($product['product_id']); ?></td>
+                            <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                            <td><?php echo number_format($product['total_sales'], 2); ?></td>
+                            <td><?php echo number_format($product['total_quantity']); ?></td>
+                            <td><?php echo number_format($product['total_profit'], 2); ?></td>
+                            <td><?php echo number_format($product['sell_through_rate'], 2); ?>%</td>
+                            <td><?php echo number_format($product['inventory_turnover_rate'], 2); ?></td>
+                        </tr>
+                    <?php
+                    endif; // End check for valid product data
+                endforeach;
+            else: ?>
+                <tr>
+                    <td colspan="7">No product data available</td>
+                </tr>
+            <?php endif;
+        endforeach; ?>
+    </tbody>
+</table>
 
-                        
-                     </div>
                   </div>
                </div>
             </div>
