@@ -152,10 +152,9 @@ if ($existing_report) {
 
 echo "Checkpoint 5"; // Debugging statement
 
-// Fetch metrics data from the `sales_analytics` table for the current date
-$metrics_query = "SELECT * FROM sales_analytics WHERE date = :date";
+// Fetch metrics data from the `sales_analytics` table for all available dates
+$metrics_query = "SELECT * FROM sales_analytics ORDER BY date ASC";
 $stmt = $connection->prepare($metrics_query);
-$stmt->bindParam(':date', $date);
 $stmt->execute();
 $metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
