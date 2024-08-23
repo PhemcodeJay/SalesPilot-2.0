@@ -42,7 +42,7 @@ $revenueProfitQuery = $connection->prepare("SELECT DATE(sale_date) AS date,
 $revenueProfitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $revenueProfitData = $revenueProfitQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch expense and inventory data for Area Chart
+// Fetch expense data for Area Chart
 $expenseQuery = $connection->prepare("SELECT DATE(expense_date) AS date, 
                                       SUM(amount) AS total_expenses 
                                       FROM expenses 
@@ -70,11 +70,11 @@ foreach ($revenueProfitData as $data) {
     $combinedRevenueExpense[] = [
         'date' => $date,
         'total_revenue' => $revenue,
-        'total_expenses' => $expenses + $revenue // Combined revenue and expense
+        'total_expenses' => $expenses // Only expenses, no combination with revenue here
     ];
 }
 
-// Fetch sell-through rate and inventory turnover rate from reports
+// Fetch sell-through rate and inventory turnover rate for Histogram Chart
 $metricsQuery = $connection->prepare("SELECT DATE(report_date) AS date, 
                                       AVG(sell_through_rate) AS avg_sell_through_rate, 
                                       AVG(inventory_turnover_rate) AS avg_inventory_turnover_rate 
@@ -87,9 +87,9 @@ $metricsData = $metricsQuery->fetchAll(PDO::FETCH_ASSOC);
 // Prepare final data
 $response = [
     'barData' => $salesData,
-    'pieData' => $metricsData,
-    'candleData' => $revenueProfitData,
-    'areaData' => $combinedRevenueExpense
+    'areaData' => $combinedRevenueExpense,
+    'histogramData' => $metricsData,
+    'candlestickData' => $revenueProfitData
 ];
 
 echo json_encode($response);

@@ -438,11 +438,10 @@
         </div>
     </div>
 </div>
-
-    <div class="dashboard">
+<div class="dashboard">
     <!-- Control Panel -->
     <div class="control-panel">
-        <h1>Analytics </h1>
+        <h1>Analytics</h1>
     </div>
 
     <!-- Charts Grid -->
@@ -450,7 +449,7 @@
         <!-- Bar Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Expenses</h2>
+                <h2>Total Sales</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateBarChart('weekly')">Weekly</button>
                     <button onclick="updateBarChart('monthly')">Monthly</button>
@@ -460,23 +459,23 @@
             <canvas id="barChart"></canvas>
         </div>
 
-        <!-- Pie Chart Container -->
+        <!-- Histogram Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Net Profit</h2>
+                <h2>Sell-Through Rate vs Inventory Turnover</h2>
                 <div class="date-range-buttons">
-                    <button onclick="updatePieChart('weekly')">Weekly</button>
-                    <button onclick="updatePieChart('monthly')">Monthly</button>
-                    <button onclick="updatePieChart('yearly')">Yearly</button>
+                    <button onclick="updateHistogramChart('weekly')">Weekly</button>
+                    <button onclick="updateHistogramChart('monthly')">Monthly</button>
+                    <button onclick="updateHistogramChart('yearly')">Yearly</button>
                 </div>
             </div>
-            <canvas id="pieChart"></canvas>
+            <canvas id="histogramChart"></canvas>
         </div>
 
         <!-- Candlestick Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Sales Qty by Category</h2>
+                <h2>Revenue vs Profit</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateCandleChart('weekly')">Weekly</button>
                     <button onclick="updateCandleChart('monthly')">Monthly</button>
@@ -489,7 +488,7 @@
         <!-- Area Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Profit (Category)</h2>
+                <h2>Revenue vs Expenses</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateAreaChart('weekly')">Weekly</button>
                     <button onclick="updateAreaChart('monthly')">Monthly</button>
@@ -500,6 +499,7 @@
         </div>
     </div>
 </div>
+
  <!-- Page end  -->
     </div>
       </div>
@@ -532,204 +532,134 @@
 <script src="http://localhost/project/assets/js/table-treeview.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.0"></script>
+
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
 <script>
-    function updateCharts(range) {
-    $.ajax({
-        url: 'chart-data.php',
-        type: 'GET',
-        data: { range: range },
-        success: function(response) {
-            const data = JSON.parse(response);
-            console.log(data); // Debugging line to check data structure
-            updateBarChartData(data.barData);
-            updatePieChartData(data.pieData);
-            updateCandleChartData(data.candleData);
-            updateAreaChartData(data.areaData);
-        }
-    });
-}
+    // Initialize all charts
+    const barChart = new Chart(document.getElementById('barChart').getContext('2d'), { type: 'bar', data: {}, options: {} });
+    const histogramChart = new Chart(document.getElementById('histogramChart').getContext('2d'), { type: 'bar', data: {}, options: {} });
+    const candleChart = new Chart(document.getElementById('candleChart').getContext('2d'), { type: 'candlestick', data: {}, options: {} });
+    const areaChart = new Chart(document.getElementById('areaChart').getContext('2d'), { type: 'line', data: {}, options: {} });
 
-function updateBarChartData(barData) {
-    if (barData.length > 0) {
-        const barLabels = barData.map(item => item.date);
-        const barSales = barData.map(item => item.total_sales);
-        barChart.data.labels = barLabels;
-        barChart.data.datasets[0].data = barSales;
-        barChart.update();
-    } else {
-        barChart.data.labels = [];
-        barChart.data.datasets[0].data = [];
-        barChart.update();
+    // Function to update Bar Chart data
+    function updateBarChart(range) {
+        fetchData(range, 'barData', function (data) {
+            barChart.data = formatBarData(data);
+            barChart.update();
+        });
     }
-}
 
-function updatePieChartData(pieData) {
-    if (pieData.length > 0) {
-        const pieLabels = pieData.map(item => item.date);
-        const pieSellThrough = pieData.map(item => item.avg_sell_through_rate);
-        pieChart.data.labels = pieLabels;
-        pieChart.data.datasets[0].data = pieSellThrough;
-        pieChart.update();
-    } else {
-        pieChart.data.labels = [];
-        pieChart.data.datasets[0].data = [];
-        pieChart.update();
+    // Function to update Histogram Chart data
+    function updateHistogramChart(range) {
+        fetchData(range, 'histogramData', function (data) {
+            histogramChart.data = formatHistogramData(data);
+            histogramChart.update();
+        });
     }
-}
 
-function updateCandleChartData(candleData) {
-    if (candleData.length > 0) {
-        const candleLabels = candleData.map(item => item.date);
-        const candleDataPoints = candleData.map(item => ({
-            t: item.date,
-            o: item.open,
-            h: item.high,
-            l: item.low,
-            c: item.close
-        }));
-        candleChart.data.labels = candleLabels;
-        candleChart.data.datasets[0].data = candleDataPoints;
-        candleChart.update();
-    } else {
-        candleChart.data.labels = [];
-        candleChart.data.datasets[0].data = [];
-        candleChart.update();
+    // Function to update Candlestick Chart data
+    function updateCandleChart(range) {
+        fetchData(range, 'candlestickData', function (data) {
+            candleChart.data = formatCandleData(data);
+            candleChart.update();
+        });
     }
-}
 
-function updateAreaChartData(areaData) {
-    if (areaData.length > 0) {
-        const areaLabels = areaData.map(item => item.date);
-        const areaRevenue = areaData.map(item => item.total_revenue);
-        const areaExpenses = areaData.map(item => item.total_expenses);
-        areaChart.data.labels = areaLabels;
-        areaChart.data.datasets[0].data = areaRevenue;
-        areaChart.data.datasets[1].data = areaExpenses;
-        areaChart.update();
-    } else {
-        areaChart.data.labels = [];
-        areaChart.data.datasets[0].data = [];
-        areaChart.data.datasets[1].data = [];
-        areaChart.update();
+    // Function to update Area Chart data
+    function updateAreaChart(range) {
+        fetchData(range, 'areaData', function (data) {
+            areaChart.data = formatAreaData(data);
+            areaChart.update();
+        });
     }
-}
-// Initialize Bar Chart
-const ctxBar = document.getElementById('barChart').getContext('2d');
-const barChart = new Chart(ctxBar, {
-    type: 'bar',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Total Sales Quantity',
-            data: [],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
 
-// Initialize Pie Chart
-const ctxPie = document.getElementById('pieChart').getContext('2d');
-const pieChart = new Chart(ctxPie, {
-    type: 'pie',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Sell-Through Rate',
-            data: [],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true
+    // Fetch data based on selected range and chart type
+    function fetchData(range, chartType, callback) {
+        fetch(`chart-data.php?range=${range}`)
+            .then(response => response.json())
+            .then(data => callback(data[chartType]))
+            .catch(error => console.error('Error fetching data:', error));
     }
-});
 
-// Initialize Candlestick Chart (Make sure to use a valid chart type for candlestick)
-const ctxCandle = document.getElementById('candleChart').getContext('2d');
-const candleChart = new Chart(ctxCandle, {
-    type: 'line', // Chart.js does not support candlestick charts directly; consider using a library or plugin for this.
-    data: {
-        datasets: [{
-            label: 'Revenue and Profit Margin',
-            data: [],
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            x: {
-                type: 'time',
-                time: {
-                    unit: 'day'
-                }
-            }
-        }
-    }
-});
-
-// Initialize Area Chart
-const ctxArea = document.getElementById('areaChart').getContext('2d');
-const areaChart = new Chart(ctxArea, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [
-            {
-                label: 'Revenue',
-                data: [],
+    // Functions to format data for each chart type
+    function formatBarData(data) {
+        return {
+            labels: data.map(item => item.date),
+            datasets: [{
+                label: 'Total Sales',
+                data: data.map(item => item.total_sales),
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                fill: true
-            },
-            {
+                borderWidth: 1
+            }]
+        };
+    }
+
+    function formatHistogramData(data) {
+        return {
+            labels: data.map(item => item.date),
+            datasets: [{
+                label: 'Sell-Through Rate',
+                data: data.map(item => item.avg_sell_through_rate),
+                backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Inventory Turnover Rate',
+                data: data.map(item => item.avg_inventory_turnover_rate),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+    }
+
+    function formatCandleData(data) {
+        return {
+            labels: data.map(item => item.date),
+            datasets: [{
+                label: 'Revenue vs Profit',
+                data: data.map(item => ({
+                    o: item.revenue, // open
+                    h: item.profit, // high
+                    l: item.revenue * 0.9, // low (example logic)
+                    c: item.profit * 1.1 // close (example logic)
+                })),
+                borderColor: 'rgba(153, 102, 255, 1)',
+                backgroundColor: 'rgba(153, 102, 255, 0.2)'
+            }]
+        };
+    }
+
+    function formatAreaData(data) {
+        return {
+            labels: data.map(item => item.date),
+            datasets: [{
+                label: 'Revenue',
+                data: data.map(item => item.total_revenue),
+                fill: true,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }, {
                 label: 'Expenses',
-                data: [],
+                data: data.map(item => item.total_expenses),
+                fill: true,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1,
-                fill: true
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
+                borderWidth: 1
+            }]
+        };
     }
-});
 
+    // Initialize charts with default 'monthly' range
+    updateBarChart('monthly');
+    updateHistogramChart('monthly');
+    updateCandleChart('monthly');
+    updateAreaChart('monthly');
 </script>
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
