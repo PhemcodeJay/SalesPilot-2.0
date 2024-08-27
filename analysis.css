@@ -60,7 +60,7 @@ body {
 }
 
 .date-range-buttons button {
-    background-color: #eba82dcb; /* Blue for default */
+    background-color: #328ee9; /* Blue for default */
     color: white;
     padding: 8px 15px;
     border: none;
@@ -71,32 +71,9 @@ body {
 }
 
 .date-range-buttons button:hover {
-    background-color: #328ee9; /* Darker blue on hover */
+    background-color: #eba82dcb; /* Darker blue on hover */
 }
 
-.date-range-buttons button.weekly {
-    background-color: #28a745; /* Green for weekly */
-}
-
-.date-range-buttons button.monthly {
-    background-color: #ffc107; /* Yellow for monthly */
-}
-
-.date-range-buttons button.yearly {
-    background-color: #dc3545; /* Red for yearly */
-}
-
-.date-range-buttons button.weekly:hover {
-    background-color: #218838; /* Darker green on hover */
-}
-
-.date-range-buttons button.monthly:hover {
-    background-color: #e0a800; /* Darker yellow on hover */
-}
-
-.date-range-buttons button.yearly:hover {
-    background-color: #c82333; /* Darker red on hover */
-}
 
 canvas {
     max-width: 100%;

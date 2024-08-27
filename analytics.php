@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics</title>
+    <title>Sales Analytics</title>
     <link rel="stylesheet" href="analysis.css">
     <!-- Favicon -->
     <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -442,7 +442,7 @@
 <div class="dashboard">
     <!-- Control Panel -->
     <div class="control-panel">
-        <h1>Analytics</h1>
+        <h1 style="font-weight: bold; text-decoration: underline;">Sales Analytics</h1>
     </div>
 
     <!-- Charts Grid -->
@@ -450,7 +450,7 @@
         <!-- Bar Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Total Sales</h2>
+                <h2 style="font-weight: bold; text-decoration: underline;">Product Metrics</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateBarChart('weekly')">Weekly</button>
                     <button onclick="updateBarChart('monthly')">Monthly</button>
@@ -460,10 +460,11 @@
             <canvas id="barChart"></canvas>
         </div>
 
+    
         <!-- Histogram Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Sell-Through Rate vs Inventory Turnover</h2>
+                <h2 style="font-weight: bold; text-decoration: underline;">Inventory Metrics</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateHistogramChart('weekly')">Weekly</button>
                     <button onclick="updateHistogramChart('monthly')">Monthly</button>
@@ -476,7 +477,7 @@
         <!-- Candlestick Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Profit</h2>
+                <h2 style="font-weight: bold; text-decoration: underline;">Sales Performance</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateCandleChart('weekly')">Weekly</button>
                     <button onclick="updateCandleChart('monthly')">Monthly</button>
@@ -489,7 +490,7 @@
         <!-- Area Chart Container -->
         <div class="chart-container">
             <div class="chart-header">
-                <h2>Revenue vs Expenses</h2>
+                <h2 style="font-weight: bold; text-decoration: underline;">Income Overview</h2>
                 <div class="date-range-buttons">
                     <button onclick="updateAreaChart('weekly')">Weekly</button>
                     <button onclick="updateAreaChart('monthly')">Monthly</button>
