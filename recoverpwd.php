@@ -102,14 +102,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
                         <div class="d-flex align-items-center auth-content">
                            <div class="col-lg-7 align-self-center">
                               <div class="p-3">
-                                 <h2 class="mb-2">Reset Password</h2>
+                                 <h2 class="mb-2">Recover Password</h2>
                                  <p>Enter your email address and we'll send you an email with instructions to reset your password.</p>
-                                 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>"
-                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                    <label>Email:</label>
-                                    <input type="email" name="Email" required>
-                                    <button type="submit" name="request_reset">Request Password Reset</button>
-                                </form>
+                                 
+                                <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                                    <div class="row">
+                                       <div class="col-lg-12">
+                                          <div class="floating-label form-group">
+                                          <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                             <input class="floating-input form-control" type="email" placeholder="Enter Your Email Address ">
+                                             <label>Email</label>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Reset</button>
+                                 </form>
                               </div>
                            </div>
                            <div class="col-lg-5 content-right">

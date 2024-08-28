@@ -65,6 +65,42 @@ try {
     echo 'Error: ' . $e->getMessage();
     exit;
 }
+
+try {
+    // Fetch inventory notifications with product images
+    $inventoryQuery = $connection->prepare("
+        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
+        FROM inventory i
+        JOIN products p ON i.product_id = p.id
+        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
+        ORDER BY i.last_updated DESC
+    ");
+    $inventoryQuery->execute([
+        ':low_stock' => 10,
+        ':high_stock' => 1000,
+    ]);
+    $inventoryNotifications = $inventoryQuery->fetchAll();
+
+    // Fetch reports notifications with product images
+    $reportsQuery = $connection->prepare("
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
+               p.image_path
+        FROM reports r
+        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
+           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        ORDER BY r.report_date DESC
+    ");
+    $reportsQuery->execute([
+        ':high_revenue' => 10000,
+        ':low_revenue' => 1000,
+    ]);
+    $reportsNotifications = $reportsQuery->fetchAll();
+} catch (PDOException $e) {
+    // Handle any errors during database queries
+    echo "Error: " . $e->getMessage();
+}
 ?>
 
 
@@ -267,7 +303,7 @@ try {
                               <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                             </svg>
-                            <span class="ml-4">Analytics and Reports</span>
+                            <span class="ml-4">Analytics</span>
                             <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                             </svg>
@@ -275,7 +311,7 @@ try {
                         <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                 <li class="">
                                         <a href="http://localhost/project/analytics.php">
-                                            <i class="las la-minus"></i><span>Analytics</span>
+                                            <i class="las la-minus"></i><span>Charts</span>
                                         </a>
                                 </li>
                                 <li class="">
@@ -284,13 +320,13 @@ try {
                                         </a>
                                 </li>
                                 <li class="">
-                                        <a href="http://localhost/project/category-metric.php">
-                                            <i class="las la-minus"></i><span>Category Metrics</span>
+                                        <a href="http://localhost/project/sales-metrics.php">
+                                            <i class="las la-minus"></i><span>Sales Metrics</span>
                                         </a>
                                 </li>
                                 <li class="">
-                                        <a href="http://localhost/project/product-metric.php">
-                                            <i class="las la-minus"></i><span>Product Metrics</span>
+                                        <a href="http://localhost/project/inventory-metrics.php">
+                                            <i class="las la-minus"></i><span>Inventory Metrics</span>
                                         </a>
                                 </li>
                                 
@@ -376,80 +412,87 @@ try {
                                   </div>
                               </li>
                               <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                          stroke-linejoin="round" class="feather feather-bell">
-                                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                      </svg>
-                                      <span class="bg-primary "></span>
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-0 ">
-                                              <div class="cust-title p-3">
-                                                  <div class="d-flex align-items-center justify-content-between">
-                                                      <h5 class="mb-0">Notifications</h5>
-                                                      <a class="badge badge-primary badge-card" href="#">3</a>
-                                                  </div>
-                                              </div>
-                                              <div class="px-3 pt-0 pb-0 sub-card">
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/01.jpg" alt="01">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Emma Watson</h6>
-                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3 border-bottom">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/02.jpg" alt="02">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
-                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                                  <a href="#" class="iq-sub-card">
-                                                      <div class="media align-items-center cust-card py-3">
-                                                          <div class="">
-                                                              <img class="avatar-50 rounded-small"
-                                                                  src="http://localhost/project/assets/images/user/03.jpg" alt="03">
-                                                          </div>
-                                                          <div class="media-body ml-3">
-                                                              <div class="d-flex align-items-center justify-content-between">
-                                                                  <h6 class="mb-0">Kianna Carder</h6>
-                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                              </div>
-                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                          </div>
-                                                      </div>
-                                                  </a>
-                                              </div>
-                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
-                                                  role="button">
-                                                  View All
-                                              </a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
+    <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" class="feather feather-bell">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span class="bg-primary "></span>
+    </a>
+    <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <div class="card shadow-none m-0">
+            <div class="card-body p-0">
+                <div class="cust-title p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0">Notifications</h5>
+                        <a class="badge badge-primary badge-card" href="#">
+                            <?= count($inventoryNotifications) + count($reportsNotifications) ?>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-3 pt-0 pb-0 sub-card">
+
+                    <?php if (!empty($inventoryNotifications)): ?>
+                        <?php foreach ($inventoryNotifications as $notification): ?>
+                            <a href="#" class="iq-sub-card">
+                                <div class="media align-items-center cust-card py-3 border-bottom">
+                                    <div>
+                                        <img class="avatar-50 rounded-small"
+                                            src="<?= htmlspecialchars($notification['image_path']); ?>" 
+                                            alt="<?= htmlspecialchars($notification['product_name']); ?>">
+                                    </div>
+                                    <div class="media-body ml-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <h6 class="mb-0"><?= htmlspecialchars($notification['product_name']); ?></h6>
+                                            <small class="text-dark">
+                                                <b>Available: <?= htmlspecialchars($notification['available_stock']); ?></b>
+                                            </small>
+                                        </div>
+                                        <small>Inventory: <?= htmlspecialchars($notification['inventory_qty']); ?>, 
+                                        Sales: <?= htmlspecialchars($notification['sales_qty']); ?></small>
+                                    </div>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-center">No inventory notifications available.</p>
+                    <?php endif; ?>
+
+                    <?php if (!empty($reportsNotifications)): ?>
+                        <?php foreach ($reportsNotifications as $notification): ?>
+                            <a href="#" class="iq-sub-card">
+                                <div class="media align-items-center cust-card py-3 border-bottom">
+                                    <div>
+                                        <img class="avatar-50 rounded-small"
+                                            src="<?= htmlspecialchars($notification['image_path']); ?>" 
+                                            alt="<?= htmlspecialchars($notification['product_name']); ?>">
+                                    </div>
+                                    <div class="media-body ml-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <h6 class="mb-0"><?= htmlspecialchars($notification['product_name']); ?></h6>
+                                            <small class="text-dark">
+                                                <b>Revenue: <?= htmlspecialchars($notification['revenue']); ?></b>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-center">No reports notifications available.</p>
+                    <?php endif; ?>
+                </div>
+                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
+                    View All
+                </a>
+            </div>
+        </div>
+    </div>
+</li>
+
                               <li class="nav-item nav-icon dropdown caption-content">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -586,7 +629,7 @@ try {
                                                     <th class="text-center" scope="row"><?php echo $index++; ?></th>
                                                     <td>
                                                         <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
-                                                        <p class="mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                                                        
                                                     </td>
                                                     <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
                                                     <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
@@ -623,7 +666,8 @@ try {
                             <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
                             <td>
                                         <div class="d-flex align-items-center list-action">
-                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
+                                            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
                                             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
                                             <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
                                         </div>

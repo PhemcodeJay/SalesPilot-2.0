@@ -88,17 +88,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
                         <div class="d-flex align-items-center auth-content">
                            <div class="col-lg-7 align-self-center">
                               <div class="p-3">
-                                 <h2 class="mb-2">Reset Password</h2>
-                                 <p>Enter your email address and we'll send you an email with instructions to reset your password.</p>
+                                 <h2 class="mb-2" style="font-weight: bold; text-decoration: underline;">Reset Password</h2>
+                                 <p style="font-weight: bold; text-decoration: underline;">Enter your New Password</p>
                                     <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                        <label>New Password:</label>
+                                        <label style="font-weight: bold; text-decoration: underline;" >New Password</label>
                                         <input type="password" name="Password" required>
-                                        <label>Confirm Password:</label>
+                                        <label style="font-weight: bold; text-decoration: underline;">Confirm Password</label>
                                         <input type="password" name="ConfirmPassword" required>
-                                        <button type="submit" name="reset_password">Reset Password</button>
                                     </form>
                                     </div>
+                                    <button class="btn btn-primary mt-3" type="submit" name="reset_password">Reset Password</button>
                            </div>
                            <div class="col-lg-5 content-right">
                               <img src="http://localhost/project/assets/images/login/01.png" class="img-fluid image-right" alt="">

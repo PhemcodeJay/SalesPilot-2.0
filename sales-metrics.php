@@ -40,7 +40,7 @@ $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
 // Calculate metrics for each product category
-$category_metrics_query = "
+$sales_category_query = "
     SELECT 
         categories.category_name AS category_name,
         COUNT(products.id) AS num_products,
@@ -52,8 +52,8 @@ $category_metrics_query = "
     INNER JOIN categories ON products.category_id = categories.category_id
     LEFT JOIN sales ON sales.product_id = products.id
     GROUP BY categories.category_name";
-$stmt = $connection->query($category_metrics_query);
-$category_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $connection->query($sales_category_query);
+$sales_category_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo "Checkpoint 3"; // Debugging statement
 
@@ -62,14 +62,14 @@ $total_sales = 0;
 $total_quantity = 0;
 $total_profit = 0;
 
-foreach ($category_metrics_data as $category) {
+foreach ($sales_category_data as $category) {
     $total_sales += $category['total_sales'];
     $total_quantity += $category['total_quantity'];
     $total_profit += $category['total_profit'];
 }
 
 // Additional calculations for the report table
-$revenue_by_category = json_encode($category_metrics_data);
+$revenue_by_category = json_encode($sales_category_data);
 $year_over_year_growth = 0; // Assuming this is calculated elsewhere
 $gross_margin = $total_sales - $total_profit;
 $net_margin = $total_profit;  // Assuming total profit represents net margin
@@ -404,7 +404,7 @@ try {
                                 <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
                               </svg>
-                              <span class="ml-4">Analytics and Reports</span>
+                              <span class="ml-4">Analytics</span>
                               <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                               </svg>
@@ -412,7 +412,7 @@ try {
                           <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost/project/analytics.php">
-                                              <i class="las la-minus"></i><span>Analytics</span>
+                                              <i class="las la-minus"></i><span>Charts</span>
                                           </a>
                                   </li>
                                   <li class="">
@@ -421,13 +421,13 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/category-metric.php">
-                                              <i class="las la-minus"></i><span>Category Metrics</span>
+                                          <a href="http://localhost/project/sales-metrics.php">
+                                              <i class="las la-minus"></i><span>Sales Metrics</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/product-metric.php">
-                                              <i class="las la-minus"></i><span>Product Metrics</span>
+                                          <a href="http://localhost/project/inventory-metrics.php">
+                                              <i class="las la-minus"></i><span>Inventory Metrics</span>
                                           </a>
                                   </li>
                                   
@@ -470,26 +470,7 @@ try {
                       </button>
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
-                                      id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
-                                      aria-expanded="false">
-                                      <img src="http://localhost/project/assets/images/small/flag-01.png" alt="img-flag"
-                                          class="img-fluid image-flag mr-2">En
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-3">
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="http://localhost/project/assets/images/small/flag-02.png" alt="img-flag"
-                                                      class="img-fluid mr-2">French</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="http://localhost/project/assets/images/small/flag-03.png" alt="img-flag"
-                                                      class="img-fluid mr-2">Spanish</a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
+                              
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
@@ -655,34 +636,34 @@ try {
                <div class="card">
                   <div class="card-header d-flex justify-content-between">
                      <div class="header-title">
-                        <h4 class="card-title">Category Metrics</h4>
+                        <h4 class="card-title">Sales Metrics</h4>
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Category Metrics Report:</p>
+                     <p>Sales Metrics Report:</p>
 
-                     <p>The report generates Category Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
+                     <p>The report generates Sales Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
                      <div class="table-responsive">
                         <table id="datatable" class="table data-tables table-striped">
                             <thead>
                                 <tr class="light">
                                     <th>Category Name</th>
-                                    <th>Number of Products</th>
+                                    <th>Products Sold</th>
                                     <th>Total Sales</th>
-                                    <th>Total Quantity</th>
-                                    <th>Total Profit</th>
-                                    <th>Total Expenses</th>
+                                    <th>Items Quantity</th>
+                                    <th>Profit</th>
+                                    <th>Expenses</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($category_metrics_data as $data): ?>
+                                <?php foreach ($sales_category_data as $data): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($data['category_name']); ?></td>
                                         <td><?php echo htmlspecialchars($data['num_products']); ?></td>
-                                        <td><?php echo number_format($data['total_sales'], 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_sales'], 2); ?></td>
                                         <td><?php echo number_format($data['total_quantity']); ?></td>
-                                        <td><?php echo number_format($data['total_profit'], 2); ?></td>
-                                        <td><?php echo number_format($data['total_expenses'], 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_profit'], 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_expenses'], 2); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
