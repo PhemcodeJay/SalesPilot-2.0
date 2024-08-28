@@ -191,7 +191,8 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
                                     </div>
                                   </form>
                                   <div class="text-center">
-                                      <button type="submit" name="login" href="http://localhost/WEB/loginpage.php" class="btn btn-lg bg-gradient-primary btn-lg w-100 mt-4 mb-0">Login</button>
+                                  <button type="button" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='http://localhost/project/loginpage.php'">Login</button>
+
                                     </div>
                               </div>
                            </div>

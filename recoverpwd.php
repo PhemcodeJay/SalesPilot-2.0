@@ -105,18 +105,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
                                  <h2 class="mb-2">Recover Password</h2>
                                  <p>Enter your email address and we'll send you an email with instructions to reset your password.</p>
                                  
-                                <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                                 <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                                     <div class="row">
                                        <div class="col-lg-12">
-                                          <div class="floating-label form-group">
-                                          <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                             <input class="floating-input form-control" type="email" placeholder="Enter Your Email Address ">
-                                             <label>Email</label>
-                                          </div>
+                                             <div class="floating-label form-group">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                                                <input class="floating-input form-control" type="email" name="email" placeholder="Enter Your Email Address" required>
+                                                <label for="email">Email</label>
+                                             </div>
                                        </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary">Reset</button>
                                  </form>
+
                               </div>
                            </div>
                            <div class="col-lg-5 content-right">

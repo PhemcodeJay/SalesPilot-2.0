@@ -142,7 +142,8 @@ $connection = null;
                       </div>
                       <div class="text-center">
                           <button type="submit" name="login" value="Login" id="loginButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
-                          <button href="http://localhost/project/recoverpwd.php" type="submit" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Forgot Password</button>
+                          <button type="button" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='http://localhost/project/recoverpwd.php'">Forgot Password</button>
+
                       </div>
                       
                       <p class="mt-4 text-sm text-center">

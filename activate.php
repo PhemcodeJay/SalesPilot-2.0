@@ -53,3 +53,5 @@ if (isset($_GET['Email'], $_GET['code'])) {
     echo 'Invalid activation link.';
 }
 ?>
+
+
