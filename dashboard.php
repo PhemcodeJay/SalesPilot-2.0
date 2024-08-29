@@ -46,6 +46,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     } catch (PDOException $e) {
         exit("Database error: " . $e->getMessage());
     }
+    echo 'Image Path: ' . 'http://localhost/project/uploads/user/' . $user_image;
 
 }
     
@@ -528,7 +529,8 @@ $connection = null;
                               <li class="nav-item nav-icon dropdown caption-content">
                               <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user_image; ?>" class="img-fluid rounded" alt="user">
+                                    <img src="http://localhost/project/uploads/user/default.png" class="img-fluid rounded" alt="user">
+
                                     </a>
 
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -537,8 +539,8 @@ $connection = null;
                                           <div class="media-body profile-detail text-center">
                                                     <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                         class="rounded-top img-fluid mb-4">
-                                                        <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user_image; ?>" alt="profile-img"
-                                                        class="rounded profile-img img-fluid avatar-70">
+                                                        <img src="<?php echo 'http://localhost/project/uploads/user/' . $user_image; ?>" alt="profile-img"
+                                                          class="rounded profile-img img-fluid avatar-70">
                                                 </div>
 
                                               <div class="p-3">
