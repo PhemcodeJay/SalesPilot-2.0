@@ -407,26 +407,7 @@ try {
                       </button>
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                              <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
-                                      id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
-                                      aria-expanded="false">
-                                      <img src="http://localhost/project/assets/images/small/flag-01.png" alt="img-flag"
-                                          class="img-fluid image-flag mr-2">En
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-3">
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="http://localhost/project/assets/images/small/flag-02.png" alt="img-flag"
-                                                      class="img-fluid mr-2">French</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="http://localhost/project/assets/images/small/flag-03.png" alt="img-flag"
-                                                      class="img-fluid mr-2">Spanish</a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
+                              
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
