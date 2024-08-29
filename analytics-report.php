@@ -570,64 +570,66 @@ h2 {
 </div>      <div class="content-page">
 
 <div class="dashboard" id="dashboard">
-        <div class="control-panel">
-            <h1 style="font-weight: bold; text-decoration: underline;">Analytics Report</h1>
-            <button class="print-btn" onclick="printPDF()">Save as PDF</button>
-            <div class="button-group">
-                <button class="time-btn" onclick="fetchData('weekly')">Weekly</button>
-                <button class="time-btn" onclick="fetchData('monthly')">Monthly</button>
-                <button class="time-btn" onclick="fetchData('yearly')">Yearly</button>
-            </div>
+    <div class="control-panel">
+        <h1 style="font-weight: bold; text-decoration: underline;">Analytics Report</h1>
+        <button class="print-btn" onclick="printPDF()">Save as PDF</button>
+        <div class="button-group">
+            <button class="time-btn" onclick="fetchData('weekly')">Weekly</button>
+            <button class="time-btn" onclick="fetchData('monthly')">Monthly</button>
+            <button class="time-btn" onclick="fetchData('yearly')">Yearly</button>
         </div>
-
-        <h2 style="text-decoration: underline;">Product Metrics</h2>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    
-                </tr>
-            </thead>
-            <tbody id="barTableBody">
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
-
-        <h2 style="text-decoration: underline;">Inventory Metrics</h2>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    
-                </tr>
-            </thead>
-            <tbody id="pieTableBody">
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
-
-        <h2 style="text-decoration: underline;">Sales Performance</h2>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    
-                </tr>
-            </thead>
-            <tbody id="candleTableBody">
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
-
-        <h2 style="text-decoration: underline;">Income Overview</h2>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    
-                </tr>
-            </thead>
-            <tbody id="areaTableBody">
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
     </div>
+
+    <h2 style="text-decoration: underline;">Product Metrics</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                
+            </tr>
+        </thead>
+        <tbody id="barTableBody">
+            <!-- Data rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <h2 style="text-decoration: underline;">Top 5 Products by Revenue</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                
+            </tr>
+        </thead>
+        <tbody id="pieTableBody">
+            <!-- Data rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <h2 style="text-decoration: underline;">Inventory Metrics</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                
+            </tr>
+        </thead>
+        <tbody id="candleTableBody">
+            <!-- Data rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <h2 style="text-decoration: underline;">Income Overview</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                
+            </tr>
+        </thead>
+        <tbody id="areaTableBody">
+            <!-- Data rows will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+</div>
 </div>
  <!-- Page end  -->
 </div>
@@ -663,44 +665,49 @@ h2 {
 <script src="http://localhost/project/assets/js/app.js"></script>
 
 <script>
-        function fetchData(range) {
-            fetch(`chart-data.php?range=${range}`)
-                .then(response => response.json())
-                .then(data => {
-                    updateTable('barTableBody', data.barData, ['date', 'total_sales']);
-                    updateTable('pieTableBody', data.histogramData, ['date', 'avg_sell_through_rate', 'avg_inventory_turnover_rate']);
-                    updateTable('candleTableBody', data.candlestickData, ['date', 'open', 'high', 'low', 'close']);
-                    updateTable('areaTableBody', data.areaData, ['date', 'total_revenue', 'total_expenses']);
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        }
+    function fetchData(range) {
+        fetch(`chart-data.php?range=${range}`)
+            .then(response => response.json())
+            .then(data => {
+                updateTable('barTableBody', data.apexBasicChart, ['date', 'total_sales']);
+                updateTable('pieTableBody', Object.entries(data.apex3DPieChart), ['product', 'revenue']);
+                updateTable('candleTableBody', data.apexLineAreaChart, ['date', 'avg_sell_through_rate', 'avg_inventory_turnover_rate']);
+                updateTable('areaTableBody', data.apex3ColumnChart, ['date', 'revenue', 'total_expenses', 'profit']);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
 
-        function updateTable(tableId, data, headers) {
-            const tableBody = document.getElementById(tableId);
-            tableBody.innerHTML = ''; // Clear existing data
+    function updateTable(tableId, data, headers) {
+        const tableBody = document.getElementById(tableId);
+        tableBody.innerHTML = ''; // Clear existing data
 
-            // Create table header row
-            let headerRow = '<tr>';
-            headers.forEach(header => headerRow += `<th>${header.replace(/_/g, ' ').toUpperCase()}</th>`);
-            headerRow += '</tr>';
-            tableBody.innerHTML += headerRow;
+        // Create table header row
+        let headerRow = '<tr>';
+        headers.forEach(header => headerRow += `<th>${header.replace(/_/g, ' ').toUpperCase()}</th>`);
+        headerRow += '</tr>';
+        tableBody.innerHTML += headerRow;
 
-            // Create data rows
-            data.forEach(row => {
-                let dataRow = '<tr>';
-                headers.forEach(header => dataRow += `<td>${row[header] || ''}</td>`);
-                dataRow += '</tr>';
-                tableBody.innerHTML += dataRow;
+        // Create data rows
+        data.forEach(row => {
+            let dataRow = '<tr>';
+            headers.forEach((header, index) => {
+                const cellData = Array.isArray(row) ? row[index] : row[header];
+                dataRow += `<td>${cellData !== undefined ? cellData : ''}</td>`;
             });
-        }
+            dataRow += '</tr>';
+            tableBody.innerHTML += dataRow;
+        });
+    }
 
-        function printPDF() {
-            // Your print PDF logic here
-        }
+    function printPDF() {
+        // Your print PDF logic here
+    }
 
-        // Initialize with default data
-        fetchData('yearly');
-    </script>
+    // Initialize with default data
+    fetchData('yearly');
+</script>
+
+
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

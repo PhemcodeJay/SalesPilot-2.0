@@ -26,8 +26,13 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         if ($user) {
             $email = htmlspecialchars($user['email']);
             $user_image = htmlspecialchars($user['user_image']);
-            $date = date('d F, Y', strtotime($user['date']));
     
+            // Use 'default.png' if no user image is found
+            if (empty($user_image)) {
+                $user_image = 'default.png';
+            }
+    
+            $date = date('d F, Y', strtotime($user['date']));
             $current_hour = (int)date('H');
     
             if ($current_hour < 12) {
@@ -41,15 +46,12 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
             $greeting = "Hello, Guest";
-            $user_image = "default.png"; // Use a default image if the user is not found
         }
     } catch (PDOException $e) {
         exit("Database error: " . $e->getMessage());
     }
-    echo 'Image Path: ' . 'http://localhost/project/uploads/user/' . $user_image;
+}  
 
-}
-    
 try {
     // Calculate total revenue
     $sql = "
@@ -61,7 +63,7 @@ try {
     $stmt = $connection->prepare($sql);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total_revenue = $result["total_revenue"]; // No formatting here, keep it numeric
+    $total_revenue = $result["total_revenue"];
 
     // Calculate total cost (cost of products sold)
     $sql = "
@@ -73,7 +75,7 @@ try {
     $stmt = $connection->prepare($sql);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total_cost = $result["total_cost"]; // Keep it numeric
+    $total_cost = $result["total_cost"];
 
     // Fetch total expenses from the expenses table
     $sql = "
@@ -84,7 +86,7 @@ try {
     $stmt = $connection->prepare($sql);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total_expenses = $result["total_expenses"]; // Keep it numeric
+    $total_expenses = $result["total_expenses"];
 
     // Calculate total expenses (product cost + other expenses)
     $total_expenses_combined = $total_cost + $total_expenses;
@@ -92,7 +94,7 @@ try {
     // Calculate profit
     $total_profit = $total_revenue - $total_expenses_combined;
 
-    // Format the output
+    // Format the final outputs for display
     $total_revenue = number_format($total_revenue, 2);
     $total_expenses_combined = number_format($total_expenses_combined, 2);
     $total_profit = number_format($total_profit, 2);
@@ -101,6 +103,7 @@ try {
     echo "Error: " . $e->getMessage();
     $total_profit = "0.00";
 }
+
 
 
 
@@ -527,20 +530,21 @@ $connection = null;
 </li>
 
                               <li class="nav-item nav-icon dropdown caption-content">
-                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <img src="http://localhost/project/uploads/user/default.png" class="img-fluid rounded" alt="user">
+                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <img src="<?php echo 'http://localhost/project/assets/images/user/' . (!empty($user_image) ? $user_image : 'default.png'); ?>">
 
-                                    </a>
 
+                                  </a>
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
                                           <div class="card-body p-0 text-center">
                                           <div class="media-body profile-detail text-center">
                                                     <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                         class="rounded-top img-fluid mb-4">
-                                                        <img src="<?php echo 'http://localhost/project/uploads/user/' . $user_image; ?>" alt="profile-img"
-                                                          class="rounded profile-img img-fluid avatar-70">
+                                                        <img src="<?php echo 'http://localhost/project/assets/images/user/' . (!empty($user_image) ? $user_image : 'default.png'); ?>" alt="profile-img"
+                                                            class="rounded profile-img img-fluid avatar-70">
+
                                                 </div>
 
                                               <div class="p-3">

@@ -28,17 +28,15 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-
-
     // Retrieve user details
     $user_id = htmlspecialchars($user_info['id']);
     $email = htmlspecialchars($user_info['email']);
     $phone = htmlspecialchars($user_info['phone']);
     $location = htmlspecialchars($user_info['location']);
     $existing_image = htmlspecialchars($user_info['user_image']);
+
+    // Use default image if no image exists
+    $image_to_display = $existing_image ?: 'uploads/user/default.png';
 
     // Check if form is submitted
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -54,17 +52,23 @@ try {
 
         // Handle file upload
         if (isset($_FILES['user_image']) && $_FILES['user_image']['error'] == UPLOAD_ERR_OK) {
-            $user_image = $_FILES['user_image']['name'];
-            $target_dir = "uploads/";
-            $target_file = $target_dir . basename($user_image);
+            $user_image = basename($_FILES['user_image']['name']);
+            $target_dir = "uploads/user/";
+            $target_file = $target_dir . $user_image;
 
+            // Ensure the target directory exists
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0755, true);
+            }
+
+            // Move the uploaded file
             if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
                 $image_to_save = $target_file;
             } else {
-                $image_to_save = $existing_image; // Use existing image if upload fails
+                $image_to_save = $existing_image ?: 'uploads/user/default.png'; // Use existing or default image if upload fails
             }
         } else {
-            $image_to_save = $existing_image; // Use existing image if no new image is uploaded
+            $image_to_save = $existing_image ?: 'uploads/user/default.png'; // Use existing or default image if no new image is uploaded
         }
 
         // Validate passwords
