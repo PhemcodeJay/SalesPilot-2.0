@@ -22,14 +22,14 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         $stmt = $connection->prepare('SELECT email, date, user_image FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+    
         if ($user) {
             $email = htmlspecialchars($user['email']);
             $user_image = htmlspecialchars($user['user_image']);
             $date = date('d F, Y', strtotime($user['date']));
-
+    
             $current_hour = (int)date('H');
-
+    
             if ($current_hour < 12) {
                 $time_of_day = "Morning";
             } elseif ($current_hour < 18) {
@@ -37,44 +37,71 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             } else {
                 $time_of_day = "Evening";
             }
-
+    
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
             $greeting = "Hello, Guest";
+            $user_image = "default.png"; // Use a default image if the user is not found
         }
     } catch (PDOException $e) {
         exit("Database error: " . $e->getMessage());
     }
-} else {
-    $greeting = "Hello, Guest";
+
 }
-
+    
 try {
-    $sql = "SELECT IFNULL(SUM(sales_qty), 0) AS total_products_sold FROM sales";
-    $stmt = $connection->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total_products_sold = number_format($result["total_products_sold"]);
-
-    // Updated SQL query for total sales and total cost
+    // Calculate total revenue
     $sql = "
     SELECT
-        IFNULL(SUM(s.sales_qty * p.price), 0) AS total_sales,
-        IFNULL(SUM(s.sales_qty * (p.price - p.cost)), 0) AS total_cost
+        IFNULL(SUM(s.sales_qty * p.price), 0) AS total_revenue
     FROM sales s
     JOIN products p ON s.product_id = p.id
     ";
     $stmt = $connection->prepare($sql);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total_sales = number_format($result["total_sales"], 2);
-    $total_cost = number_format($result["total_cost"], 2);
+    $total_revenue = $result["total_revenue"]; // No formatting here, keep it numeric
+
+    // Calculate total cost (cost of products sold)
+    $sql = "
+    SELECT
+        IFNULL(SUM(s.sales_qty * p.cost), 0) AS total_cost
+    FROM sales s
+    JOIN products p ON s.product_id = p.id
+    ";
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total_cost = $result["total_cost"]; // Keep it numeric
+
+    // Fetch total expenses from the expenses table
+    $sql = "
+    SELECT
+        IFNULL(SUM(amount), 0) AS total_expenses
+    FROM expenses
+    ";
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total_expenses = $result["total_expenses"]; // Keep it numeric
+
+    // Calculate total expenses (product cost + other expenses)
+    $total_expenses_combined = $total_cost + $total_expenses;
+
+    // Calculate profit
+    $total_profit = $total_revenue - $total_expenses_combined;
+
+    // Format the output
+    $total_revenue = number_format($total_revenue, 2);
+    $total_expenses_combined = number_format($total_expenses_combined, 2);
+    $total_profit = number_format($total_profit, 2);
 
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
-    $total_sales = "0.00";
-    $total_cost = "0.00";
+    $total_profit = "0.00";
 }
+
+
 
 $top_products = [];
 
@@ -499,17 +526,18 @@ $connection = null;
 </li>
 
                               <li class="nav-item nav-icon dropdown caption-content">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user['user_image']; ?>" class="img-fluid rounded" alt="user">
-                                  </a>
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user_image; ?>" class="img-fluid rounded" alt="user">
+                                    </a>
+
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
                                           <div class="card-body p-0 text-center">
                                           <div class="media-body profile-detail text-center">
                                                     <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                         class="rounded-top img-fluid mb-4">
-                                                    <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user['user_image']; ?>" alt="profile-img"
+                                                        <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user_image; ?>" alt="profile-img"
                                                         class="rounded profile-img img-fluid avatar-70">
                                                 </div>
 
@@ -576,7 +604,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Revenue</p>
-                                    <h4>$<?php echo $total_sales; ?></h4>
+                                    <h4>$<?php echo $total_revenue; ?></h4>
                                     </div>
                                 </div>                                
                                 <div class="iq-progress-bar mt-2">
@@ -595,7 +623,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Expenses</p>
-                                    <h4>$<?php echo $total_cost; ?></h4>
+                                    <h4>$<?php echo $total_expenses_combined; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
@@ -614,7 +642,7 @@ $connection = null;
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Profit</p>
-                                    <h4><?php echo $total_products_sold; ?></h4>
+                                    <h4><?php echo $total_profit; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
