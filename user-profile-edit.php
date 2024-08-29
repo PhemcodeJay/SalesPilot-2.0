@@ -615,7 +615,7 @@ try {
                                                 <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $existing_image; ?>" alt="profile-pic">
                                                 <div class="crm-p-image bg-primary">
                                                     <i class="las la-pen upload-button"></i>
-                                                    <input class="file-upload" type="file" accept="image/*" name="user_image">
+                                                    <input class="file-upload" type="file" accept="image/*" name="user_image" style="display: none;">
                                                 </div>
                                             </div>
                                         </div>
