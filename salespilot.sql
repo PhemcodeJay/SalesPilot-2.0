@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 20, 2024 at 10:01 PM
+-- Generation Time: Aug 28, 2024 at 11:09 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -133,6 +133,18 @@ CREATE TABLE `inventory` (
   `inventory_qty` int(11) GENERATED ALWAYS AS (`stock_qty` + `supply_qty`) STORED,
   `product_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `inventory`
+--
+
+INSERT INTO `inventory` (`id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
+(1, 11, 2, '2024-08-21 08:33:56', 10, 15, 'Samsung Galaxy'),
+(2, 12, 5, '2024-08-21 08:33:56', 12, 15, 'Necklace'),
+(3, 14, 8, '2024-08-21 08:33:56', 20, 12, 'Nike Sneakers'),
+(4, 15, 10, '2024-08-21 08:33:58', 30, 15, 'Floral-Pleated-Weave-Dress'),
+(5, 13, 3, '2024-08-21 08:34:00', 20, 15, 'Iphone 15 128GB'),
+(6, 16, 1, '2024-08-21 08:34:02', 3, 2, 'Toyota-Corolla');
 
 -- --------------------------------------------------------
 
@@ -265,7 +277,10 @@ CREATE TABLE `reports` (
 --
 
 INSERT INTO `reports` (`id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
-(8, '2024-08-20', 20315.00, 42.85, '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_sales\":\"12000.00\",\"total_quantity\":\"2\",\"total_profit\":\"6000.00\",\"total_expenses\":\"6000.00\",\"cost_of_selling\":\"3000.00\",\"profit_margin\":\"75.000000\"},{\"product_id\":12,\"product_name\":\"Necklace\",\"total_sales\":\"2250.00\",\"total_quantity\":\"5\",\"total_profit\":\"1250.00\",\"total_expenses\":\"1000.00\",\"cost_of_selling\":\"200.00\",\"profit_margin\":\"91.111111\"},{\"product_id\":13,\"product_name\":\"Iphone 15 128GB\",\"total_sales\":\"4500.00\",\"total_quantity\":\"3\",\"total_profit\":\"900.00\",\"total_expenses\":\"3600.00\",\"cost_of_selling\":\"1200.00\",\"profit_margin\":\"73.333333\"},{\"product_id\":14,\"product_name\":\"Nike Sneakers\",\"total_sales\":\"1200.00\",\"total_quantity\":\"8\",\"total_profit\":\"400.00\",\"total_expenses\":\"800.00\",\"cost_of_selling\":\"100.00\",\"profit_margin\":\"91.666667\"},{\"product_id\":15,\"product_name\":\"Floral-Pleated-Weave-Dress\",\"total_sales\":\"350.00\",\"total_quantity\":\"10\",\"total_profit\":\"150.00\",\"total_expenses\":\"200.00\",\"cost_of_selling\":\"20.00\",\"profit_margin\":\"94.285714\"},{\"product_id\":16,\"product_name\":\"Toyota-Corolla\",\"total_sales\":\"15.00\",\"total_quantity\":\"1\",\"total_profit\":\"5.00\",\"total_expenses\":\"10.00\",\"cost_of_selling\":\"10.00\",\"profit_margin\":\"33.333333\"}]', 0.00, 11610.00, 700.52, 0.14, 999.99, 0.00, 0.00, 8705.00, -2905.00, '2024-08-20 19:17:52', 20315, 29, 99, 99, -99);
+(13, '2024-08-21', 20315.00, 42.85, '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"2\",\"total_sales\":\"12000.00\",\"total_cost\":\"6000.00\",\"total_profit\":\"6000.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":12,\"product_name\":\"Necklace\",\"total_quantity\":\"5\",\"total_sales\":\"2250.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"1250.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":13,\"product_name\":\"Iphone 15 128GB\",\"total_quantity\":\"3\",\"total_sales\":\"4500.00\",\"total_cost\":\"3600.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":14,\"product_name\":\"Nike Sneakers\",\"total_quantity\":\"8\",\"total_sales\":\"1200.00\",\"total_cost\":\"800.00\",\"total_profit\":\"400.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":15,\"product_name\":\"Floral-Pleated-Weave-Dress\",\"total_quantity\":\"10\",\"total_sales\":\"350.00\",\"total_cost\":\"200.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":16,\"product_name\":\"Toyota-Corolla\",\"total_quantity\":\"1\",\"total_sales\":\"15.00\",\"total_cost\":\"10.00\",\"total_profit\":\"5.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 8705.00, -2905.00, '2024-08-21 09:17:01', 20315, 29, 99, 99, -99),
+(14, '2024-08-26', 20315.00, 42.85, '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"2\",\"total_sales\":\"12000.00\",\"total_cost\":\"6000.00\",\"total_profit\":\"6000.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":12,\"product_name\":\"Necklace\",\"total_quantity\":\"5\",\"total_sales\":\"2250.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"1250.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":13,\"product_name\":\"Iphone 15 128GB\",\"total_quantity\":\"3\",\"total_sales\":\"4500.00\",\"total_cost\":\"3600.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":14,\"product_name\":\"Nike Sneakers\",\"total_quantity\":\"8\",\"total_sales\":\"1200.00\",\"total_cost\":\"800.00\",\"total_profit\":\"400.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":15,\"product_name\":\"Floral-Pleated-Weave-Dress\",\"total_quantity\":\"10\",\"total_sales\":\"350.00\",\"total_cost\":\"200.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":16,\"product_name\":\"Toyota-Corolla\",\"total_quantity\":\"1\",\"total_sales\":\"15.00\",\"total_cost\":\"10.00\",\"total_profit\":\"5.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 8705.00, -2905.00, '2024-08-26 13:24:43', 20315, 29, 99, 99, -99),
+(15, '2024-08-27', 20315.00, 42.85, '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"2\",\"total_sales\":\"12000.00\",\"total_cost\":\"6000.00\",\"total_profit\":\"6000.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":12,\"product_name\":\"Necklace\",\"total_quantity\":\"5\",\"total_sales\":\"2250.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"1250.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":13,\"product_name\":\"Iphone 15 128GB\",\"total_quantity\":\"3\",\"total_sales\":\"4500.00\",\"total_cost\":\"3600.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":14,\"product_name\":\"Nike Sneakers\",\"total_quantity\":\"8\",\"total_sales\":\"1200.00\",\"total_cost\":\"800.00\",\"total_profit\":\"400.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":15,\"product_name\":\"Floral-Pleated-Weave-Dress\",\"total_quantity\":\"10\",\"total_sales\":\"350.00\",\"total_cost\":\"200.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":16,\"product_name\":\"Toyota-Corolla\",\"total_quantity\":\"1\",\"total_sales\":\"15.00\",\"total_cost\":\"10.00\",\"total_profit\":\"5.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 8705.00, -2905.00, '2024-08-27 08:41:54', 20315, 29, 99, 99, -99),
+(16, '2024-08-28', 20315.00, 42.85, '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"2\",\"total_sales\":\"12000.00\",\"total_cost\":\"6000.00\",\"total_profit\":\"6000.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":12,\"product_name\":\"Necklace\",\"total_quantity\":\"5\",\"total_sales\":\"2250.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"1250.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":13,\"product_name\":\"Iphone 15 128GB\",\"total_quantity\":\"3\",\"total_sales\":\"4500.00\",\"total_cost\":\"3600.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":14,\"product_name\":\"Nike Sneakers\",\"total_quantity\":\"8\",\"total_sales\":\"1200.00\",\"total_cost\":\"800.00\",\"total_profit\":\"400.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":15,\"product_name\":\"Floral-Pleated-Weave-Dress\",\"total_quantity\":\"10\",\"total_sales\":\"350.00\",\"total_cost\":\"200.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":16,\"product_name\":\"Toyota-Corolla\",\"total_quantity\":\"1\",\"total_sales\":\"15.00\",\"total_cost\":\"10.00\",\"total_profit\":\"5.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 8705.00, -2905.00, '2024-08-28 09:19:34', 20315, 29, 99, 99, -99);
 
 -- --------------------------------------------------------
 
@@ -377,7 +392,27 @@ CREATE TABLE `sales_analytics` (
 --
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`) VALUES
-(142, '2024-08-20', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-20 19:05:49', 20315, 29, 99, 0, 0, 0);
+(147, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-23 07:54:21', 20315, 29, 99, 0, 0, 0),
+(148, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-23 07:56:53', 20315, 29, 99, 0, 0, 0),
+(149, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-26 13:23:26', 20315, 29, 99, 0, 0, 0),
+(150, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 07:33:28', 20315, 29, 99, 0, 0, 0),
+(151, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 08:06:01', 20315, 29, 99, 0, 0, 0),
+(152, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 08:42:29', 20315, 29, 99, 0, 0, 0),
+(153, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 09:00:47', 20315, 29, 99, 0, 0, 0),
+(154, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 09:08:09', 20315, 29, 99, 0, 0, 0),
+(155, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 09:09:41', 20315, 29, 99, 0, 0, 0),
+(156, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-27 09:09:44', 20315, 29, 99, 0, 0, 0),
+(157, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:17:03', 20315, 29, 99, 0, 0, 0),
+(158, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:17:35', 20315, 29, 99, 0, 0, 0),
+(159, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:18:18', 20315, 29, 99, 0, 0, 0),
+(160, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:18:56', 20315, 29, 99, 0, 0, 0),
+(161, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:23:24', 20315, 29, 99, 0, 0, 0),
+(162, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:24:56', 20315, 29, 99, 0, 0, 0),
+(163, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:26:10', 20315, 29, 99, 0, 0, 0),
+(164, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:26:39', 20315, 29, 99, 0, 0, 0),
+(165, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:27:17', 20315, 29, 99, 0, 0, 0),
+(166, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:29:21', 20315, 29, 99, 0, 0, 0),
+(167, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-28 09:44:56', 20315, 29, 99, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -592,7 +627,7 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -616,7 +651,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `sales`
@@ -628,7 +663,7 @@ ALTER TABLE `sales`
 -- AUTO_INCREMENT for table `sales_analytics`
 --
 ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=168;
 
 --
 -- AUTO_INCREMENT for table `staffs`

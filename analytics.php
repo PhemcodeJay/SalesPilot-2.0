@@ -482,60 +482,111 @@ try {
 
     <!-- Charts Grid -->
     <div class="charts-grid">
-        <!-- Bar Chart Container -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h2 style="font-weight: bold; text-decoration: underline;">Product Metrics</h2>
-                <div class="date-range-buttons">
-                    <button onclick="updateBarChart('weekly')">Weekly</button>
-                    <button onclick="updateBarChart('monthly')">Monthly</button>
-                    <button onclick="updateBarChart('yearly')">Yearly</button>
-                </div>
-            </div>
-            <canvas id="barChart"></canvas>
-        </div>
 
-    
-        <!-- Histogram Chart Container -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h2 style="font-weight: bold; text-decoration: underline;">Inventory Metrics</h2>
-                <div class="date-range-buttons">
-                    <button onclick="updateHistogramChart('weekly')">Weekly</button>
-                    <button onclick="updateHistogramChart('monthly')">Monthly</button>
-                    <button onclick="updateHistogramChart('yearly')">Yearly</button>
-                </div>
-            </div>
-            <canvas id="histogramChart"></canvas>
-        </div>
+        <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                     <div class="header-title">
+                        <h4 class="card-title">Product Metrics</h4>
+                     </div>
+                  </div>
+                  <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                  <div class="card-body">
+                     <div id="apex-basic"></div>
+                  </div>
+               </div>
+        
+        <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                     <div class="header-title">
+                        <h4 class="card-title">Inventory Metrics</h4>
+                     </div>
+                  </div>
+                  <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                  <div class="card-body">
+                     <div id="apex-line-area"></div>
+                  </div>
+               </div> 
 
-        <!-- Candlestick Chart Container -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h2 style="font-weight: bold; text-decoration: underline;">Sales Performance</h2>
-                <div class="date-range-buttons">
-                    <button onclick="updateCandleChart('weekly')">Weekly</button>
-                    <button onclick="updateCandleChart('monthly')">Monthly</button>
-                    <button onclick="updateCandleChart('yearly')">Yearly</button>
-                </div>
-            </div>
-            <canvas id="candleChart"></canvas>
-        </div>
 
-        <!-- Area Chart Container -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h2 style="font-weight: bold; text-decoration: underline;">Income Overview</h2>
-                <div class="date-range-buttons">
-                    <button onclick="updateAreaChart('weekly')">Weekly</button>
-                    <button onclick="updateAreaChart('monthly')">Monthly</button>
-                    <button onclick="updateAreaChart('yearly')">Yearly</button>
-                </div>
-            </div>
-            <canvas id="areaChart"></canvas>
-        </div>
+        
+        <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                     <div class="header-title">
+                        <h4 class="card-title">Revenue by Product</h4>
+                     </div>
+                  </div>
+                  <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                  <div class="card-body">
+                     <div id="am-3dpie-chart" style="height: 400px;"></div>
+                  </div>
+               </div>
+               <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                     <div class="header-title">
+                        <h4 class="card-title">Expenditure</h4>
+                     </div>
+                  </div>
+                  <div class="card-header-toolbar d-flex align-items-center">
+                            <div class="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
+                                    data-toggle="dropdown">
+                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                    aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#">Year</a>
+                                    <a class="dropdown-item" href="#">Month</a>
+                                    <a class="dropdown-item" href="#">Week</a>
+                                </div>
+                            </div>
+                        </div>
+                  <div class="card-body">
+                     <div id="apex-column"></div>
+                  </div>
+               </div>
+              
     </div>
 </div>
+                
 
  <!-- Page end  -->
     </div>
@@ -571,6 +622,12 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.0"></script>
 
+<!-- Chart Custom JavaScript -->
+<script src="http://localhost/project/assets/js/customizer.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
+    
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>

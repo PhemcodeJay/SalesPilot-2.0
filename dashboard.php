@@ -19,12 +19,13 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
     
     try {
-        $stmt = $connection->prepare('SELECT email, date FROM users WHERE username = ?');
+        $stmt = $connection->prepare('SELECT email, date, user_image FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
             $email = htmlspecialchars($user['email']);
+            $user_image = htmlspecialchars($user['user_image']);
             $date = date('d F, Y', strtotime($user['date']));
 
             $current_hour = (int)date('H');
@@ -500,17 +501,18 @@ $connection = null;
                               <li class="nav-item nav-icon dropdown caption-content">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <img src="http://localhost/project/assets/images/user/1.png" class="img-fluid rounded" alt="user">
+                                      <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user['user_image']; ?>" class="img-fluid rounded" alt="user">
                                   </a>
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
                                           <div class="card-body p-0 text-center">
-                                              <div class="media-body profile-detail text-center">
-                                                  <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
-                                                      class="rounded-top img-fluid mb-4">
-                                                  <img src="http://localhost/project/assets/images/user/1.png" alt="profile-img"
-                                                      class="rounded profile-img img-fluid avatar-70">
-                                              </div>
+                                          <div class="media-body profile-detail text-center">
+                                                    <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
+                                                        class="rounded-top img-fluid mb-4">
+                                                    <img src="<?php echo 'http://localhost/project/assets/images/user/' . $user['user_image']; ?>" alt="profile-img"
+                                                        class="rounded profile-img img-fluid avatar-70">
+                                                </div>
+
                                               <div class="p-3">
                                                   <h5 class="mb-1"><?php echo $email; ?></h5>
                                                   <p class="mb-0">Since<?php echo $date; ?></p>
@@ -592,7 +594,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Total Cost</p>
+                                    <p class="mb-2">Total Expenses</p>
                                     <h4>$<?php echo $total_cost; ?></h4>
                                     </div>
                                 </div>
@@ -611,7 +613,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Quantity Sold</p>
+                                    <p class="mb-2">Total Profit</p>
                                     <h4><?php echo $total_products_sold; ?></h4>
                                     </div>
                                 </div>
@@ -629,6 +631,7 @@ $connection = null;
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
                             <h4 class="card-title">Overview</h4>
+                           
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
@@ -646,7 +649,8 @@ $connection = null;
                         </div>
                     </div>                    
                     <div class="card-body">
-                        <div id="layout1-chart1"></div>
+                    <h4>(Revenue vs Profit) Categories</h4>
+                        <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
                     </div>
                 </div>
             </div>
@@ -654,7 +658,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Revenue Vs Cost</h4>
+                            <h4 class="card-title">Expenditure</h4>
                         </div>
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
@@ -672,7 +676,8 @@ $connection = null;
                         </div>
                     </div>
                     <div class="card-body">
-                        <div id="layout1-chart-2" style="min-height: 360px;"></div>
+                    <h4>Revenue vs Profit</h4>
+                        <div id="am-columnlinr-chart" style="min-height: 360px;"></div>
                     </div>
                 </div>
             </div>
@@ -810,7 +815,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Order Summary</h4>
+                            <h4 class="card-title">Profit vs Expenses</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
@@ -841,7 +846,7 @@ $connection = null;
                                 </div>
                                 <div class="progress-value ml-3 pr-5 border-right">
                                     <h5>$12,6598</h5>
-                                    <p class="mb-0">Average Orders</p>
+                                    <p class="mb-0">Expenses</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center ml-5 progress-order-right">
@@ -856,7 +861,7 @@ $connection = null;
                                 </div>
                                 <div class="progress-value ml-3">
                                     <h5>$59,8478</h5>
-                                    <p class="mb-0">Top Orders</p>
+                                    <p class="mb-0">Profit</p>
                                 </div>
                             </div>
                         </div>
