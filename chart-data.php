@@ -95,13 +95,13 @@ $expenseData = $expenseQuery->fetchAll(PDO::FETCH_ASSOC);
 $combinedData = [];
 foreach ($revenueData as $data) {
     $date = $data['date'];
-    $revenue = $data['revenue'];
+    $revenue = (float) $data['revenue']; // Cast to float
     
     // Find matching total cost data
     $totalCost = 0;
     foreach ($totalCostData as $cost) {
         if ($cost['date'] === $date) {
-            $totalCost = $cost['total_cost'];
+            $totalCost = (float) $cost['total_cost']; // Cast to float
             break;
         }
     }
@@ -110,7 +110,7 @@ foreach ($revenueData as $data) {
     $expenses = 0;
     foreach ($expenseData as $expense) {
         if ($expense['date'] === $date) {
-            $expenses = $expense['total_expenses'];
+            $expenses = (float) $expense['total_expenses']; // Cast to float
             break;
         }
     }
@@ -125,6 +125,16 @@ foreach ($revenueData as $data) {
         'profit' => $profit
     ];
 }
+    
+    $totalExpenses = $totalCost + $expenses;
+    $profit = $revenue - $totalExpenses;
+
+    $combinedData[] = [
+        'date' => $date,
+        'revenue' => $revenue,
+        'total_expenses' => $totalExpenses,
+        'profit' => $profit
+    ];
 
 // Prepare final data
 $response = [
