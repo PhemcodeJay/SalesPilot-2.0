@@ -652,7 +652,7 @@ try {
                                     <th>Total Sales</th>
                                     <th>Items Quantity</th>
                                     <th>Profit</th>
-                                    <th>Expenses</th>
+                                    <th>Total Cost</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -660,10 +660,10 @@ try {
                                     <tr>
                                         <td><?php echo htmlspecialchars($data['category_name']); ?></td>
                                         <td><?php echo htmlspecialchars($data['num_products']); ?></td>
-                                        <td>$<?php echo number_format($data['total_sales'], 2); ?></td>
-                                        <td><?php echo number_format($data['total_quantity']); ?></td>
-                                        <td>$<?php echo number_format($data['total_profit'], 2); ?></td>
-                                        <td>$<?php echo number_format($data['total_expenses'], 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_sales'] ?? 0, 2); ?></td>
+                                        <td><?php echo number_format($data['total_quantity'] ?? 0, 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_profit']?? 0, 2); ?></td>
+                                        <td>$<?php echo number_format($data['total_expenses']?? 0, 2); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

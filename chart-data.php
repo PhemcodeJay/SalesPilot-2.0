@@ -125,16 +125,6 @@ foreach ($revenueData as $data) {
         'profit' => $profit
     ];
 }
-    
-    $totalExpenses = $totalCost + $expenses;
-    $profit = $revenue - $totalExpenses;
-
-    $combinedData[] = [
-        'date' => $date,
-        'revenue' => $revenue,
-        'total_expenses' => $totalExpenses,
-        'profit' => $profit
-    ];
 
 // Prepare final data
 $response = [

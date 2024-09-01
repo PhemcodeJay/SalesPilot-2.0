@@ -16,7 +16,7 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
-// Retrieve user information from the Staffs table
+// Retrieve user information from the users table
 $user_query = "SELECT username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
@@ -37,14 +37,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
 
-        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            exit("Error: User not logged in.");
-        }
-
-        if (!isset($_SESSION['username'])) {
-            exit("User not logged in.");
-        }
-
         // Sanitize and validate form inputs
         $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
         $sale_status = isset($_POST['sale_status']) ? htmlspecialchars(trim($_POST['sale_status'])) : '';
@@ -64,7 +56,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 
         // File upload handling
         $upload_dir = 'uploads/';
-        $image_name = $_FILES['document']['name'];
+        $image_name = basename($_FILES['document']['name']);
         $image_tmp = $_FILES['document']['tmp_name'];
         $image_path = $upload_dir . $image_name;
 
@@ -81,7 +73,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':name', $name);
             $stmt->execute();
             $product_id = $stmt->fetchColumn();
-            
+
             if (!$product_id) {
                 throw new Exception("Product not found in the products table.");
             }
@@ -92,59 +84,53 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':username', $username);
             $stmt->execute();
             $user_id = $stmt->fetchColumn();
-            
+
             if (!$user_id) {
                 throw new Exception("Username not found in the users table.");
             }
 
             // Retrieve or insert staff_id
-            if (!empty($staff_name)) {
-                $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
-                $stmt = $connection->prepare($check_staff_query);
-                $stmt->bindParam(':staff_name', $staff_name);
-                $stmt->execute();
-                $staff_id = $stmt->fetchColumn();
+            $staff_id = null;
+            $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
+            $stmt = $connection->prepare($check_staff_query);
+            $stmt->bindParam(':staff_name', $staff_name);
+            $stmt->execute();
+            $staff_id = $stmt->fetchColumn();
 
-                if (!$staff_id) {
-                    $insert_staff_query = "INSERT INTO staffs (staff_name" . (!empty($staff_email) ? ", staff_email" : "") . ") VALUES (:staff_name" . (!empty($staff_email) ? ", :staff_email" : "") . ")";
-                    $stmt = $connection->prepare($insert_staff_query);
-                    $stmt->bindParam(':staff_name', $staff_name);
-                    if (!empty($staff_email)) {
-                        $stmt->bindParam(':staff_email', $staff_email);
-                    }
-                    if ($stmt->execute()) {
-                        $staff_id = $connection->lastInsertId();
-                    } else {
-                        throw new Exception("Staff creation failed.");
-                    }
+            if (!$staff_id) {
+                $insert_staff_query = "INSERT INTO staffs (staff_name" . (!empty($staff_email) ? ", staff_email" : "") . ") VALUES (:staff_name" . (!empty($staff_email) ? ", :staff_email" : "") . ")";
+                $stmt = $connection->prepare($insert_staff_query);
+                $stmt->bindParam(':staff_name', $staff_name);
+                if (!empty($staff_email)) {
+                    $stmt->bindParam(':staff_email', $staff_email);
                 }
-            } else {
-                throw new Exception("Staff name cannot be empty.");
+                if ($stmt->execute()) {
+                    $staff_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Staff creation failed.");
+                }
             }
 
             // Retrieve or insert customer_id
-            if (!empty($customer_name)) {
-                $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
-                $stmt = $connection->prepare($check_customer_query);
-                $stmt->bindParam(':customer_name', $customer_name);
-                $stmt->execute();
-                $customer_id = $stmt->fetchColumn();
+            $customer_id = null;
+            $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
+            $stmt = $connection->prepare($check_customer_query);
+            $stmt->bindParam(':customer_name', $customer_name);
+            $stmt->execute();
+            $customer_id = $stmt->fetchColumn();
 
-                if (!$customer_id) {
-                    $insert_customer_query = "INSERT INTO customers (customer_name" . (!empty($customer_email) ? ", customer_email" : "") . ") VALUES (:customer_name" . (!empty($customer_email) ? ", :customer_email" : "") . ")";
-                    $stmt = $connection->prepare($insert_customer_query);
-                    $stmt->bindParam(':customer_name', $customer_name);
-                    if (!empty($customer_email)) {
-                        $stmt->bindParam(':customer_email', $customer_email);
-                    }
-                    if ($stmt->execute()) {
-                        $customer_id = $connection->lastInsertId();
-                    } else {
-                        throw new Exception("Customer creation failed.");
-                    }
+            if (!$customer_id) {
+                $insert_customer_query = "INSERT INTO customers (customer_name" . (!empty($customer_email) ? ", customer_email" : "") . ") VALUES (:customer_name" . (!empty($customer_email) ? ", :customer_email" : "") . ")";
+                $stmt = $connection->prepare($insert_customer_query);
+                $stmt->bindParam(':customer_name', $customer_name);
+                if (!empty($customer_email)) {
+                    $stmt->bindParam(':customer_email', $customer_email);
                 }
-            } else {
-                throw new Exception("Customer name cannot be empty.");
+                if ($stmt->execute()) {
+                    $customer_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Customer creation failed.");
+                }
             }
 
             // Debugging statements to log values before insertion
@@ -172,7 +158,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             // Execute the statement and check for success
             if ($stmt->execute()) {
                 $connection->commit();
-                // Display email and date from the Staffs table
+                // Display email and date from the users table
                 echo "Sale recorded successfully.<br>";
                 echo "User Email: " . $email . "<br>";
                 echo "Registration Date: " . $date . "<br>";
@@ -215,21 +201,24 @@ try {
                JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
                p.image_path
         FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) = p.name
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue OR 
+              JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue
         ORDER BY r.report_date DESC
     ");
     $reportsQuery->execute([
-        ':high_revenue' => 10000,
         ':low_revenue' => 1000,
+        ':high_revenue' => 5000,
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
+
+    
+} catch (Exception $e) {
     echo "Error: " . $e->getMessage();
+    exit();
 }
 ?>
+
 
 
 
@@ -674,12 +663,13 @@ try {
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Price *</label>
-                                    <input type="text" name="total_price" class="form-control" placeholder="Enter Price" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
+    <div class="form-group">
+        <label>Price *</label>
+        <input type="text" name="total_price" class="form-control" placeholder="Enter Price" required pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
+        <div class="help-block with-errors"></div>
+    </div>
+</div>
+
                             
         
                         <div class="col-md-6">
@@ -706,11 +696,12 @@ try {
             </div>
         </div>
         <div class="col-md-6">
-            <div class="form-group">
-                <label>Sales Qty</label>
-                <input type="text" class="form-control" name="sales_qty" placeholder="Sales Qty">
-            </div>
-        </div>
+    <div class="form-group">
+        <label>Sales Qty</label>
+        <input type="text" class="form-control" name="sales_qty" placeholder="Sales Qty" pattern="\d+" title="Please enter a valid quantity">
+        <div class="help-block with-errors"></div>
+    </div>
+</div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Image *</label>
