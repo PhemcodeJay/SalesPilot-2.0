@@ -114,6 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Execute the statement and check for success
         if ($stmt->execute()) {
             // Redirect back to listing page after insertion
+            header('Location: page-list-product.php');
             exit();
         } else {
             // Log the error if insertion failed

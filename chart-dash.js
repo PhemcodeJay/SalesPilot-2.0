@@ -1,7 +1,7 @@
 if (jQuery('#am-layeredcolumn-chart').length) {
     // Fetch data from the PHP script
     jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
+        url: 'chart-dash.php', // Replace with the correct path to your PHP script
         type: 'GET',
         dataType: 'json',
         data: {
@@ -75,7 +75,7 @@ if (jQuery('#am-layeredcolumn-chart').length) {
 if (jQuery('#am-columnlinr-chart').length) {
     // Fetch data from the PHP script
     jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
+        url: 'chart-dash.php', // Replace with the correct path to your PHP script
         type: 'GET',
         dataType: 'json',
         data: {
@@ -157,99 +157,11 @@ if (jQuery('#am-columnlinr-chart').length) {
     });
 }
 
-if (jQuery("#layout1-chart-3").length) {
-    // Fetch data from the PHP script
-    jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
-        },
-        success: function(response) {
-            // Transform the response data to the format required by the chart
-            const data = response.apexLineChart.map(function(item) {
-                return {
-                    x: item.date,     // Assuming `date` is in your response and you want to use it as x-axis categories
-                    y: item.profit    // Assuming `profit` is in your response
-                };
-            });
-
-            // Chart options
-            const options = {
-                series: [{
-                    name: "Profit",
-                    data: data
-                }],
-                colors: ['#FF7E41'],
-                chart: {
-                    height: 150,
-                    type: 'line',
-                    zoom: {
-                        enabled: false
-                    },
-                    dropShadow: {
-                        enabled: true,
-                        color: '#000',
-                        top: 12,
-                        left: 1,
-                        blur: 2,
-                        opacity: 0.2
-                    },
-                    toolbar: {
-                        show: false
-                    },
-                    sparkline: {
-                        enabled: true,
-                    }
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 3
-                },
-                title: {
-                    text: '',
-                    align: 'left'
-                },
-                grid: {
-                    row: {
-                        colors: ['#f3f3f3', 'transparent'], // Takes an array which will be repeated on columns
-                        opacity: 0.5
-                    },
-                },
-                xaxis: {
-                    categories: response.apexLineChart.map(item => item.date) // Use dates from the response as x-axis categories
-                }
-            };
-
-            // Create and render the chart
-            const chart = new ApexCharts(document.querySelector("#layout1-chart-3"), options);
-            chart.render();
-
-            // Check for dark mode and update chart
-            const body = document.querySelector('body');
-            if (body.classList.contains('dark')) {
-                apexChartUpdate(chart, { dark: true });
-            }
-
-            document.addEventListener('ChangeColorMode', function(e) {
-                apexChartUpdate(chart, e.detail);
-            });
-        },
-        error: function(xhr, status, error) {
-            console.error("Error fetching chart data: " + error);
-        }
-    });
-}
-
 
 if (jQuery("#layout1-chart-3").length) {
     // Fetch data from the PHP script
     jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
+        url: 'chart-dash.php', // Replace with the correct path to your PHP script
         type: 'GET',
         dataType: 'json',
         data: {
@@ -339,7 +251,7 @@ if (jQuery("#layout1-chart-3").length) {
 if (jQuery("#layout1-chart-4").length) {
     // Fetch data from the PHP script
     jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
+        url: 'chart-dash.php', // Replace with the correct path to your PHP script
         type: 'GET',
         dataType: 'json',
         data: {
@@ -428,7 +340,7 @@ if (jQuery("#layout1-chart-4").length) {
 if (jQuery("#layout1-chart-5").length) {
     // Fetch data from the PHP script
     jQuery.ajax({
-        url: 'chart-data.php', // Replace with the correct path to your PHP script
+        url: 'chart-dash.php', // Replace with the correct path to your PHP script
         type: 'GET',
         dataType: 'json',
         data: {

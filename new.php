@@ -16,7 +16,7 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
-// Retrieve user information from the Staffs table
+// Retrieve user information from the Users table
 $user_query = "SELECT username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
@@ -75,6 +75,17 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         try {
             $connection->beginTransaction();
 
+            // Retrieve user_id from the users table using the username
+            $check_user_query = "SELECT id FROM users WHERE username = :username";
+            $stmt = $connection->prepare($check_user_query);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+            $user_id = $stmt->fetchColumn();
+            
+            if (!$user_id) {
+                throw new Exception("User not found in the users table.");
+            }
+
             // Retrieve product_id from the products table using the product name
             $check_product_query = "SELECT id FROM products WHERE name = :name";
             $stmt = $connection->prepare($check_product_query);
@@ -86,15 +97,15 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 throw new Exception("Product not found in the products table.");
             }
 
-            // Retrieve user_id from the users table using the username
-            $check_user_query = "SELECT id FROM users WHERE username = :username";
-            $stmt = $connection->prepare($check_user_query);
-            $stmt->bindParam(':username', $username);
+            // Retrieve staff_id from the Staffs table using the username
+            $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
+            $stmt = $connection->prepare($check_staff_query);
+            $stmt->bindParam(':staff_name', $staff_name);
             $stmt->execute();
-            $user_id = $stmt->fetchColumn();
+            $staff_id = $stmt->fetchColumn();
             
-            if (!$user_id) {
-                throw new Exception("Username not found in the users table.");
+            if (!$staff_id) {
+                throw new Exception("Staff name not found in the Staffs table.");
             }
 
             // Retrieve or insert staff_id
