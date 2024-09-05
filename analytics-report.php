@@ -9,6 +9,29 @@ session_start([
 
 include('config.php'); // Includes the updated config.php with the $connection variable
 
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    throw new Exception("No username found in session.");
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$stmt = $connection->prepare($user_query);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user_info) {
+    throw new Exception("User not found.");
+}
+
+// Retrieve user email and registration date
+$email = htmlspecialchars($user_info['email']);
+$date = htmlspecialchars($user_info['date']);
+
+
 try {
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("

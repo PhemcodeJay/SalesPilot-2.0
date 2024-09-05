@@ -9,6 +9,29 @@ session_start([
 
 include('config.php'); // Includes the updated config.php with the $connection variable
 
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    throw new Exception("No username found in session.");
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
+$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$stmt = $connection->prepare($user_query);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user_info) {
+    throw new Exception("User not found.");
+}
+
+// Retrieve user email and registration date
+$email = htmlspecialchars($user_info['email']);
+$date = htmlspecialchars($user_info['date']);
+
+
 try {
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
@@ -619,142 +642,17 @@ try {
 <!-- Table Treeview JavaScript -->
 <script src="http://localhost/project/assets/js/table-treeview.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.0"></script>
 
 <!-- Chart Custom JavaScript -->
 <script src="http://localhost/project/assets/js/customizer.js"></script>
     
     <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
+    <script async src="http://localhost/project/assets/js/chart-custom1.js"></script>
     
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
-<script>
-    // Initialize all charts
-    const barChart = new Chart(document.getElementById('barChart').getContext('2d'), { type: 'bar', data: {}, options: {} });
-    const histogramChart = new Chart(document.getElementById('histogramChart').getContext('2d'), { type: 'bar', data: {}, options: {} });
-    const candleChart = new Chart(document.getElementById('candleChart').getContext('2d'), { type: 'candlestick', data: {}, options: {} });
-    const areaChart = new Chart(document.getElementById('areaChart').getContext('2d'), { type: 'line', data: {}, options: {} });
 
-    // Function to update Bar Chart data
-    function updateBarChart(range) {
-        fetchData(range, 'barData', function (data) {
-            barChart.data = formatBarData(data);
-            barChart.update();
-        });
-    }
-
-    // Function to update Histogram Chart data
-    function updateHistogramChart(range) {
-        fetchData(range, 'histogramData', function (data) {
-            histogramChart.data = formatHistogramData(data);
-            histogramChart.update();
-        });
-    }
-
-    // Function to update Candlestick Chart data
-    function updateCandleChart(range) {
-        fetchData(range, 'candlestickData', function (data) {
-            candleChart.data = formatCandleData(data);
-            candleChart.update();
-        });
-    }
-
-    // Function to update Area Chart data
-    function updateAreaChart(range) {
-        fetchData(range, 'areaData', function (data) {
-            areaChart.data = formatAreaData(data);
-            areaChart.update();
-        });
-    }
-
-    // Fetch data based on selected range and chart type
-    function fetchData(range, chartType, callback) {
-        fetch(`chart-data.php?range=${range}`)
-            .then(response => response.json())
-            .then(data => callback(data[chartType]))
-            .catch(error => console.error('Error fetching data:', error));
-    }
-
-    // Functions to format data for each chart type
-    function formatBarData(data) {
-        return {
-            labels: data.map(item => item.date),
-            datasets: [{
-                label: 'Total Sales',
-                data: data.map(item => item.total_sales),
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        };
-    }
-
-    function formatHistogramData(data) {
-        return {
-            labels: data.map(item => item.date),
-            datasets: [{
-                label: 'Sell-Through Rate',
-                data: data.map(item => item.avg_sell_through_rate),
-                backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                borderColor: 'rgba(255, 206, 86, 1)',
-                borderWidth: 1
-            }, {
-                label: 'Inventory Turnover Rate',
-                data: data.map(item => item.avg_inventory_turnover_rate),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        };
-    }
-
-    function formatCandleData(data) {
-        return {
-            labels: data.map(item => item.date),
-            datasets: [{
-                label: 'Revenue vs Profit',
-                data: data.map(item => ({
-                    o: item.revenue, // open
-                    h: item.profit, // high
-                    l: item.revenue * 0.9, // low (example logic)
-                    c: item.profit * 1.1 // close (example logic)
-                })),
-                borderColor: 'rgba(153, 102, 255, 1)',
-                backgroundColor: 'rgba(153, 102, 255, 0.2)'
-            }]
-        };
-    }
-
-    function formatAreaData(data) {
-        return {
-            labels: data.map(item => item.date),
-            datasets: [{
-                label: 'Revenue',
-                data: data.map(item => item.total_revenue),
-                fill: true,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }, {
-                label: 'Expenses',
-                data: data.map(item => item.total_expenses),
-                fill: true,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-        };
-    }
-
-    // Initialize charts with default 'monthly' range
-    updateBarChart('monthly');
-    updateHistogramChart('monthly');
-    updateCandleChart('monthly');
-    updateAreaChart('monthly');
-</script>
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

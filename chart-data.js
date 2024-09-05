@@ -1,6 +1,6 @@
 if (jQuery("#apex-basic").length) {
     $.ajax({
-      url: 'path/to/your/php/script.php', // Replace with the actual path to your PHP script
+      url: 'chart-data.php', // Replace with the actual path to your PHP script
       method: 'GET',
       dataType: 'json',
       success: function(response) {
@@ -70,7 +70,7 @@ if (jQuery("#apex-basic").length) {
 
 if (jQuery("#apex-line-area").length) {
     $.ajax({
-      url: 'path/to/your/php/script.php', // Replace with the actual path to your PHP script
+      url: 'chart-data.php', // Replace with the actual path to your PHP script
       method: 'GET',
       dataType: 'json',
       success: function(response) {
@@ -134,7 +134,7 @@ if (jQuery("#apex-line-area").length) {
 
 if (jQuery("#apex-column").length) {
     $.ajax({
-      url: 'path/to/your/php/script.php', // Replace with the actual path to your PHP script
+      url: 'chart-data.php', // Replace with the actual path to your PHP script
       method: 'GET',
       dataType: 'json',
       success: function(response) {
@@ -225,7 +225,7 @@ if (jQuery("#apex-column").length) {
         // Themes end
 
         $.ajax({
-            url: 'path/to/your/php/script.php', // Replace with the actual path to your PHP script
+            url: 'chart-data.php', // Replace with the actual path to your PHP script
             method: 'GET',
             dataType: 'json',
             success: function(response) {

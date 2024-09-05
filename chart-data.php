@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 require 'config.php'; // Include your database connection script
 
 // Retrieve the time range from the request
-$range = $_GET['range'] ?? 'monthly';
+$range = $_GET['range'] ?? 'yearly';
 $startDate = '';
 $endDate = '';
 

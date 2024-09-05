@@ -799,7 +799,7 @@ $connection = null;
                         <div class="d-flex align-items-top justify-content-between">
                             <div class="">
                                 <p class="mb-0">Net Profit</p>
-                                <h5>$ 98,7800 K</h5>
+                                <h5>$<?php echo $total_profit; ?></h5>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
                                 <div class="dropdown">
@@ -824,7 +824,7 @@ $connection = null;
                         <div class="d-flex align-items-top justify-content-between">
                             <div class="">
                                 <p class="mb-0">Expenses</p>
-                                <h5>$ 45,8956 K</h5>
+                                <h5>$<?php echo $total_expenses_combined; ?></h5>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
                                 <div class="dropdown">
@@ -879,7 +879,7 @@ $connection = null;
                                     <div class="progress-value text-secondary">46%</div>
                                 </div>
                                 <div class="progress-value ml-3 pr-5 border-right">
-                                    <h5>$12,6598</h5>
+                                    <h5>$<?php echo $total_expenses_combined; ?></h5>
                                     <p class="mb-0">Expenses</p>
                                 </div>
                             </div>
@@ -894,7 +894,7 @@ $connection = null;
                                     <div class="progress-value text-primary">46%</div>
                                 </div>
                                 <div class="progress-value ml-3">
-                                    <h5>$59,8478</h5>
+                                    <h5>$<?php echo $total_profit; ?></h5>
                                     <p class="mb-0">Profit</p>
                                 </div>
                             </div>
@@ -940,7 +940,7 @@ $connection = null;
     <script src="http://localhost/project/assets/js/customizer.js"></script>
     
     <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom.js"></script>
+    <script async src="http://localhost/project/assets/js/chart-custom1.js"></script>
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
