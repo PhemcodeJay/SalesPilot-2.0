@@ -8,6 +8,9 @@ session_start([
 ]);
 
 include('config.php'); // Database connection
+require 'vendor/autoload.php';
+require('fpdf/fpdf.php');
+
 
 try {
     if (!isset($_SESSION["username"])) {
