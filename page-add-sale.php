@@ -27,47 +27,47 @@ if (!$user_info) {
     throw new Exception("User not found.");
 }
 
-// Retrieve user email and registration date
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
+$user_id = $user_info['id'];
 
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['login'])) {
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
 
         // Sanitize and validate form inputs
-        $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
-        $sale_status = isset($_POST['sale_status']) ? htmlspecialchars(trim($_POST['sale_status'])) : '';
-        $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
-        $sales_qty = isset($_POST['sales_qty']) ? intval($_POST['sales_qty']) : 0;
-        $payment_status = isset($_POST['payment_status']) ? htmlspecialchars(trim($_POST['payment_status'])) : '';
-        $sale_note = isset($_POST['sale_note']) ? htmlspecialchars(trim($_POST['sale_note'])) : '';
-        $staff_name = isset($_POST['staff_name']) ? htmlspecialchars(trim($_POST['staff_name'])) : '';
-        $staff_email = isset($_POST['staff_email']) ? htmlspecialchars(trim($_POST['staff_email'])) : '';
-        $customer_name = isset($_POST['customer_name']) ? htmlspecialchars(trim($_POST['customer_name'])) : '';
-        $customer_email = isset($_POST['customer_email']) ? htmlspecialchars(trim($_POST['customer_email'])) : '';
+        $name = htmlspecialchars(trim($_POST['name'] ?? ''));
+        $sale_status = htmlspecialchars(trim($_POST['sale_status'] ?? ''));
+        $total_price = floatval($_POST['total_price'] ?? 0);
+        $sales_qty = intval($_POST['sales_qty'] ?? 0);
+        $payment_status = htmlspecialchars(trim($_POST['payment_status'] ?? ''));
+        $sale_note = htmlspecialchars(trim($_POST['sale_note'] ?? ''));
+        $staff_name = htmlspecialchars(trim($_POST['staff_name'] ?? ''));
+        $customer_name = htmlspecialchars(trim($_POST['customer_name'] ?? ''));
 
-        // Ensure required fields are not empty
         if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
             throw new Exception("Required fields are missing.");
         }
 
-        // File upload handling
-        $upload_dir = 'uploads/';
-        $image_name = basename($_FILES['document']['name']);
-        $image_tmp = $_FILES['document']['tmp_name'];
-        $image_path = $upload_dir . $image_name;
+        if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/';
+            $image_name = basename($_FILES['document']['name']);
+            $image_tmp = $_FILES['document']['tmp_name'];
+            $image_path = $upload_dir . $image_name;
 
-        if (!move_uploaded_file($image_tmp, $image_path)) {
-            throw new Exception("File upload failed.");
+            if (!move_uploaded_file($image_tmp, $image_path)) {
+                throw new Exception("File upload failed.");
+            }
+        } else {
+            throw new Exception("No file uploaded or file upload error.");
         }
 
         try {
             $connection->beginTransaction();
 
-            // Retrieve product_id from the products table using the product name
+            // Retrieve product_id from the products table
             $check_product_query = "SELECT id FROM products WHERE name = :name";
             $stmt = $connection->prepare($check_product_query);
             $stmt->bindParam(':name', $name);
@@ -75,21 +75,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $product_id = $stmt->fetchColumn();
 
             if (!$product_id) {
-                throw new Exception("Product not found in the products table.");
+                throw new Exception("Product not found.");
             }
 
-            // Retrieve user_id from the users table using the username
-            $check_user_query = "SELECT id FROM users WHERE username = :username";
-            $stmt = $connection->prepare($check_user_query);
-            $stmt->bindParam(':username', $username);
-            $stmt->execute();
-            $user_id = $stmt->fetchColumn();
-
-            if (!$user_id) {
-                throw new Exception("Username not found in the users table.");
-            }
-
-            // Retrieve staff_id from the staffs table using the staffname
+            // Retrieve staff_id from the staffs table
             $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
             $stmt = $connection->prepare($check_staff_query);
             $stmt->bindParam(':staff_name', $staff_name);
@@ -97,10 +86,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $staff_id = $stmt->fetchColumn();
 
             if (!$staff_id) {
-                throw new Exception("staffname not found in the staffs table.");
+                throw new Exception("Staff not found.");
             }
-             
-            // Retrieve customer_id from the customers table using the customer name
+
+            // Retrieve customer_id from the customers table
             $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
             $stmt = $connection->prepare($check_customer_query);
             $stmt->bindParam(':customer_name', $customer_name);
@@ -108,14 +97,12 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $customer_id = $stmt->fetchColumn();
 
             if (!$customer_id) {
-                throw new Exception("customer name not found in the customers table.");
+                throw new Exception("Customer not found.");
             }
-            
-            
 
             // SQL query for inserting into sales table
             $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-            VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+                                  VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':name', $name);
@@ -129,13 +116,9 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':payment_status', $payment_status);
             $stmt->bindParam(':user_id', $user_id);
 
-            // Execute the statement and check for success
             if ($stmt->execute()) {
                 $connection->commit();
-                // Display email and date from the users table
-                echo "Sale recorded successfully.<br>";
-                echo "User Email: " . $email . "<br>";
-                echo "Registration Date: " . $date . "<br>";
+                // Redirect after successful insert
                 header('Location: page-list-sale.php');
                 exit();
             } else {
@@ -167,7 +150,7 @@ try {
         ':low_stock' => 10,
         ':high_stock' => 1000,
     ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch reports notifications with product images
     $reportsQuery = $connection->prepare("
@@ -184,15 +167,13 @@ try {
         ':low_revenue' => 1000,
         ':high_revenue' => 5000,
     ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-    
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
     exit();
 }
 ?>
-
 
 
 
@@ -628,94 +609,91 @@ try {
                     </div>
                     <div class="card-body">
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
-                    <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Product Name *</label>
-                                    <input type="text" name="name" class="form-control" placeholder="Enter Product Name" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-    <div class="form-group">
-        <label>Price *</label>
-        <input type="text" name="total_price" class="form-control" placeholder="Enter Price" required pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
-        <div class="help-block with-errors"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="product_name">Product Name *</label>
+                <input type="text" id="product_name" name="name" class="form-control" placeholder="Enter Product Name" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="price">Price *</label>
+                <input type="text" id="price" name="total_price" class="form-control" placeholder="Enter Price" required pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="product_type">Product Type *</label>
+                <select id="product_type" name="product_type" class="selectpicker form-control" data-style="py-0" required>
+                    <option value="Goods">Goods</option>
+                    <option value="Services">Services</option>
+                    <option value="Digital">Digital Product/Services</option>
+                </select>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="customer_name">Customer *</label>
+                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="staff_name">Staff *</label>
+                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="sales_qty">Sales Qty</label>
+                <input type="text" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" pattern="\d+" title="Please enter a valid quantity">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="document">Image *</label>
+                <input type="file" id="document" name="document" class="form-control image-file" accept="image/*" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="sale_status">Sale Status *</label>
+                <select id="sale_status" name="sale_status" class="selectpicker form-control" data-style="py-0" required>
+                    <option value="Completed">Completed</option>
+                    <option value="Pending">Pending</option>
+                </select>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="payment_status">Payment Status *</label>
+                <select id="payment_status" name="payment_status" class="selectpicker form-control" data-style="py-0" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Due">Due</option>
+                    <option value="Paid">Paid</option>
+                </select>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="sale_note">Sale Note *</label>
+                <textarea id="sale_note" name="sale_note" class="form-control" rows="2" required></textarea>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
     </div>
-</div>
+    <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
+    <button type="reset" class="btn btn-danger">Reset</button>
+</form>
 
-                            
-        
-                        <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Product Type *</label>
-                                    <select name="product_type" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="Goods">Goods</option>
-                                        <option value="Services">Services</option>
-                                        <option value="Digital">Digital Product/Services</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Customer *</label>
-                <input type="text" class="form-control" name="customer_name" placeholder="Enter Customer Name" required>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Staff *</label>
-                <input type="text" class="form-control" name="staff_name" placeholder="Enter Staff Name" required>
-            </div>
-        </div>
-        <div class="col-md-6">
-    <div class="form-group">
-        <label>Sales Qty</label>
-        <input type="text" class="form-control" name="sales_qty" placeholder="Sales Qty" pattern="\d+" title="Please enter a valid quantity">
-        <div class="help-block with-errors"></div>
-    </div>
-</div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Image *</label>
-                                    <input type="file" class="form-control image-file" name="document" accept="image/*" required>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Sale Status *</label>
-                                    <select name="sale_status" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="Completed">Completed</option>
-                                        <option value="Pending">Pending</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Payment Status *</label>
-                                    <select name="payment_status" class="selectpicker form-control" data-style="py-0" required>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Due">Due</option>
-                                        <option value="Paid">Paid</option>
-                                    </select>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-        
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Sale Note *</label>
-                                    <textarea name="sale_note" class="form-control" rows="2" required></textarea>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
-                        <button type="reset" class="btn btn-danger">Reset</button>
-                    </form>
 
                     </div>
                 </div>
