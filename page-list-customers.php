@@ -7,17 +7,16 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // Includes database connection
+include('config.php'); // Database connection
 
 try {
-    // Check if username is set in session
     if (!isset($_SESSION["username"])) {
         throw new Exception("No username found in session.");
     }
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the users table
+    // Fetch user information
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -28,22 +27,39 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve customer from the customer table
-    $customer_query = "SELECT customer_name, customer_email, customer_phone, customer_location FROM customers";
+    // Fetch customers
+    $customer_query = "SELECT customer_id, customer_name, customer_email, customer_phone, customer_location FROM customers";
     $stmt = $connection->prepare($customer_query);
     $stmt->execute();
-    $customer = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Handle form actions
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['edit'])) {
+            // Handle edit action
+            $customer_id = $_POST['customer_id'];
+            // Process edit (e.g., redirect to edit form or update customer details)
+        } elseif (isset($_POST['delete'])) {
+            // Handle delete action
+            $customer_id = $_POST['customer_id'];
+            $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
+            $stmt = $connection->prepare($delete_query);
+            $stmt->bindParam(':customer_id', $customer_id);
+            $stmt->execute();
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+        } elseif (isset($_POST['save_pdf'])) {
+            // Handle save as PDF action
+            $customer_id = $_POST['customer_id'];
+            // Generate and save the PDF (code for PDF generation needed)
+        }
+    }
 } catch (PDOException $e) {
-    // Handle database errors
     error_log("PDO Error: " . $e->getMessage());
     exit("Database Error: " . $e->getMessage());
 } catch (Exception $e) {
-    // Handle other errors
     error_log("Error: " . $e->getMessage());
     exit("Error: " . $e->getMessage());
 }
@@ -526,42 +542,51 @@ try {
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-                    <thead class="bg-white text-uppercase">
-                        <tr class="light light-data">
+    <thead class="bg-white text-uppercase">
+        <tr class="light light-data">
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Location</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody class="light-body">
+        <?php if (!empty($customers)): ?>
+            <?php foreach ($customers as $customer): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($customer['customer_name']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['customer_email']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['customer_location']); ?></td>
+                    <td>
+                        <form method="post" class="d-flex align-items-center list-action">
+                            <input type="hidden" name="customer_id" value="<?php echo $customer['customer_id']; ?>">
                             
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Location</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="light-body">
-                        <?php if (!empty($customer)): ?>
-                            <?php foreach ($customer as $customer): ?>
-                                <tr>
-                                    
-                                    <td><?php echo htmlspecialchars($customer['customer_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($customer['customer_email']); ?></td>
-                                    <td><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($customer['customer_location']); ?></td>
-                                    <td>
-                                        <div class="d-flex align-items-center list-action">
-                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6">No customers found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-                </div>
+                            <button type="submit" name="edit" class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit">
+                                <i class="ri-pencil-line mr-0"></i>
+                            </button>
+                            
+                            <button type="submit" name="delete" class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this customer?');">
+                                <i class="ri-delete-bin-line mr-0"></i>
+                            </button>
+                            
+                            <button type="submit" name="save_pdf" class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF">
+                                <i class="ri-eye-line mr-0"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5">No customers found.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+    
+            </div>
             </div>
         </div>
         <!-- Page end  -->

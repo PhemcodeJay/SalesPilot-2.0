@@ -17,7 +17,7 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 // Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$user_query = "SELECT id, username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
 $stmt->execute();
@@ -89,8 +89,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 throw new Exception("Username not found in the users table.");
             }
 
-            // Retrieve or insert staff_id
-            $staff_id = null;
+            // Retrieve staff_id from the staffs table using the staffname
             $check_staff_query = "SELECT staff_id FROM staffs WHERE staff_name = :staff_name";
             $stmt = $connection->prepare($check_staff_query);
             $stmt->bindParam(':staff_name', $staff_name);
@@ -98,21 +97,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $staff_id = $stmt->fetchColumn();
 
             if (!$staff_id) {
-                $insert_staff_query = "INSERT INTO staffs (staff_name" . (!empty($staff_email) ? ", staff_email" : "") . ") VALUES (:staff_name" . (!empty($staff_email) ? ", :staff_email" : "") . ")";
-                $stmt = $connection->prepare($insert_staff_query);
-                $stmt->bindParam(':staff_name', $staff_name);
-                if (!empty($staff_email)) {
-                    $stmt->bindParam(':staff_email', $staff_email);
-                }
-                if ($stmt->execute()) {
-                    $staff_id = $connection->lastInsertId();
-                } else {
-                    throw new Exception("Staff creation failed.");
-                }
+                throw new Exception("staffname not found in the staffs table.");
             }
-
-            // Retrieve or insert customer_id
-            $customer_id = null;
+             
+            // Retrieve customer_id from the customers table using the customer name
             $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
             $stmt = $connection->prepare($check_customer_query);
             $stmt->bindParam(':customer_name', $customer_name);
@@ -120,24 +108,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $customer_id = $stmt->fetchColumn();
 
             if (!$customer_id) {
-                $insert_customer_query = "INSERT INTO customers (customer_name" . (!empty($customer_email) ? ", customer_email" : "") . ") VALUES (:customer_name" . (!empty($customer_email) ? ", :customer_email" : "") . ")";
-                $stmt = $connection->prepare($insert_customer_query);
-                $stmt->bindParam(':customer_name', $customer_name);
-                if (!empty($customer_email)) {
-                    $stmt->bindParam(':customer_email', $customer_email);
-                }
-                if ($stmt->execute()) {
-                    $customer_id = $connection->lastInsertId();
-                } else {
-                    throw new Exception("Customer creation failed.");
-                }
+                throw new Exception("customer name not found in the customers table.");
             }
-
-            // Debugging statements to log values before insertion
-            error_log("Product ID: " . $product_id);
-            error_log("User ID: " . $user_id);
-            error_log("Staff ID: " . $staff_id);
-            error_log("Customer ID: " . $customer_id);
+            
+            
 
             // SQL query for inserting into sales table
             $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
