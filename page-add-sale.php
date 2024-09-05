@@ -11,7 +11,7 @@ include('config.php'); // Includes database connection
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
-    throw new Exception("No username found in session.");
+    die("No username found in session.");
 }
 
 $username = htmlspecialchars($_SESSION["username"]);
@@ -24,7 +24,7 @@ $stmt->execute();
 $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user_info) {
-    throw new Exception("User not found.");
+    die("User not found.");
 }
 
 $email = htmlspecialchars($user_info['email']);
@@ -48,7 +48,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         $customer_name = htmlspecialchars(trim($_POST['customer_name'] ?? ''));
 
         if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
-            throw new Exception("Required fields are missing.");
+            die("Required fields are missing.");
         }
 
         if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
@@ -58,10 +58,10 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $image_path = $upload_dir . $image_name;
 
             if (!move_uploaded_file($image_tmp, $image_path)) {
-                throw new Exception("File upload failed.");
+                die("File upload failed.");
             }
         } else {
-            throw new Exception("No file uploaded or file upload error.");
+            die("No file uploaded or file upload error.");
         }
 
         try {
@@ -123,12 +123,12 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 exit();
             } else {
                 $connection->rollBack();
-                throw new Exception("Sale insertion failed.");
+                die("Sale insertion failed.");
             }
         } catch (Exception $e) {
             $connection->rollBack();
             error_log("Error: " . $e->getMessage());
-            exit("Error: " . $e->getMessage());
+            die("Error: " . $e->getMessage());
         }
     } else {
         echo "Invalid request";
@@ -608,7 +608,7 @@ try {
                         </div>
                     </div>
                     <div class="card-body">
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
@@ -639,12 +639,14 @@ try {
             <div class="form-group">
                 <label for="customer_name">Customer *</label>
                 <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
+                <div class="help-block with-errors"></div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label for="staff_name">Staff *</label>
                 <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
+                <div class="help-block with-errors"></div>
             </div>
         </div>
         <div class="col-md-6">
@@ -693,6 +695,7 @@ try {
     <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
     <button type="reset" class="btn btn-danger">Reset</button>
 </form>
+
 
 
                     </div>
