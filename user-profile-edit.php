@@ -44,7 +44,8 @@ try {
 
         // Handle file upload
         if (isset($_FILES['user_image']) && $_FILES['user_image']['error'] == UPLOAD_ERR_OK) {
-            $user_image = basename($_FILES['user_image']['name']);
+            // Generate unique file name to avoid collisions (using time() and basename)
+            $user_image = time() . '_' . basename($_FILES['user_image']['name']);
             $target_dir = "uploads/user/";
             $target_file = $target_dir . $user_image;
 
@@ -60,7 +61,8 @@ try {
 
             // Only allow JPEG and PNG files
             $allowed_types = ['image/jpeg', 'image/png'];
-            if (!in_array($_FILES['user_image']['type'], $allowed_types)) {
+            $file_type = mime_content_type($_FILES['user_image']['tmp_name']);
+            if (!in_array($file_type, $allowed_types)) {
                 exit("Error: Invalid file type. Only JPEG and PNG are allowed.");
             }
 
@@ -68,6 +70,8 @@ try {
             if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
                 $image_to_save = $target_file;
             } else {
+                // Log file upload failure for debugging
+                error_log("File upload failed for user ID: $user_id");
                 $image_to_save = $existing_image ?: 'uploads/user/default.png'; // Use existing or default image if upload fails
             }
         } else {
@@ -126,6 +130,7 @@ try {
     echo "Error: " . $e->getMessage();
 }
 ?>
+
 
 
 
@@ -593,35 +598,54 @@ try {
                            </div>
                            <div class="card-body">
                            <form action="user-profile-edit.php" method="post" enctype="multipart/form-data">
+    <!-- Hidden fields for user ID and existing image -->
     <input type="hidden" name="id" value="<?php echo $user_id; ?>">
     <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
+
+    <!-- Profile Image Section -->
     <div class="form-group row align-items-center">
         <div class="col-md-12">
             <div class="profile-img-edit">
                 <div class="crm-profile-img-edit">
-                    <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $existing_image ?: 'uploads/user/default.png'; ?>" alt="profile-pic">
+                    <!-- Display current or default profile image -->
+                    <img class="crm-profile-pic rounded-circle avatar-100" 
+                         src="<?php echo $existing_image ?: 'uploads/user/default.png'; ?>" 
+                         alt="profile-pic">
+
+                    <!-- Upload icon to trigger file input -->
                     <div class="crm-p-image bg-primary">
-                        <i class="las la-pen upload-button"></i>
-                        <input class="file-upload" type="file" name="user_image" accept="image/*">
+                        <i class="las la-pen upload-button" style="cursor: pointer;"></i>
+                        <input class="file-upload" type="file" name="user_image" accept="image/*" style="display:none;">
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- User Information Fields -->
     <div class="row align-items-center">
+        <!-- Username -->
         <div class="form-group col-sm-6">
             <label for="username">Username:</label>
-            <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user_info['username']); ?>" required>
+            <input type="text" class="form-control" id="username" name="username" 
+                   value="<?php echo htmlspecialchars($user_info['username']); ?>" required>
         </div>
+
+        <!-- Email -->
         <div class="form-group col-sm-6">
             <label for="email">Email:</label>
-            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user_info['email']); ?>" required>
+            <input type="email" class="form-control" id="email" name="email" 
+                   value="<?php echo htmlspecialchars($user_info['email']); ?>" required>
         </div>
+
+        <!-- Location -->
         <div class="form-group col-sm-6">
             <label for="location">Location:</label>
-            <input type="text" class="form-control" id="location" name="location" value="<?php echo htmlspecialchars($user_info['location']); ?>" required>
+            <input type="text" class="form-control" id="location" name="location" 
+                   value="<?php echo htmlspecialchars($user_info['location']); ?>" required>
         </div>
+
+        <!-- Role -->
         <div class="form-group col-sm-6">
             <label for="role">Role:</label>
             <select class="form-control" id="role" name="role">
@@ -630,6 +654,8 @@ try {
                 <option value="inventory" <?php echo ($user_info['role'] === 'inventory') ? 'selected' : ''; ?>>Inventory</option>
             </select>
         </div>
+
+        <!-- Active Status -->
         <div class="form-group col-sm-6">
             <label for="is_active">Active:</label>
             <select class="form-control" id="is_active" name="is_active">
@@ -638,10 +664,14 @@ try {
             </select>
         </div>
     </div>
+
+    <!-- Submit and Reset Buttons -->
     <button type="submit" class="btn btn-primary mr-2">Submit</button>
     <button type="reset" class="btn iq-bg-danger">Cancel</button>
 </form>
-  
+
+
+
                         </div>
                         </div>
                      </div>
@@ -800,5 +830,11 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <!-- JavaScript to handle file upload trigger -->
+<script>
+    document.querySelector('.upload-button').addEventListener('click', function() {
+        document.querySelector('.file-upload').click(); // Trigger the hidden file input when the icon is clicked
+    });
+</script>
   </body>
 </html>

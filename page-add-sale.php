@@ -33,20 +33,21 @@ $user_id = $user_info['id'];
 
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Log session data for debugging
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
 
         // Sanitize and validate form inputs
-        $name = htmlspecialchars(trim($_POST['name'] ?? ''));
-        $sale_status = htmlspecialchars(trim($_POST['sale_status'] ?? ''));
-        $total_price = floatval($_POST['total_price'] ?? 0);
-        $sales_qty = intval($_POST['sales_qty'] ?? 0);
-        $payment_status = htmlspecialchars(trim($_POST['payment_status'] ?? ''));
-        $sale_note = htmlspecialchars(trim($_POST['sale_note'] ?? ''));
-        $staff_name = htmlspecialchars(trim($_POST['staff_name'] ?? ''));
-        $customer_name = htmlspecialchars(trim($_POST['customer_name'] ?? ''));
+        $name = htmlspecialchars(trim($_POST['name']));
+        $sale_status = htmlspecialchars(trim($_POST['sale_status']));
+        $total_price = floatval($_POST['total_price']);
+        $sales_qty = intval($_POST['sales_qty']);
+        $payment_status = htmlspecialchars(trim($_POST['payment_status']));
+        $sale_note = htmlspecialchars(trim($_POST['sale_note']));
+        $staff_name = htmlspecialchars(trim($_POST['staff_name']));
+        $customer_name = htmlspecialchars(trim($_POST['customer_name']));
+        $image_path = null; // Default for image path
 
         // Validate required fields
         if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
@@ -54,7 +55,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         }
 
         // Handle file upload
-        $image_path = null; // Set default to null in case no file is uploaded
         if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
             if ($_FILES['document']['size'] > 0) {
                 $upload_dir = 'uploads/';
@@ -145,12 +145,11 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             error_log("Error: " . $e->getMessage());
             die("Error: " . $e->getMessage());
         }
-    } else {
-        echo "Invalid request.";
     }
 } else {
     echo "Error: User not logged in.";
 }
+
 
 try {
     // Fetch inventory notifications with product images
@@ -630,7 +629,6 @@ try {
             <div class="form-group">
                 <label for="product_name">Product Name *</label>
                 <input type="text" id="product_name" name="name" class="form-control" placeholder="Enter Product Name" required>
-                <div class="help-block with-errors"></div>
             </div>
         </div>
 
@@ -638,21 +636,7 @@ try {
         <div class="col-md-6">
             <div class="form-group">
                 <label for="price">Price *</label>
-                <input type="number" id="price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0" pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
-                <div class="help-block with-errors"></div>
-            </div>
-        </div>
-
-        <!-- Product Type -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="product_type">Product Type *</label>
-                <select id="product_type" name="product_type" class="selectpicker form-control" data-style="py-0" required>
-                    <option value="Goods">Goods</option>
-                    <option value="Services">Services</option>
-                    <option value="Digital">Digital Product/Services</option>
-                </select>
-                <div class="help-block with-errors"></div>
+                <input type="number" id="price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0">
             </div>
         </div>
 
@@ -660,8 +644,7 @@ try {
         <div class="col-md-6">
             <div class="form-group">
                 <label for="customer_name">Customer *</label>
-                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required autocomplete="name">
-                <div class="help-block with-errors"></div>
+                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
             </div>
         </div>
 
@@ -669,8 +652,7 @@ try {
         <div class="col-md-6">
             <div class="form-group">
                 <label for="staff_name">Staff *</label>
-                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required autocomplete="off">
-                <div class="help-block with-errors"></div>
+                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
             </div>
         </div>
 
@@ -679,7 +661,6 @@ try {
             <div class="form-group">
                 <label for="sales_qty">Sales Qty</label>
                 <input type="number" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" min="0" required>
-                <div class="help-block with-errors"></div>
             </div>
         </div>
 
@@ -687,9 +668,7 @@ try {
         <div class="col-md-12">
             <div class="form-group">
                 <label for="document">Image *</label>
-                <input type="file" id="document" name="document" class="form-control image-file" accept="image/*" required aria-describedby="fileHelp">
-                <small id="fileHelp" class="form-text text-muted">Upload an image file (JPG, PNG, etc.).</small>
-                <div class="help-block with-errors"></div>
+                <input type="file" id="document" name="document" class="form-control" accept="image/*" required>
             </div>
         </div>
 
@@ -697,11 +676,10 @@ try {
         <div class="col-md-6">
             <div class="form-group">
                 <label for="sale_status">Sale Status *</label>
-                <select id="sale_status" name="sale_status" class="selectpicker form-control" data-style="py-0" required>
+                <select id="sale_status" name="sale_status" class="form-control" required>
                     <option value="Completed">Completed</option>
                     <option value="Pending">Pending</option>
                 </select>
-                <div class="help-block with-errors"></div>
             </div>
         </div>
 
@@ -709,32 +687,28 @@ try {
         <div class="col-md-6">
             <div class="form-group">
                 <label for="payment_status">Payment Status *</label>
-                <select id="payment_status" name="payment_status" class="selectpicker form-control" data-style="py-0" required>
+                <select id="payment_status" name="payment_status" class="form-control" required>
                     <option value="Pending">Pending</option>
                     <option value="Due">Due</option>
                     <option value="Paid">Paid</option>
                 </select>
-                <div class="help-block with-errors"></div>
             </div>
         </div>
 
         <!-- Sale Note -->
         <div class="col-md-12">
             <div class="form-group">
-                <label for="sale_note">Sale Note *</label>
-                <textarea id="sale_note" name="sale_note" class="form-control" rows="2" required></textarea>
-                <div class="help-block with-errors"></div>
+                <label for="sale_note">Sale Note</label>
+                <textarea id="sale_note" name="sale_note" class="form-control" placeholder="Additional sale notes (optional)" rows="3"></textarea>
             </div>
         </div>
     </div>
 
-    <!-- Submit and Reset Buttons -->
-    <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
-    <button type="reset" class="btn btn-danger">Reset</button>
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary mr-2" name="submit">Add Sale</button>
 </form>
 
-
-
+        
                     </div>
                 </div>
             </div>
