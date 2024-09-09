@@ -7,7 +7,7 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // Includes database connection
+include('config.php'); // Database connection
 
 try {
     // Check if username is set in session
@@ -18,7 +18,7 @@ try {
     $username = htmlspecialchars($_SESSION["username"]);
 
     // Retrieve user information from the users table
-    $user_query = "SELECT id, username, email, phone, location, date, is_active, role, user_image FROM users WHERE username = :username";
+    $user_query = "SELECT id, username, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -30,23 +30,15 @@ try {
 
     // Retrieve user details
     $user_id = htmlspecialchars($user_info['id']);
-    $email = htmlspecialchars($user_info['email']);
-    $phone = htmlspecialchars($user_info['phone']);
-    $location = htmlspecialchars($user_info['location']);
     $existing_image = htmlspecialchars($user_info['user_image']);
-
-    // Use default image if no image exists
-    $image_to_display = $existing_image ?: 'uploads/user/default.png';
+    $image_to_display = $existing_image ?: 'uploads/user/default.png'; // Use default image if none exists
 
     // Check if form is submitted
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Sanitize and retrieve form inputs
         $username = htmlspecialchars($_POST['username']);
         $email = htmlspecialchars($_POST['email']);
-        $phone = htmlspecialchars($_POST['phone']);
         $location = htmlspecialchars($_POST['location']);
-        $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : null;
-        $confirmpassword = isset($_POST['confirmpassword']) ? htmlspecialchars($_POST['confirmpassword']) : null;
         $is_active = isset($_POST['is_active']) ? htmlspecialchars($_POST['is_active']) : null;
         $role = isset($_POST['role']) ? htmlspecialchars($_POST['role']) : null;
 
@@ -61,6 +53,17 @@ try {
                 mkdir($target_dir, 0755, true);
             }
 
+            // Check file size (limit to 2MB)
+            if ($_FILES['user_image']['size'] > 2000000) {
+                exit("Error: File is too large. Maximum allowed size is 2MB.");
+            }
+
+            // Only allow JPEG and PNG files
+            $allowed_types = ['image/jpeg', 'image/png'];
+            if (!in_array($_FILES['user_image']['type'], $allowed_types)) {
+                exit("Error: Invalid file type. Only JPEG and PNG are allowed.");
+            }
+
             // Move the uploaded file
             if (move_uploaded_file($_FILES["user_image"]["tmp_name"], $target_file)) {
                 $image_to_save = $target_file;
@@ -71,28 +74,14 @@ try {
             $image_to_save = $existing_image ?: 'uploads/user/default.png'; // Use existing or default image if no new image is uploaded
         }
 
-        // Validate passwords
-        if ($password !== null && $password === $confirmpassword) {
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        // Update user record
+        $sql = "UPDATE users SET username=?, email=?, location=?, is_active=?, role=?, user_image=? WHERE id=?";
+        $stmt = $connection->prepare($sql);
+        $stmt->execute([$username, $email, $location, $is_active, $role, $image_to_save, $user_id]);
 
-            // Update user record
-            $sql = "UPDATE users SET username=?, email=?, phone=?, location=?, password=?, is_active=?, role=?, user_image=? WHERE id=?";
-            $stmt = $connection->prepare($sql);
-            $stmt->execute([$username, $email, $phone, $location, $hashed_password, $is_active, $role, $image_to_save, $user_id]);
-
-            echo "User updated successfully!";
-        } else if ($password === null) {
-            // Update user record without password change
-            $sql = "UPDATE users SET username=?, email=?, phone=?, location=?, is_active=?, role=?, user_image=? WHERE id=?";
-            $stmt = $connection->prepare($sql);
-            $stmt->execute([$username, $email, $phone, $location, $is_active, $role, $image_to_save, $user_id]);
-
-            echo "User updated successfully!";
-        } else {
-            echo "Passwords do not match!";
-        }
+        echo "User updated successfully!";
     }
-    
+
 } catch (PDOException $e) {
     error_log("PDO Error: " . $e->getMessage());
     exit("Database Error: " . $e->getMessage());
@@ -100,8 +89,6 @@ try {
     error_log("Error: " . $e->getMessage());
     exit("Error: " . $e->getMessage());
 }
-
-
 
 try {
     // Fetch inventory notifications with product images
@@ -606,55 +593,56 @@ try {
                            </div>
                            <div class="card-body">
                            <form action="user-profile-edit.php" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="id" value="<?php echo $user_id; ?>">
-                                <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
-                                <div class="form-group row align-items-center">
-                                    <div class="col-md-12">
-                                        <div class="profile-img-edit">
-                                            <div class="crm-profile-img-edit">
-                                                <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $existing_image; ?>" alt="profile-pic">
-                                                <div class="crm-p-image bg-primary">
-                                                    <i class="las la-pen upload-button"></i>
-                                                    <input class="file-upload" type="file" accept="image/*">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row align-items-center">
-                                    <div class="form-group col-sm-6">
-                                        <label for="username">Username:</label>
-                                        <input type="text" class="form-control" id="username" name="username" value="<?php echo $user_info['username']; ?>" required>
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="email">Email:</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $user_info['email']; ?>" required>
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="location">Location:</label>
-                                        <input type="text" class="form-control" id="location" name="location" value="<?php echo $user_info['location']; ?>" required>
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="role">Role:</label>
-                                        <select class="form-control" id="role" name="role">
-                                            <option value="admin" <?php echo ($user_info['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
-                                            <option value="sales" <?php echo ($user_info['role'] === 'sales') ? 'selected' : ''; ?>>Sales</option>
-                                            <option value="inventory" <?php echo ($user_info['role'] === 'inventory') ? 'selected' : ''; ?>>Inventory</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="is_active">Active:</label>
-                                        <select class="form-control" id="is_active" name="is_active">
-                                            <option value="1" <?php echo ($user_info['is_active']) ? 'selected' : ''; ?>>Yes</option>
-                                            <option value="0" <?php echo (!$user_info['is_active']) ? 'selected' : ''; ?>>No</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary mr-2">Submit</button>
-                                <button type="reset" class="btn iq-bg-danger">Cancel</button>
-                            </form>
-                           </div>
+    <input type="hidden" name="id" value="<?php echo $user_id; ?>">
+    <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
+    <div class="form-group row align-items-center">
+        <div class="col-md-12">
+            <div class="profile-img-edit">
+                <div class="crm-profile-img-edit">
+                    <img class="crm-profile-pic rounded-circle avatar-100" src="<?php echo $existing_image ?: 'uploads/user/default.png'; ?>" alt="profile-pic">
+                    <div class="crm-p-image bg-primary">
+                        <i class="las la-pen upload-button"></i>
+                        <input class="file-upload" type="file" name="user_image" accept="image/*">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row align-items-center">
+        <div class="form-group col-sm-6">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user_info['username']); ?>" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user_info['email']); ?>" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="location">Location:</label>
+            <input type="text" class="form-control" id="location" name="location" value="<?php echo htmlspecialchars($user_info['location']); ?>" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="role">Role:</label>
+            <select class="form-control" id="role" name="role">
+                <option value="admin" <?php echo ($user_info['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                <option value="sales" <?php echo ($user_info['role'] === 'sales') ? 'selected' : ''; ?>>Sales</option>
+                <option value="inventory" <?php echo ($user_info['role'] === 'inventory') ? 'selected' : ''; ?>>Inventory</option>
+            </select>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="is_active">Active:</label>
+            <select class="form-control" id="is_active" name="is_active">
+                <option value="1" <?php echo ($user_info['is_active']) ? 'selected' : ''; ?>>Yes</option>
+                <option value="0" <?php echo (!$user_info['is_active']) ? 'selected' : ''; ?>>No</option>
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mr-2">Submit</button>
+    <button type="reset" class="btn iq-bg-danger">Cancel</button>
+</form>
+  
+                        </div>
                         </div>
                      </div>
                      <div class="tab-pane fade" id="emailandsms" role="tabpanel">
