@@ -671,42 +671,43 @@ try {
                         <div class="col-sm-12">
                             <h5 class="mb-3">Order Summary</h5>
                             <div class="table-responsive-sm">
-                                <table class="table" id="invoice-items">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center" scope="col">#</th>
-                                            <th scope="col">Item</th>
-                                            <th class="text-center" scope="col">Quantity</th>
-                                            <th class="text-center" scope="col">Price ($)</th>
-                                            <th class="text-center" scope="col">Total ($)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Example item row -->
-                                        <tr>
-                                            <th class="text-center" scope="row">1</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                                        </tr>
-                                        <!-- More rows can be added dynamically as needed -->
-                                        <tr>
-                                            <th class="text-center" scope="row">2</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-center" scope="row">3</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                                            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                                            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                                            <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <table class="table" id="invoice-items">
+            <thead>
+                <tr>
+                    <th class="text-center" scope="col">#</th>
+                    <th scope="col">Item</th>
+                    <th class="text-center" scope="col">Quantity</th>
+                    <th class="text-center" scope="col">Price ($)</th>
+                    <th class="text-center" scope="col">Total ($)</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-items-body">
+                <!-- Example item rows -->
+                <tr>
+                    <th class="text-center" scope="row">1</th>
+                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
+                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                </tr>
+                <tr>
+                    <th class="text-center" scope="row">2</th>
+                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
+                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                </tr>
+                <tr>
+                    <th class="text-center" scope="row">3</th>
+                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
+                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-primary" onclick="addRow()">Add Row</button>
+    </div>
                             </div>
                         </div>
                     </div>
@@ -790,6 +791,27 @@ try {
 
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        let rowCount = 3; // Starting count of rows
+
+        function addRow() {
+            rowCount++;
+            const tableBody = document.getElementById('invoice-items-body');
+            const newRow = `
+                <tr>
+                    <th class="text-center" scope="row">${rowCount}</th>
+                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
+                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
+                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
+                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', newRow);
+        }
+    </script>
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

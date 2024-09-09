@@ -29,6 +29,8 @@ try {
     }
 
     // Retrieve user details
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
     $user_id = htmlspecialchars($user_info['id']);
     $existing_image = htmlspecialchars($user_info['user_image']);
     $image_to_display = $existing_image ?: 'uploads/user/default.png'; // Use default image if none exists
