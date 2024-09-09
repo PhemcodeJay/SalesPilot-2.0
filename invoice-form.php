@@ -685,7 +685,7 @@ try {
                                         <!-- Example item row -->
                                         <tr>
                                             <th class="text-center" scope="row">1</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
                                             <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
                                             <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
                                             <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
@@ -693,14 +693,14 @@ try {
                                         <!-- More rows can be added dynamically as needed -->
                                         <tr>
                                             <th class="text-center" scope="row">2</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
                                             <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
                                             <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
                                             <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
                                         </tr>
                                         <tr>
                                             <th class="text-center" scope="row">3</th>
-                                            <td><input type="text" class="form-control" name="item_name[]" value="Web Design" required></td>
+                                            <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
                                             <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
                                             <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
                                             <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>

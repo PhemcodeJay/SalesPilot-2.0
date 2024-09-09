@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 30, 2024 at 05:33 AM
+-- Generation Time: Sep 07, 2024 at 01:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -40,8 +40,6 @@ CREATE TABLE `activation_codes` (
 --
 
 INSERT INTO `activation_codes` (`id`, `user_id`, `activation_code`, `expires_at`, `created_at`) VALUES
-(2, 2, '66a214ed6b9ab', '2024-07-26 08:03:41', '2024-07-25 09:03:41'),
-(4, 4, '66c08ed220a2b', '2024-08-18 10:51:46', '2024-08-17 11:51:46'),
 (6, 6, '66d0df16a863c', '2024-08-30 19:50:30', '2024-08-29 20:50:30');
 
 -- --------------------------------------------------------
@@ -90,10 +88,7 @@ CREATE TABLE `customers` (
 INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_location`, `created_at`) VALUES
 (5, 'chris', 'chris@gmail.com', '0111826871', 'Nairobi', '2024-07-26 06:39:01'),
 (6, 'carol', 'carol@gmail.com', '0111826845', 'Abuja', '2024-07-26 07:01:27'),
-(7, 'jim', 'jim@gmail.com', '0111826456', 'Texas', '2024-07-26 07:02:25'),
-(8, 'dave', '', '', '', '2024-07-26 07:03:52'),
-(9, 'joe', '', '', '', '2024-07-26 07:05:43'),
-(10, 'jerome', '', '', '', '2024-07-26 07:07:04');
+(7, 'jim', 'jim@gmail.com', '0111826456', 'Texas', '2024-07-26 07:02:25');
 
 -- --------------------------------------------------------
 
@@ -115,7 +110,7 @@ CREATE TABLE `expenses` (
 
 INSERT INTO `expenses` (`id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
 (1, 'Rent', 1000.00, '2024-07-26 21:00:00', 'john'),
-(2, 'salary for june', 10000.00, '2024-07-26 21:00:00', 'steve'),
+(2, 'salary for june', 5000.00, '2024-07-26 21:00:00', 'steve'),
 (3, 'shop repairs', 1500.00, '2024-07-26 21:00:00', 'kyle');
 
 -- --------------------------------------------------------
@@ -182,7 +177,6 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
-(13, '001', 'mega stores', 'sales order', '2016-01-17', 'paid', '250028', 'PO Box 16122 Collins Street West, Victoria Nairobi Kenya', 'PO Box 16122 Collins Street West, Victoria Nairobi Kenya', 'Threadneedle St', '12333456789', '2020-08-12', 1200.00, 0.00, 1300.75, 'It is a long established fact that a reader will be distracted by the readable content...', NULL, NULL, NULL, NULL),
 (14, '001', 'mega stores', 'sales order', '2016-01-17', 'paid', '250028', 'PO Box 16122 Collins Street West, Victoria Nairobi Kenya', 'PO Box 16122 Collins Street West, Victoria Nairobi Kenya', 'Threadneedle St', '12333456789', '2020-08-12', 1200.00, 0.00, 1300.75, 'It is a long established fact that a reader will be distracted by the readable content...', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
@@ -204,9 +198,6 @@ CREATE TABLE `password_resets` (
 --
 
 INSERT INTO `password_resets` (`id`, `user_id`, `reset_code`, `expires_at`, `created_at`) VALUES
-(1, 2, 'e6a794bd7d8de2c2ea7e28ac3bb47977dd8c256beed05d6ba54f8675855ea691', '2024-07-25 10:04:22', '2024-07-25 10:04:22'),
-(2, 4, '34038d77dff2783182cfd673cd87755aa37f75d2aa89981cd4e7259983267c9d', '2024-08-20 07:48:04', '2024-08-20 07:48:04'),
-(3, 4, '092cc161edd95a139f83a9b31b3c60c19209b8c9d3dd71aeec5febb31ad2c7f0', '2024-08-20 07:48:31', '2024-08-20 07:48:31'),
 (4, 4, 'ff0f7f87a906e21b8d0c93368e8f0b1be17be0bdba8d1b084acb9017cb0ad421', '2024-08-20 07:48:40', '2024-08-20 07:48:40');
 
 -- --------------------------------------------------------
@@ -394,8 +385,6 @@ CREATE TABLE `sales_analytics` (
 --
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`) VALUES
-(168, '2024-08-17', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-29 16:48:48', 20315, 29, 99, 0, 0, 0),
-(169, '2024-08-29', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-29 22:19:01', 20315, 29, 99, 0, 0, 0),
 (170, '2024-08-29', 20315.00, 42.85, 0.00, 0.00, 700.52, 0.14, 999.99, 0.00, 0.00, 11610.00, 8705.00, '2024-08-29 22:26:04', 20315, 29, 99, 0, 0, 0);
 
 -- --------------------------------------------------------
@@ -668,37 +657,10 @@ ALTER TABLE `users`
 --
 
 --
--- Constraints for table `activation_codes`
---
-ALTER TABLE `activation_codes`
-  ADD CONSTRAINT `activation_codes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
 -- Constraints for table `inventory`
 --
 ALTER TABLE `inventory`
   ADD CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
-
---
--- Constraints for table `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `products`
---
-ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
-
---
--- Constraints for table `sales`
---
-ALTER TABLE `sales`
-  ADD CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  ADD CONSTRAINT `sales_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  ADD CONSTRAINT `sales_ibfk_4` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`staff_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

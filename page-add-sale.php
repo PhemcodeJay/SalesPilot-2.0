@@ -34,6 +34,7 @@ $user_id = $user_info['id'];
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
+        // Log session data for debugging
         error_log("Session ID: " . session_id());
         error_log("Session variables: " . print_r($_SESSION, true));
 
@@ -47,21 +48,35 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         $staff_name = htmlspecialchars(trim($_POST['staff_name'] ?? ''));
         $customer_name = htmlspecialchars(trim($_POST['customer_name'] ?? ''));
 
+        // Validate required fields
         if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
             die("Required fields are missing.");
         }
 
+        // Handle file upload
+        $image_path = null; // Set default to null in case no file is uploaded
         if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
-            $upload_dir = 'uploads/';
-            $image_name = basename($_FILES['document']['name']);
-            $image_tmp = $_FILES['document']['tmp_name'];
-            $image_path = $upload_dir . $image_name;
+            if ($_FILES['document']['size'] > 0) {
+                $upload_dir = 'uploads/';
+                $image_name = basename($_FILES['document']['name']);
+                $image_tmp = $_FILES['document']['tmp_name'];
+                $image_path = $upload_dir . $image_name;
 
-            if (!move_uploaded_file($image_tmp, $image_path)) {
-                die("File upload failed.");
+                // Check if upload directory is writable
+                if (!is_writable($upload_dir)) {
+                    die("Upload directory is not writable.");
+                }
+
+                if (!move_uploaded_file($image_tmp, $image_path)) {
+                    die("File upload failed.");
+                }
+            } else {
+                die("Uploaded file size is zero.");
             }
         } else {
-            die("No file uploaded or file upload error.");
+            if ($_FILES['document']['error'] !== UPLOAD_ERR_NO_FILE) {
+                die("File upload error: " . $_FILES['document']['error']);
+            }
         }
 
         try {
@@ -116,9 +131,9 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':payment_status', $payment_status);
             $stmt->bindParam(':user_id', $user_id);
 
+            // Execute and commit transaction
             if ($stmt->execute()) {
                 $connection->commit();
-                // Redirect after successful insert
                 header('Location: page-list-sale.php');
                 exit();
             } else {
@@ -131,7 +146,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             die("Error: " . $e->getMessage());
         }
     } else {
-        echo "Invalid request";
+        echo "Invalid request.";
     }
 } else {
     echo "Error: User not logged in.";
