@@ -530,7 +530,12 @@ $connection = null;
 </li>
 
                               <li class="nav-item nav-icon dropdown caption-content">
-                              
+                                          <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <img src="<?php echo 'http://localhost/project/uploads/user/' . (!empty($user_info['user_image']) ? $user_info['user_image'] : 'default.png'); ?>" 
+                                                                                                            alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                                    </a>
+
 
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
