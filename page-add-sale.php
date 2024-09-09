@@ -623,8 +623,9 @@ try {
                         </div>
                     </div>
                     <div class="card-body">
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
+                    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data">
     <div class="row">
+        <!-- Product Name -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="product_name">Product Name *</label>
@@ -632,13 +633,17 @@ try {
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Price -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="price">Price *</label>
-                <input type="text" id="price" name="total_price" class="form-control" placeholder="Enter Price" required pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
+                <input type="number" id="price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0" pattern="\d+(\.\d{2})?" title="Please enter a valid price (e.g., 1000 or 1000.00)">
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Product Type -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="product_type">Product Type *</label>
@@ -650,34 +655,45 @@ try {
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Customer Name -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="customer_name">Customer *</label>
-                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
+                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required autocomplete="name">
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Staff Name -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="staff_name">Staff *</label>
-                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
+                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required autocomplete="off">
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Sales Quantity -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="sales_qty">Sales Qty</label>
-                <input type="text" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" pattern="\d+" title="Please enter a valid quantity">
+                <input type="number" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" min="0" required>
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- File Upload -->
         <div class="col-md-12">
             <div class="form-group">
                 <label for="document">Image *</label>
-                <input type="file" id="document" name="document" class="form-control image-file" accept="image/*" required>
+                <input type="file" id="document" name="document" class="form-control image-file" accept="image/*" required aria-describedby="fileHelp">
+                <small id="fileHelp" class="form-text text-muted">Upload an image file (JPG, PNG, etc.).</small>
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Sale Status -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="sale_status">Sale Status *</label>
@@ -688,6 +704,8 @@ try {
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Payment Status -->
         <div class="col-md-6">
             <div class="form-group">
                 <label for="payment_status">Payment Status *</label>
@@ -699,6 +717,8 @@ try {
                 <div class="help-block with-errors"></div>
             </div>
         </div>
+
+        <!-- Sale Note -->
         <div class="col-md-12">
             <div class="form-group">
                 <label for="sale_note">Sale Note *</label>
@@ -707,6 +727,8 @@ try {
             </div>
         </div>
     </div>
+
+    <!-- Submit and Reset Buttons -->
     <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
     <button type="reset" class="btn btn-danger">Reset</button>
 </form>
