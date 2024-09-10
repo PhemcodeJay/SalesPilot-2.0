@@ -41,8 +41,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         // Sanitize and validate form inputs
         $name = htmlspecialchars(trim($_POST['name']));
         $sale_status = htmlspecialchars(trim($_POST['sale_status']));
-        $total_price = floatval($_POST['total_price']);
-        $sales_qty = intval($_POST['sales_qty']);
+        $total_price = filter_var($_POST['total_price'], FILTER_VALIDATE_FLOAT);
+        $sales_qty = filter_var($_POST['sales_qty'], FILTER_VALIDATE_INT);
         $payment_status = htmlspecialchars(trim($_POST['payment_status']));
         $sale_note = htmlspecialchars(trim($_POST['sale_note']));
         $staff_name = htmlspecialchars(trim($_POST['staff_name']));
@@ -101,8 +101,18 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $staff_id = $stmt->fetchColumn();
 
             if (!$staff_id) {
-                throw new Exception("Staff not found.");
+                // Staff does not exist, so insert the new staff member
+                $insert_staff_query = "INSERT INTO staffs (staff_name) VALUES (:staff_name)";
+                $stmt = $connection->prepare($insert_staff_query);
+                $stmt->bindParam(':staff_name', $staff_name);
+                if ($stmt->execute()) {
+                    // Get the last inserted staff_id
+                    $staff_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Failed to add new staff member.");
+                }
             }
+
 
             // Retrieve customer_id from the customers table
             $check_customer_query = "SELECT customer_id FROM customers WHERE customer_name = :customer_name";
@@ -112,7 +122,16 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $customer_id = $stmt->fetchColumn();
 
             if (!$customer_id) {
-                throw new Exception("Customer not found.");
+                // Customer does not exist, so insert the new customer
+                $insert_customer_query = "INSERT INTO customers (customer_name) VALUES (:customer_name)";
+                $stmt = $connection->prepare($insert_customer_query);
+                $stmt->bindParam(':customer_name', $customer_name);
+                if ($stmt->execute()) {
+                    // Get the last inserted customer_id
+                    $customer_id = $connection->lastInsertId();
+                } else {
+                    throw new Exception("Failed to add new customer.");
+                }
             }
 
             // SQL query for inserting into sales table
@@ -150,7 +169,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     echo "Error: User not logged in.";
 }
 
-
 try {
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
@@ -184,6 +202,7 @@ try {
     $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (Exception $e) {
+    error_log("Error: " . $e->getMessage());
     echo "Error: " . $e->getMessage();
     exit();
 }
