@@ -40,10 +40,75 @@ try {
     $stmt = $connection->prepare($fetch_products_query);
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $product_id = $_POST['product_id'] ?? null;
+
+    if (isset($_POST['edit'])) {
+        // Handle edit action
+        // Process edit (e.g., redirect to edit form or update product details)
+        // For example:
+        header("Location: edit_product.php?id=" . $product_id);
+        exit;
+    } elseif (isset($_POST['delete'])) {
+        // Handle delete action
+        $delete_query = "DELETE FROM products WHERE id = :product_id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->execute();
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+        exit;
+    } elseif (isset($_POST['save_pdf'])) {
+        // Handle save as PDF action
+        // Generate and save the PDF
+        require('fpdf/fpdf.php'); // Include your PDF library
+
+        if ($product_id) {
+            $query = "SELECT * FROM products WHERE id = :product_id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':product_id', $product_id);
+            $stmt->execute();
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($product) {
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Product Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Name: ' . $product['name']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Description: ' . $product['description']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Category: ' . $product['category']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Inventory Qty: ' . number_format($product['inventory_qty']));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Cost: $' . number_format($product['cost'], 2));
+
+                // Output the PDF
+                $pdf->Output('D', 'product_' . $product_id . '.pdf');
+            } else {
+                echo 'Product not found.';
+            }
+        } else {
+            echo 'No product ID provided.';
+        }
+        exit;
+    }
+}
+
 } catch (PDOException $e) {
     // Handle database errors
     exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
 }
+
+
 
 // Handle POST requests for updating product information
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -562,50 +627,42 @@ try {
                             <th>Sales Price</th>
                             <th>Inventory Qty</th>
                             <th>Cost</th>
-                            <th>Image</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody class="ligth-body">
-                        <?php foreach ($products as $product): ?>
-                        <tr data-id="<?php echo $product['id']; ?>">
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $product['id']; ?>">
-                                    <label for="checkbox<?php echo $product['id']; ?>" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td contenteditable="true" class="editable" data-field="name">
-                                <div class="d-flex align-items-center">
-                                    <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
-                                    <div><?php echo htmlspecialchars($product['name']); ?></div>
-                                </div>
-                            </td>
-                            <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($product['description']); ?></td>
-                            <td contenteditable="true" class="editable" data-field="category"><?php echo htmlspecialchars($product['category']); ?></td>
-                            <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product ['price'], 2); ?></td>
-                            <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty'],); ?></td>
-                            <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product ['cost'], 2); ?></td>
-                            <td>
-                                <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
+    <?php foreach ($products as $product): ?>
+    <tr data-id="<?php echo $product['id']; ?>">
+        <td>
+            <div class="checkbox d-inline-block">
+                <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $product['id']; ?>">
+                <label for="checkbox<?php echo $product['id']; ?>" class="mb-0"></label>
+            </div>
+        </td>
+        <td contenteditable="true" class="editable" data-field="name">
+            <div class="d-flex align-items-center">
+                <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
+                <div><?php echo htmlspecialchars($product['name']); ?></div>
+            </div>
+        </td>
+        <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($product['description']); ?></td>
+        <td contenteditable="true" class="editable" data-field="category"><?php echo htmlspecialchars($product['category']); ?></td>
+        <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product['price'], 2); ?></td>
+        <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
+        <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
+        
+        <td>
+            <form method="post" action="page-list-product.php">
+                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                <button type="submit" name="edit" class="btn btn-success"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
+                <button type="submit" name="delete" class="btn btn-warning"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
+                <button type="submit" name="save_pdf" class="btn btn-info"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
+            </form>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</tbody>
 
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#">
-                                        <i class="ri-pencil-line mr-0"></i>
-                                    </a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#">
-                                        <i class="ri-delete-bin-line mr-0"></i>
-                                    </a>
-                                    
-                                    <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#">
-                                        <i class="ri-eye-line mr-0"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
                 </table>
             </div>
         </div>
@@ -646,6 +703,82 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    // Enable inline editing for editable fields
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text();
+        var input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+        $this.html(input);
+        input.focus();
+        input.on('blur', function() {
+            var newText = $(this).val();
+            $this.html(newText);
+        });
+        input.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $(this).blur();
+            }
+        });
+    });
+
+    // Save button functionality
+    $('.save-btn').on('click', function() {
+        var $row = $(this).closest('tr');
+        var productId = $row.data('id');
+        var name = $row.find('[data-field="name"]').text();
+        var description = $row.find('[data-field="description"]').text();
+        var category = $row.find('[data-field="category"]').text();
+        var price = $row.find('[data-field="price"]').text().replace('$', '');
+        var inventoryQty = $row.find('[data-field="inventory_qty"]').text();
+        var cost = $row.find('[data-field="cost"]').text().replace('$', '');
+
+        $.post('update_product.php', {
+            product_id: productId,
+            name: name,
+            description: description,
+            category: category,
+            price: price,
+            inventory_qty: inventoryQty,
+            cost: cost,
+            action: 'update'
+        }, function(response) {
+            alert('Product updated successfully!');
+        }).fail(function() {
+            alert('Error updating product.');
+        });
+    });
+
+    // Delete button functionality
+    $('.delete-btn').on('click', function() {
+        if (confirm('Are you sure you want to delete this product?')) {
+            var productId = $(this).closest('tr').data('id');
+            $.post('update_product.php', {
+                product_id: productId,
+                action: 'delete'
+            }, function(response) {
+                alert('Product deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            }).fail(function() {
+                alert('Error deleting product.');
+            });
+        }
+    });
+
+    // Save as PDF button functionality
+    $('.save-pdf-btn').on('click', function() {
+        var productId = $(this).closest('tr').data('id');
+        window.location.href = 'generate_pdf.php?product_id=' + productId;
+    });
+});
+</script>
+
     
     <script>
 document.getElementById('createButton').addEventListener('click', function() {

@@ -594,7 +594,7 @@ try {
                     <td>
                         <button type="button" class="btn btn-success save-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
                         <button type="button" class="btn btn-warning delete-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
-                        <button type="button" class="btn btn-info save-pdf-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-eye-line mr-0"></i></button>
+                        <button type="button" class="btn btn-info save-pdf-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
                     </td>
                 </tr>
             <?php endforeach; ?>

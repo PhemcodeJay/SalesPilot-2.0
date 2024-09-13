@@ -53,6 +53,62 @@ try {
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $product_id = $_POST['product_id'] ?? null;
+
+    if (isset($_POST['edit'])) {
+        // Handle edit action
+        // Process edit (e.g., redirect to edit form or update product details)
+    } elseif (isset($_POST['delete'])) {
+        // Handle delete action
+        $delete_query = "DELETE FROM sales WHERE product_id = :product_id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->execute();
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+        exit;
+    } elseif (isset($_POST['save_pdf'])) {
+        // Handle save as PDF action
+        require('fpdf/fpdf.php'); // Include your PDF library
+
+        if ($product_id) {
+            $query = "SELECT * FROM sales WHERE product_id = :product_id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':product_id', $product_id);
+            $stmt->execute();
+            $sales = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($sales) {
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Sales Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Product Name: ' . $sales['product_name']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Sale Date: ' . date("d M Y", strtotime($sales['sale_date'])));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Sales Quantity: ' . $sales['sales_qty']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Inventory Quantity: ' . $sales['inventory_qty']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Available Stock: ' . $sales['available_stock']);
+
+                // Output the PDF
+                $pdf->Output('D', 'sales_' . $product_id . '.pdf');
+            } else {
+                echo 'Sales record not found.';
+            }
+        } else {
+            echo 'No product ID provided.';
+        }
+        exit;
+    }
+}
+
 } catch (PDOException $e) {
     // Handle database errors
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
@@ -664,36 +720,36 @@ try {
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody class="ligth-body">
-                    <?php if (!empty($sales_data)): ?>
-                        <?php foreach ($sales_data as $row): ?>
-                            <tr>
-                                <td>
-                                    <div class="checkbox d-inline-block">
-                                        <input type="checkbox" class="checkbox-input" id="checkbox<?= htmlspecialchars($row['product_id']) ?>">
-                                        <label for="checkbox<?= htmlspecialchars($row['product_id']) ?>" class="mb-0"></label>
-                                    </div>
-                                </td>
-                                <td><?= date("d M Y", strtotime(htmlspecialchars($row['sale_date']))) ?></td>
-                                <td><?= htmlspecialchars($row['product_name']) ?></td>
-                                <td><?= htmlspecialchars($row['sales_qty']) ?></td>
-                                <td><?= htmlspecialchars($row['inventory_qty']) ?></td>
-                                <td><?= number_format(htmlspecialchars($row['available_stock']),) ?></td>
-                                <td>
-                                    <div class="d-flex align-items-center list-action">
-                                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                        <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                        <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7">No data available.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
+                <tbody class="light-body">
+    <?php if (!empty($sales_data)): ?>
+        <?php foreach ($sales_data as $row): ?>
+            <tr data-product-id="<?= htmlspecialchars($row['product_id']) ?>">
+                <td>
+                    <div class="checkbox d-inline-block">
+                        <input type="checkbox" class="checkbox-input" id="checkbox<?= htmlspecialchars($row['product_id']) ?>">
+                        <label for="checkbox<?= htmlspecialchars($row['product_id']) ?>" class="mb-0"></label>
+                    </div>
+                </td>
+                <td contenteditable="true" class="editable" data-field="sale_date"><?= date("d M Y", strtotime(htmlspecialchars($row['sale_date']))) ?></td>
+                <td contenteditable="true" class="editable" data-field="product_name"><?= htmlspecialchars($row['product_name']) ?></td>
+                <td contenteditable="true" class="editable" data-field="sales_qty"><?= htmlspecialchars($row['sales_qty']) ?></td>
+                <td contenteditable="true" class="editable" data-field="inventory_qty"><?= htmlspecialchars($row['inventory_qty']) ?></td>
+                <td contenteditable="true" class="editable" data-field="available_stock"><?= number_format(htmlspecialchars($row['available_stock'])) ?></td>
+                <td>
+                        <button type="button" class="btn btn-success save-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
+                        <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
+                        <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
+                    </td>
+            </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7">No data available.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
+
             </table>
 
                 </div>
@@ -732,6 +788,93 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    // Inline Editing
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text();
+        var input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+        $this.html(input);
+        input.focus();
+
+        input.on('blur', function() {
+            var newText = $(this).val();
+            $this.html(newText);
+            updateCell($this.closest('tr').data('product-id'), $this.data('field'), newText);
+        });
+
+        input.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $(this).blur();
+            }
+        });
+    });
+
+    // Save Button
+    $('.btn-save').on('click', function() {
+        var $row = $(this).closest('tr');
+        var productId = $(this).data('product-id');
+        var saleDate = $row.find('[data-field="sale_date"]').text().trim();
+        var productName = $row.find('[data-field="product_name"]').text().trim();
+        var salesQty = $row.find('[data-field="sales_qty"]').text().trim();
+        var inventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
+        var availableStock = $row.find('[data-field="available_stock"]').text().trim();
+
+        $.post('update_cell.php', {
+            product_id: productId,
+            sale_date: saleDate,
+            product_name: productName,
+            sales_qty: salesQty,
+            inventory_qty: inventoryQty,
+            available_stock: availableStock,
+            action: 'update'
+        }, function(response) {
+            alert('Changes saved successfully!');
+        }).fail(function() {
+            alert('Error saving changes.');
+        });
+    });
+
+    // Delete Button
+    $('.btn-delete').on('click', function() {
+        if (confirm('Are you sure you want to delete this item?')) {
+            var productId = $(this).data('product-id');
+            $.post('delete_item.php', {
+                product_id: productId,
+                action: 'delete'
+            }, function(response) {
+                alert('Item deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            }).fail(function() {
+                alert('Error deleting item.');
+            });
+        }
+    });
+
+    // Save as PDF Button
+    $('.btn-save-pdf').on('click', function() {
+        var productId = $(this).data('product-id');
+        window.location.href = 'generate_pdf.php?product_id=' + productId;
+    });
+
+    function updateCell(productId, field, newValue) {
+        $.post('update_cell.php', {
+            product_id: productId,
+            field: field,
+            value: newValue
+        }).fail(function() {
+            alert('Error updating cell.');
+        });
+    }
+});
+</script>
+
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

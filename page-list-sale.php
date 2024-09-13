@@ -38,13 +38,102 @@ $date = htmlspecialchars($user_info['date']);
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) 
 
 // Retrieve sales data from the sales table only
-    $query = "SELECT sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
-              FROM sales
-              ORDER BY sale_date DESC";
-    $stmt = $connection->prepare($query);
-    $stmt->execute();
-    $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
+          FROM sales
+          ORDER BY sale_date DESC";
+$stmt = $connection->prepare($query);
+$stmt->execute();
+$sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $id = $_POST['id'] ?? null;
+
+    switch ($action) {
+        case 'edit':
+            // Handle edit action
+            // Redirect to edit form or handle inline edit logic
+            if ($id) {
+                header("Location: edit_sales.php?id=" . urlencode($id));
+                exit;
+            }
+            break;
+
+        case 'delete':
+            // Handle delete action
+            if ($id) {
+                $delete_query = "DELETE FROM sales WHERE id = :id";
+                $stmt = $connection->prepare($delete_query);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+                header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+                exit;
+            }
+            break;
+
+        case 'save_pdf':
+            // Handle save as PDF action
+            if ($id) {
+                require('fpdf/fpdf.php'); // Include PDF library
+
+                $query = "SELECT * FROM sales WHERE id = :id";
+                $stmt = $connection->prepare($query);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+                $sale = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($sale) {
+                    $pdf = new FPDF();
+                    $pdf->AddPage();
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->Cell(40, 10, 'Sale Details');
+                    $pdf->Ln();
+                    $pdf->SetFont('Arial', '', 12);
+                    $pdf->Cell(40, 10, 'Date: ' . htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Product Name: ' . htmlspecialchars($sale['product_name']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Price: $' . htmlspecialchars(number_format($sale['price'], 2)));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Sales Status: ' . htmlspecialchars($sale['sales_status']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Sales Quantity: ' . htmlspecialchars($sale['sales_qty']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Payment Status: ' . htmlspecialchars($sale['payment_status']));
+
+                    // Output the PDF
+                    $pdf->Output('D', 'sale_' . $id . '.pdf');
+                } else {
+                    echo 'Sale not found.';
+                }
+                exit;
+            } else {
+                echo 'No sale ID provided.';
+            }
+            break;
+
+        case 'update':
+            // Handle update action
+            $field = $_POST['field'] ?? null;
+            $value = $_POST['value'] ?? null;
+
+            if ($id && $field && $value !== null) {
+                $update_query = "UPDATE sales SET $field = :value WHERE id = :id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->bindParam(':value', $value, PDO::PARAM_STR);
+                $stmt->execute();
+                echo 'Update successful.';
+                exit;
+            }
+            break;
+
+        default:
+            echo 'Invalid action.';
+            break;
+    }
+}
 
     try {
         // Fetch inventory notifications with product images
@@ -517,39 +606,53 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-        <thead class="bg-white text-uppercase">
-            <tr class="ligth ligth-data">
-              
-                <th>Date</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Sales Status</th>
-                <th>Sales Quantity</th>
-                <th>Payment Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody class="ligth-body">
-            <?php foreach ($sales_data as $sale): ?>
-            <tr>
-               
-                <td><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
-                <td><?php echo htmlspecialchars($sale['product_name']); ?></td>
-                <td>$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
-                <td><div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div></td>
-                <td><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
-                <td><div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div></td>
+    <thead class="bg-white text-uppercase">
+        <tr class="light light-data">
+            <th>Date</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Sales</th>
+            <th>Quantity</th>
+            <th>Payment</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody class="light-body">
+    <?php if (!empty($sales_data)): ?>
+        <?php foreach ($sales_data as $sale): ?>
+            <tr data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                <td class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
+                <td class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
+                <td class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
+                <td class="editable" data-field="sales_status">
+                    <div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div>
+                </td>
+                <td class="editable" data-field="sales_qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
+                <td class="editable" data-field="payment_status">
+                    <div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div>
+                </td>
                 <td>
-                    <div class="d-flex align-items-center list-action">
-                        <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                        <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                    </div>
+                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                    </button>
+                    <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                    </button>
+                    <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                    </button>
                 </td>
             </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7">No sales data found.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
+</table>
+
 
                 </div>
             </div>
@@ -587,6 +690,111 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    // Make table cells editable
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text().trim(); // Trim to avoid extra spaces
+        var $input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+
+        // Replace cell content with input field
+        $this.html($input);
+        $input.focus();
+
+        // Handle input blur
+        $input.on('blur', function() {
+            var newText = $(this).val().trim(); // Trim to avoid extra spaces
+            var $parentRow = $this.closest('tr');
+            var id = $parentRow.data('sale-id'); // Changed to `id`
+            var field = $this.data('field');
+
+            if (newText === currentText) {
+                $this.html(currentText); // No change in text, revert to original
+                return;
+            }
+
+            // Save updated data
+            $.post('update_sales.php', {
+                id: id, // Changed to `id`
+                field: field,
+                value: newText,
+                action: 'update'
+            })
+            .done(function() {
+                console.log('Sales data updated successfully.');
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Error updating sales data: ', error);
+                alert('Error updating sales data.');
+            });
+
+            // Update cell content
+            $this.html(newText);
+        });
+
+        // Submit on Enter key
+        $input.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $input.blur();
+            }
+        });
+    });
+
+    // Handle save button click
+    $('.action-btn[data-action="save"]').on('click', function() {
+        var $row = $(this).closest('tr');
+        var id = $(this).data('sale-id'); // Changed to `id`
+        var saleData = {
+            id: id, // Changed to `id`
+            action: 'save'
+        };
+
+        $.post('update_sales.php', saleData)
+            .done(function() {
+                alert('Sales data saved successfully!');
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Error saving sales data: ', error);
+                alert('Error saving sales data.');
+            });
+    });
+
+    // Handle delete button click
+    $('.action-btn[data-action="delete"]').on('click', function() {
+        if (confirm('Are you sure you want to delete this sales data?')) {
+            var id = $(this).data('sale-id'); // Changed to `id`
+
+            $.post('update_sales.php', {
+                id: id, // Changed to `id`
+                action: 'delete'
+            })
+            .done(function() {
+                alert('Sales data deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Error deleting sales data: ', error);
+                alert('Error deleting sales data.');
+            });
+        }
+    });
+
+    // Handle save as PDF button click
+    $('.action-btn[data-action="save_pdf"]').on('click', function() {
+        var id = $(this).data('sale-id'); // Changed to `id`
+        window.location.href = 'generate_pdf.php?id=' + id; // Changed to `id`
+    });
+});
+</script>
+
+
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

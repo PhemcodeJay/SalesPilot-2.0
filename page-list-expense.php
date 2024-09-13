@@ -9,8 +9,7 @@ session_start([
 
 include('config.php'); // Includes database connection
 require 'vendor/autoload.php';
-require('fpdf/fpdf.php');
-
+require 'fpdf/fpdf.php';
 
 try {
     // Check if username is set in session
@@ -20,7 +19,7 @@ try {
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the Staffs table
+    // Retrieve user information from the Users table
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -36,10 +35,63 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
     // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT description, amount, expense_date, created_by FROM expenses";
+    $expenses_query = "SELECT id, description, amount, expense_date, created_by FROM expenses";
     $stmt = $connection->prepare($expenses_query);
     $stmt->execute();
     $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Handle form actions
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $action = $_POST['action'] ?? null;
+        $id = $_POST['id'] ?? null;
+
+        if ($action === 'delete') {
+            // Handle delete action
+            if ($id) {
+                $delete_query = "DELETE FROM expenses WHERE id = :id";
+                $stmt = $connection->prepare($delete_query);
+                $stmt->bindParam(':id', $id);
+                $stmt->execute();
+                header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+                exit;
+            } else {
+                echo 'No expense ID provided.';
+            }
+        } elseif ($action === 'save_pdf') {
+            // Handle save as PDF action
+            if ($id) {
+                $query = "SELECT * FROM expenses WHERE id = :id";
+                $stmt = $connection->prepare($query);
+                $stmt->bindParam(':id', $id);
+                $stmt->execute();
+                $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($expense) {
+                    $pdf = new FPDF();
+                    $pdf->AddPage();
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->Cell(40, 10, 'Expense Details');
+                    $pdf->Ln();
+                    $pdf->SetFont('Arial', '', 12);
+                    $pdf->Cell(40, 10, 'Date: ' . $expense['expense_date']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Description: ' . $expense['description']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Amount: $' . $expense['amount']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Created by: ' . $expense['created_by']);
+
+                    // Output the PDF
+                    $pdf->Output('D', 'expense_' . $id . '.pdf');
+                } else {
+                    echo 'Expense not found.';
+                }
+            } else {
+                echo 'No expense ID provided.';
+            }
+            exit;
+        }
+    }
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -64,7 +116,7 @@ try {
         ':low_stock' => 10,
         ':high_stock' => 1000,
     ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch reports notifications with product images
     $reportsQuery = $connection->prepare("
@@ -81,12 +133,13 @@ try {
         ':high_revenue' => 10000,
         ':low_revenue' => 1000,
     ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // Handle any errors during database queries
     echo "Error: " . $e->getMessage();
 }
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -511,39 +564,47 @@ try {
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
                 <table class="data-table table mb-0 tbl-server-info">
-            <thead class="bg-white text-uppercase">
-                <tr class="light light-data">
-                    
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Created By</th>
-                    <th>Action</th>
+    <thead class="bg-white text-uppercase">
+        <tr class="light light-data">
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Created By</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody class="light-body">
+        <?php if (!empty($expenses)): ?>
+            <?php foreach ($expenses as $expense): ?>
+                <tr data-expense-id="<?php echo $expense['id']; ?>">
+                    <!-- Inline editable fields -->
+                    <td class="editable" data-field="expense_date" contenteditable="true"><?php echo htmlspecialchars($expense['expense_date']); ?></td>
+                    <td class="editable" data-field="description" contenteditable="true"><?php echo htmlspecialchars($expense['description']); ?></td>
+                    <td class="editable" data-field="amount" contenteditable="true">$<?php echo htmlspecialchars($expense['amount']); ?></td>
+                    <td class="editable" data-field="created_by" contenteditable="true"><?php echo htmlspecialchars($expense['created_by']); ?></td>
+
+                    <!-- Action buttons -->
+                    <td>
+                        <button type="button" class="btn btn-success save-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                        </button>
+                        <button type="button" class="btn btn-warning delete-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                        </button>
+                        <button type="button" class="btn btn-info save-pdf-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                        </button>
+                    </td>
                 </tr>
-            </thead>
-            <tbody class="light-body">
-                <?php if (!empty($expenses)): ?>
-                    <?php foreach ($expenses as $expense): ?>
-                        <tr>
-                            
-                            <td><?php echo htmlspecialchars($expense['expense_date']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['description']); ?></td>
-                            <td>$<?php echo htmlspecialchars($expense['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
-                            <td>
-                                <button type="button" class="btn btn-success save-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
-                                <button type="button" class="btn btn-warning delete-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
-                                <button type="button" class="btn btn-info save-pdf-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-eye-line mr-0"></i></button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6">No expenses found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5">No expenses found.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
                 </div>
             </div>
         </div>
@@ -580,6 +641,83 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    // Enable inline editing on click
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text();
+        var input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+        $this.html(input);
+        input.focus();
+        input.on('blur', function() {
+            var newText = $(this).val();
+            $this.html(newText);
+        });
+        input.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $(this).blur();
+            }
+        });
+    });
+
+    // Save updated expense details
+    $('.save-btn').on('click', function() {
+        var $row = $(this).closest('tr');
+        var expenseId = $(this).data('expense-id');
+        var expenseDate = $row.find('[data-field="expense_date"]').text().trim();
+        var description = $row.find('[data-field="description"]').text().trim();
+        var amount = $row.find('[data-field="amount"]').text().trim();
+        var createdBy = $row.find('[data-field="created_by"]').text().trim();
+
+        $.post('update_expense.php', {
+            id: expenseId,
+            expense_date: expenseDate,
+            description: description,
+            amount: amount,
+            created_by: createdBy,
+            action: 'update'
+        })
+        .done(function(response) {
+            alert('Expense updated successfully!');
+        })
+        .fail(function() {
+            alert('Error updating expense.');
+        });
+    });
+
+    // Delete an expense
+    $('.delete-btn').on('click', function() {
+        if (confirm('Are you sure you want to delete this expense?')) {
+            var expenseId = $(this).data('expense-id');
+            $.post('update_expense.php', {
+                id: expenseId,
+                action: 'delete'
+            })
+            .done(function(response) {
+                alert('Expense deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            })
+            .fail(function() {
+                alert('Error deleting expense.');
+            });
+        }
+    });
+
+    // Save an expense as PDF
+    $('.save-pdf-btn').on('click', function() {
+        var expenseId = $(this).data('expense-id');
+        window.location.href = 'generate_pdf.php?id=' + expenseId;
+    });
+});
+</script>
+
+
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
