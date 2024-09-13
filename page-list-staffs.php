@@ -36,10 +36,70 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
     // Retrieve staff from the staff table
-    $staff_query = "SELECT staff_name, staff_email, staff_phone, position FROM staffs";
+    $staff_query = "SELECT staff_id, staff_name, staff_email, staff_phone, position FROM staffs";
     $stmt = $connection->prepare($staff_query);
     $stmt->execute();
     $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+   // Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $staff_id = $_POST['staff_id'] ?? null;
+
+    if ($action === 'edit') {
+        // Handle edit action
+        if ($staff_id) {
+            header("Location: edit_staff.php?staff_id=" . urlencode($staff_id));
+            exit;
+        }
+    } elseif ($action === 'delete') {
+        // Handle delete action
+        if ($staff_id) {
+            $delete_query = "DELETE FROM staff WHERE staff_id = :staff_id";
+            $stmt = $connection->prepare($delete_query);
+            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
+            $stmt->execute();
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+            exit;
+        }
+    } elseif ($action === 'save_pdf') {
+        // Handle save as PDF action
+        require('fpdf/fpdf.php'); // Include your PDF library
+
+        if ($staff_id) {
+            $query = "SELECT * FROM staff WHERE staff_id = :staff_id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($staff) {
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Staff Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($staff['staff_name']));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Email: ' . htmlspecialchars($staff['staff_email']));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Phone: ' . htmlspecialchars($staff['staff_phone']));
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Position: ' . htmlspecialchars($staff['position']));
+
+                // Output the PDF
+                $pdf->Output('D', 'staff_' . $staff_id . '.pdf');
+            } else {
+                echo 'Staff not found.';
+            }
+        } else {
+            echo 'No staff ID provided.';
+        }
+        exit;
+    }
+}
+
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -540,29 +600,36 @@ try {
                         </tr>
                     </thead>
                     <tbody class="light-body">
-                        <?php if (!empty($staff)): ?>
-                            <?php foreach ($staff as $staff): ?>
-                                <tr>
-                                    
-                                    <td><?php echo htmlspecialchars($staff['staff_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($staff['staff_email']); ?></td>
-                                    <td><?php echo htmlspecialchars($staff['staff_phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($staff['position']); ?></td>
-                                    <td>
-                                        <div class="d-flex align-items-center list-action">
-                                            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6">No staffs found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
+    <?php if (!empty($staff)): ?>
+        <?php foreach ($staff as $member): ?>
+            <tr data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                <td class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
+                <td class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
+                <td class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
+                <td class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>
+                <td>
+                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                    </button>
+                    <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                    </button>
+                    <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                        <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                    </button>
+                </td>
+
+            </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="5">No staff data found.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
+
+
                 </table>
                 </div>
             </div>
@@ -600,5 +667,97 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    // Make table cells editable
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text();
+        var $input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+
+        // Replace cell content with input field
+        $this.html($input);
+        $input.focus();
+
+        // Handle input blur
+        $input.on('blur', function() {
+            var newText = $(this).val();
+            var $parentRow = $this.closest('tr');
+            var staffId = $parentRow.data('staff-id');
+            var field = $this.data('field');
+
+            // Update cell content
+            $this.html(newText);
+
+            // Save updated data
+            $.post('update_staff.php', {
+                staff_id: staffId,
+                field: field,
+                value: newText,
+                action: 'update'
+            })
+            .done(function() {
+                console.log('Staff data updated successfully.');
+            })
+            .fail(function() {
+                alert('Error updating staff data.');
+            });
+        });
+
+        // Submit on Enter key
+        $input.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $input.blur();
+            }
+        });
+    });
+
+    // Handle save PDF button click
+    $('.save-pdf-btn').on('click', function() {
+        var staffId = $(this).data('staff-id');
+        window.location.href = 'generate_pdf.php?staff_id=' + staffId;
+    });
+
+    // Handle edit button click
+    $('.edit-btn').on('click', function() {
+        var staffId = $(this).data('staff-id');
+        window.location.href = 'edit_staff.php?staff_id=' + staffId;
+    });
+
+    // Handle delete button click
+    $('.delete-btn').on('click', function() {
+        if (confirm('Are you sure you want to delete this staff data?')) {
+            var staffId = $(this).data('staff-id');
+
+            $.post('update_staff.php', {
+                staff_id: staffId,
+                action: 'delete'
+            })
+            .done(function() {
+                alert('Staff data deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            })
+            .fail(function() {
+                alert('Error deleting staff data.');
+            });
+        }
+    });
+});
+</script>
+
+    <script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
   </body>
 </html>
