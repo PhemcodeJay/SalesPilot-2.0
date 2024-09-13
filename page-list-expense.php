@@ -8,6 +8,9 @@ session_start([
 ]);
 
 include('config.php'); // Includes database connection
+require 'vendor/autoload.php';
+require('fpdf/fpdf.php');
+
 
 try {
     // Check if username is set in session
@@ -528,11 +531,9 @@ try {
                             <td>$<?php echo htmlspecialchars($expense['amount']); ?></td>
                             <td><?php echo htmlspecialchars($expense['created_by']); ?></td>
                             <td>
-                                <div class="d-flex align-items-center list-action">
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                    <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                </div>
+                                <button type="button" class="btn btn-success save-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
+                                <button type="button" class="btn btn-warning delete-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
+                                <button type="button" class="btn btn-info save-pdf-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-eye-line mr-0"></i></button>
                             </td>
                         </tr>
                     <?php endforeach; ?>

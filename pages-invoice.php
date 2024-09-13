@@ -8,6 +8,9 @@ session_start([
 ]);
 
 require 'config.php'; // Include your database connection script
+require 'vendor/autoload.php';
+require('fpdf/fpdf.php');
+
 
 try {
     // Check if username is set in session

@@ -275,7 +275,7 @@ try {
                                   </li>
                                   <li class="">
                                           <a href="http://localhost/project/page-add-expense.php">
-                                              <i class="las la-minus"></i><span>Add Expenses/span>
+                                              <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
                           </ul>
@@ -591,7 +591,7 @@ try {
                         <th>Product Name</th>
                         <th>Inventory Qty</th>
                         <th>Category</th>
-                        <th>Action</th>
+                        
                     </tr>
                 </thead>
                 <tbody class="ligth-body">
@@ -610,16 +610,9 @@ try {
                                 <?php echo htmlspecialchars($product['product_name']); ?>
                                 <p class="mb-0"><small><?php echo htmlspecialchars($product['description']); ?></small></p>
                             </td>
-                            <td><?php echo htmlspecialchars($product['inventory_qty']); ?></td>
+                            <td><span class="editable" data-field="customer_name"><?php echo htmlspecialchars($product['inventory_qty']); ?></span></td>
                             <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                            <td>
-                                <div class="d-flex align-items-center list-action">
-                                    
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                </div>
-                            </td>
+                            
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

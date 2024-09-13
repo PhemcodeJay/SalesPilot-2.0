@@ -530,10 +530,16 @@ $connection = null;
 </li>
 
                               <li class="nav-item nav-icon dropdown caption-content">
+                                
                                           <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <img src="<?php echo 'http://localhost/project/uploads/user/' . (!empty($user_info['user_image']) ? $user_info['user_image'] : 'default.png'); ?>" 
-                                                                                                            alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                                    <!-- Hidden fields for user ID and existing image -->
+                                <input type="hidden" name="id" value="<?php echo $user_id; ?>">
+                                <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
+
+                                                    <img class="crm-profile-pic rounded-circle avatar-100" 
+                                                        src="<?php echo $existing_image ?: 'uploads/user/default.png'; ?>" 
+                                                        alt="profile-pic">
                                                     </a>
 
 

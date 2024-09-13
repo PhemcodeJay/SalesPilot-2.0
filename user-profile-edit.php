@@ -18,7 +18,7 @@ try {
     $username = htmlspecialchars($_SESSION["username"]);
 
     // Retrieve user information from the users table
-    $user_query = "SELECT id, username, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -31,6 +31,7 @@ try {
     // Retrieve user details
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
+    $location = htmlspecialchars($_POST['location']);
     $user_id = htmlspecialchars($user_info['id']);
     $existing_image = htmlspecialchars($user_info['user_image']);
     $image_to_display = $existing_image ?: 'uploads/user/default.png'; // Use default image if none exists
@@ -56,9 +57,9 @@ try {
                 mkdir($target_dir, 0755, true);
             }
 
-            // Check file size (limit to 2MB)
-            if ($_FILES['user_image']['size'] > 2000000) {
-                exit("Error: File is too large. Maximum allowed size is 2MB.");
+            // Check file size (limit to 10MB)
+            if ($_FILES['user_image']['size'] > 10000000) {
+                exit("Error: File is too large. Maximum allowed size is 10MB.");
             }
 
             // Only allow JPEG and PNG files
@@ -700,19 +701,12 @@ try {
                                 </div>
                             </div>
                             
-                            <!-- Email and SMS Notification Settings -->
+                            <!-- Email Notification Settings -->
                             <div class="form-group row align-items-center">
                                 <label class="col-md-3" for="emailnotification">Email Notification:</label>
                                 <div class="col-md-9 custom-control custom-switch">
                                     <input type="checkbox" class="custom-control-input" id="emailnotification" checked="">
                                     <label class="custom-control-label" for="emailnotification"></label>
-                                </div>
-                            </div>
-                            <div class="form-group row align-items-center">
-                                <label class="col-md-3" for="smsnotification">SMS Notification:</label>
-                                <div class="col-md-9 custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="smsnotification" checked="">
-                                    <label class="custom-control-label" for="smsnotification"></label>
                                 </div>
                             </div>
 
@@ -726,33 +720,13 @@ try {
                                     </div>
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" id="email02">
-                                        <label class="custom-control-label" for="email02">You're sent a direct message</label>
+                                        <label class="custom-control-label" for="email02">Send a mail message</label>
                                     </div>
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="email03" checked="">
-                                        <label class="custom-control-label" for="email03">Someone adds you as a connection</label>
-                                    </div>
+                                    
                                 </div>
                             </div>
 
-                            <!-- When To Escalate Emails -->
-                            <div class="form-group row align-items-center">
-                                <label class="col-md-3" for="escalate-options">When To Escalate Emails</label>
-                                <div class="col-md-9">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="email04">
-                                        <label class="custom-control-label" for="email04"> Upon new order.</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="email05">
-                                        <label class="custom-control-label" for="email05"> New membership approval</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="email06" checked="">
-                                        <label class="custom-control-label" for="email06"> Member registration</label>
-                                    </div>
-                                </div>
-                            </div>
+                           
 
                             <!-- Submit and Reset Buttons -->
                             <button type="submit" class="btn btn-primary mr-2">Submit</button>
@@ -783,11 +757,11 @@ try {
                             <!-- Contact Number and Location -->
                             <div class="form-group">
                                 <label for="phone">Contact Number:</label>
-                                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $phone; ?>">
+                                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $user_info['phone']; ?>">
                             </div>
                             <div class="form-group">
                                 <label for="location">Location:</label>
-                                <input type="text" class="form-control" id="location" name="location" value="<?php echo $location; ?>">
+                                <input type="text" class="form-control" id="location" name="location" value="<?php echo $user_info['location']; ?>">
                             </div>
                             
                             <!-- Submit and Reset Buttons -->

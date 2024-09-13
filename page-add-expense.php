@@ -99,7 +99,7 @@ try {
         // Execute the statement and check for success
         if ($stmt->execute()) {
             // Redirect back to listing page after insertion
-            header('Location: page-list-expenses.php');
+            header('Location: page-list-expense.php');
             exit();
         } else {
             // Log the error if insertion failed

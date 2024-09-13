@@ -110,8 +110,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                     $staff_id = $connection->lastInsertId();
                 } else {
                     throw new Exception("Failed to add new staff member.");
-                }
-            }
+                }  
+            };
 
 
             // Retrieve customer_id from the customers table
@@ -641,97 +641,102 @@ try {
                         </div>
                     </div>
                     <div class="card-body">
-                    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data">
-    <div class="row">
-        <!-- Product Name -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="product_name">Product Name *</label>
-                <input type="text" id="product_name" name="name" class="form-control" placeholder="Enter Product Name" required>
-            </div>
-        </div>
+                    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data" data-toggle="validator">
+    
+                    <div class="row">
+                    <!-- Product Name -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name">Product Name *</label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Enter Product Name" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
 
-        <!-- Price -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="price">Price *</label>
-                <input type="number" id="price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0">
-            </div>
-        </div>
+                    <!-- Price -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="total_price">Price *</label>
+                            <input type="number" id="total_price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0">
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
 
-        <!-- Customer Name -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="customer_name">Customer *</label>
-                <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
-            </div>
-        </div>
+                    <!-- Customer Name -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="customer_name">Customer *</label>
+                            <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
 
-        <!-- Staff Name -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="staff_name">Staff *</label>
-                <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
-            </div>
-        </div>
+                    <!-- Staff Name -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="staff_name">Staff *</label>
+                            <input type="text" id="staff_name" name="staff_name" class="form-control" placeholder="Enter Staff Name" required>
+                        </div>
+                    </div>
 
-        <!-- Sales Quantity -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="sales_qty">Sales Qty</label>
-                <input type="number" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" min="0" required>
-            </div>
-        </div>
+                    <!-- Sales Quantity -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sales_qty">Sales Qty</label>
+                            <input type="number" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" min="0" required>
+                        </div>
+                    </div>
 
-        <!-- File Upload -->
-        <div class="col-md-12">
-            <div class="form-group">
-                <label for="document">Image *</label>
-                <input type="file" id="document" name="document" class="form-control" accept="image/*" required>
-            </div>
-        </div>
+                    <!-- File Upload -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="document">Image *</label>
+                            <input type="file" id="document" name="document" class="form-control" accept="image/*" required>
+                        </div>
+                    </div>
 
-        <!-- Sale Status -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="sale_status">Sale Status *</label>
-                <select id="sale_status" name="sale_status" class="form-control" required>
-                    <option value="Completed">Completed</option>
-                    <option value="Pending">Pending</option>
-                </select>
-            </div>
-        </div>
+                    <!-- Sale Status -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sale_status">Sale Status *</label>
+                            <select id="sale_status" name="sale_status" class="form-control" required>
+                                <option value="Completed">Completed</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
 
-        <!-- Payment Status -->
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="payment_status">Payment Status *</label>
-                <select id="payment_status" name="payment_status" class="form-control" required>
-                    <option value="Pending">Pending</option>
-                    <option value="Due">Due</option>
-                    <option value="Paid">Paid</option>
-                </select>
-            </div>
-        </div>
+                    <!-- Payment Status -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="payment_status">Payment Status *</label>
+                            <select id="payment_status" name="payment_status" class="form-control" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Due">Due</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                        </div>
+                    </div>
 
-        <!-- Sale Note -->
-        <div class="col-md-12">
-            <div class="form-group">
-                <label for="sale_note">Sale Note</label>
-                <textarea id="sale_note" name="sale_note" class="form-control" placeholder="Additional sale notes (optional)" rows="3"></textarea>
-            </div>
-        </div>
-    </div>
-
-    <!-- Submit Button -->
-    <button type="submit" class="btn btn-primary mr-2" name="submit">Add Sale</button>
-</form>
-
-        
+                    <!-- Sale Note -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="sale_note">Sale Note</label>
+                            <textarea id="sale_note" name="sale_note" class="form-control" placeholder="Additional sale notes (optional)" rows="3"></textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary mr-2">Add Sale</button>
+                <button type="reset" class="btn btn-danger">Reset</button>
+            </form>
+
+                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
         <!-- Page end  -->
     </div>
       </div>

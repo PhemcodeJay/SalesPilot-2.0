@@ -17,6 +17,9 @@ echo "Session started.<br>";
 
 // Include database connection
 include('config.php');
+require 'vendor/autoload.php';
+require('fpdf/fpdf.php');
+
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
