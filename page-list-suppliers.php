@@ -11,16 +11,23 @@ include('config.php'); // Includes database connection
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
-
+// Ensure the database connection is properly initialized
 try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
+    $connection = new PDO($dsn, $username, $password, $options);
+} catch (PDOException $e) {
+    error_log("Database Connection Error: " . $e->getMessage());
+    exit("Database Connection Error: " . $e->getMessage());
+}
 
-    $username = htmlspecialchars($_SESSION["username"]);
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    exit("No username found in session.");
+}
 
-    // Retrieve user information from the users table
+$username = htmlspecialchars($_SESSION["username"]);
+
+// Retrieve user information from the users table
+try {
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -28,21 +35,29 @@ try {
     $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user_info) {
-        throw new Exception("User not found.");
+        exit("User not found.");
     }
 
     // Retrieve user email and registration date
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
 
-    // Ensure this PHP script is accessed through a POST request
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Check if the user is logged in
-        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            throw new Exception("User is not logged in.");
-        }
+// Handle form submissions
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+        exit("User is not logged in.");
+    }
 
-        // Sanitize and validate form inputs
+    $action = $_POST['action'] ?? null;
+    $supplier_id = $_POST['supplier_id'] ?? null;
+    $field = $_POST['field'] ?? null;
+    $value = $_POST['value'] ?? null;
+
+    if ($action === 'insert') {
         $supplier_name = htmlspecialchars(trim($_POST['supplier_name']));
         $product_name = htmlspecialchars(trim($_POST['product_name']));
         $supplier_email = htmlspecialchars(trim($_POST['supplier_email']));
@@ -52,44 +67,115 @@ try {
         $supply_qty = intval($_POST['supply_qty']);
 
         if (empty($supplier_name) || empty($product_name) || empty($supply_qty)) {
-            throw new Exception("Supplier name, product name, and supply quantity are required.");
+            exit("Supplier name, product name, and supply quantity are required.");
         }
 
-        // Insert new supplier
-        $insert_supplier_query = "INSERT INTO suppliers (supplier_name, product_name, supplier_email, supplier_phone, supplier_location, note, supply_qty) 
-                                  VALUES (:supplier_name, :product_name, :supplier_email, :supplier_phone, :supplier_location, :note, :supply_qty)";
-        
-        $stmt = $connection->prepare($insert_supplier_query);
-        $stmt->bindParam(':supplier_name', $supplier_name);
-        $stmt->bindParam(':product_name', $product_name);
-        $stmt->bindParam(':supplier_email', $supplier_email);
-        $stmt->bindParam(':supplier_phone', $supplier_phone);
-        $stmt->bindParam(':supplier_location', $supplier_location);
-        $stmt->bindParam(':note', $note);
-        $stmt->bindParam(':supply_qty', $supply_qty);
-        
-        // Execute the statement and check for success
-        if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
-            header('Location: page-list-suppliers.php');
-            exit();
+        try {
+            $insert_supplier_query = "INSERT INTO suppliers (supplier_name, product_name, supplier_email, supplier_phone, supplier_location, note, supply_qty) 
+                                      VALUES (:supplier_name, :product_name, :supplier_email, :supplier_phone, :supplier_location, :note, :supply_qty)";
+            $stmt = $connection->prepare($insert_supplier_query);
+            $stmt->bindParam(':supplier_name', $supplier_name);
+            $stmt->bindParam(':product_name', $product_name);
+            $stmt->bindParam(':supplier_email', $supplier_email);
+            $stmt->bindParam(':supplier_phone', $supplier_phone);
+            $stmt->bindParam(':supplier_location', $supplier_location);
+            $stmt->bindParam(':note', $note);
+            $stmt->bindParam(':supply_qty', $supply_qty);
+            
+            if ($stmt->execute()) {
+                header('Location: page-list-suppliers.php');
+                exit();
+            } else {
+                error_log("Supplier insertion failed: " . implode(" | ", $stmt->errorInfo()));
+                exit("Supplier insertion failed.");
+            }
+        } catch (PDOException $e) {
+            error_log("PDO Error: " . $e->getMessage());
+            exit("Database Error: " . $e->getMessage());
+        }
+    } elseif ($action === 'update') {
+        if ($supplier_id && $field) {
+            try {
+                $update_query = "UPDATE suppliers SET $field = :value WHERE id = :supplier_id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':value', $value);
+                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
+                $stmt->execute();
+                echo 'Update successful';
+            } catch (PDOException $e) {
+                error_log("PDO Error: " . $e->getMessage());
+                exit("Database Error: " . $e->getMessage());
+            }
+            exit;
         } else {
-            // Log the error if insertion failed
-            error_log("Supplier insertion failed: " . implode(" | ", $stmt->errorInfo()));
-            throw new Exception("Supplier insertion failed.");
+            echo 'Missing data';
+            exit;
+        }
+    } elseif ($action === 'delete') {
+        if ($supplier_id) {
+            try {
+                $delete_query = "DELETE FROM suppliers WHERE id = :supplier_id";
+                $stmt = $connection->prepare($delete_query);
+                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
+                $stmt->execute();
+                echo 'Delete successful';
+            } catch (PDOException $e) {
+                error_log("PDO Error: " . $e->getMessage());
+                exit("Database Error: " . $e->getMessage());
+            }
+            exit;
+        } else {
+            echo 'No supplier ID provided.';
+            exit;
+        }
+    } elseif ($action === 'save_pdf') {
+        if ($supplier_id) {
+            try {
+                $query = "SELECT * FROM suppliers WHERE id = :supplier_id";
+                $stmt = $connection->prepare($query);
+                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
+                $stmt->execute();
+                $supplier = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($supplier) {
+                    $pdf = new FPDF();
+                    $pdf->AddPage();
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->Cell(40, 10, 'Supplier Details');
+                    $pdf->Ln();
+                    $pdf->SetFont('Arial', '', 12);
+                    $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($supplier['supplier_name']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($supplier['product_name']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Email: ' . htmlspecialchars($supplier['supplier_email']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Phone: ' . htmlspecialchars($supplier['supplier_phone']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Location: ' . htmlspecialchars($supplier['supplier_location']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Note: ' . htmlspecialchars($supplier['note']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Supply Quantity: ' . htmlspecialchars($supplier['supply_qty']));
+
+                    // Output the PDF
+                    $pdf->Output('D', 'supplier_' . $supplier_id . '.pdf');
+                } else {
+                    echo 'Supplier not found.';
+                }
+            } catch (PDOException $e) {
+                error_log("PDO Error: " . $e->getMessage());
+                exit("Database Error: " . $e->getMessage());
+            }
+            exit;
+        } else {
+            echo 'No supplier ID provided.';
+            exit;
         }
     } else {
-        // Handle if the script is accessed directly or through another method
-        echo "Invalid request";
+        echo "Invalid action.";
+        exit;
     }
-} catch (PDOException $e) {
-    // Handle database errors
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle other errors
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
 }
 
 // Fetch supplier data from the database
@@ -103,8 +189,8 @@ try {
     exit("Database Error: " . $e->getMessage());
 }
 
+// Fetch inventory notifications with product images
 try {
-    // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
         FROM inventory i
@@ -116,9 +202,14 @@ try {
         ':low_stock' => 10,
         ':high_stock' => 1000,
     ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
 
-    // Fetch reports notifications with product images
+// Fetch reports notifications with product images
+try {
     $reportsQuery = $connection->prepare("
         SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
                JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
@@ -133,10 +224,10 @@ try {
         ':high_revenue' => 10000,
         ':low_revenue' => 1000,
     ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
 }
 ?>
 
@@ -600,32 +691,51 @@ try {
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody class="ligth-body">
-                            <?php foreach ($suppliers as $supplier): ?>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox d-inline-block">
-                                            <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $supplier['id']; ?>">
-                                            <label for="checkbox<?php echo $supplier['id']; ?>" class="mb-0"></label>
-                                        </div>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['product_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['supplier_location']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['note']); ?></td>
-                                    <td><?php echo htmlspecialchars($supplier['supply_qty']); ?></td>
-                                    <td>
-                                        <div class="d-flex align-items-center list-action">
-                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
+                        <tbody class="light-body">
+    <?php foreach ($suppliers as $supplier): ?>
+        <tr data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>">
+            <td>
+                <div class="checkbox d-inline-block">
+                    <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $supplier['id']; ?>">
+                    <label for="checkbox<?php echo $supplier['id']; ?>" class="mb-0"></label>
+                </div>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_name" value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm inline-edit" name="product_name" value="<?php echo htmlspecialchars($supplier['product_name']); ?>">
+            </td>
+            <td>
+                <input type="email" class="form-control form-control-sm inline-edit" name="supplier_email" value="<?php echo htmlspecialchars($supplier['supplier_email']); ?>">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_phone" value="<?php echo htmlspecialchars($supplier['supplier_phone']); ?>">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_location" value="<?php echo htmlspecialchars($supplier['supplier_location']); ?>">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm inline-edit" name="note" value="<?php echo htmlspecialchars($supplier['note']); ?>">
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm inline-edit" name="supply_qty" value="<?php echo htmlspecialchars($supplier['supply_qty']); ?>">
+            </td>
+            <td>
+                <button type="button" class="btn btn-success action-btn" data-action="edit" data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>" data-toggle="tooltip" data-placement="top" title="Edit">
+                    <i class="ri-pencil-line mr-0"></i>
+                </button>
+                <button type="button" class="btn btn-warning action-btn" data-action="delete" data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>" data-toggle="tooltip" data-placement="top" title="Delete">
+                    <i class="ri-delete-bin-line mr-0"></i>
+                </button>
+                <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>" data-toggle="tooltip" data-placement="top" title="Save as PDF">
+                    <i class="ri-eye-line mr-0"></i>
+                </button>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+
                     </table>
                 </div>
             </div>
@@ -663,6 +773,74 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.action-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const action = this.getAttribute('data-action');
+            const supplierId = this.getAttribute('data-supplier-id');
+            const row = this.closest('tr');
+
+            if (action === 'edit') {
+                // Collect data from the row for editing
+                const formData = new FormData();
+                formData.append('action', 'update');
+                formData.append('supplier_id', supplierId);
+
+                row.querySelectorAll('.inline-edit').forEach(input => {
+                    formData.append(input.name, input.value);
+                });
+
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.text()).then(result => {
+                    console.log(result); // Handle response
+                    alert(result);
+                }).catch(error => console.error('Error:', error));
+
+            } else if (action === 'delete') {
+                if (confirm('Are you sure you want to delete this supplier?')) {
+                    const formData = new FormData();
+                    formData.append('action', 'delete');
+                    formData.append('supplier_id', supplierId);
+
+                    fetch('', {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => response.text()).then(result => {
+                        console.log(result); // Handle response
+                        alert(result);
+                        if (result.includes('Delete successful')) {
+                            row.remove(); // Remove the row from the table
+                        }
+                    }).catch(error => console.error('Error:', error));
+                }
+                
+            } else if (action === 'save_pdf') {
+                const formData = new FormData();
+                formData.append('action', 'save_pdf');
+                formData.append('supplier_id', supplierId);
+
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.blob()).then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `supplier_${supplierId}.pdf`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                }).catch(error => console.error('Error:', error));
+            }
+        });
+    });
+});
+</script>
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
