@@ -700,27 +700,14 @@ try {
                     <label for="checkbox<?php echo $supplier['id']; ?>" class="mb-0"></label>
                 </div>
             </td>
-            <td>
-                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_name" value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
-            </td>
-            <td>
-                <input type="text" class="form-control form-control-sm inline-edit" name="product_name" value="<?php echo htmlspecialchars($supplier['product_name']); ?>">
-            </td>
-            <td>
-                <input type="email" class="form-control form-control-sm inline-edit" name="supplier_email" value="<?php echo htmlspecialchars($supplier['supplier_email']); ?>">
-            </td>
-            <td>
-                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_phone" value="<?php echo htmlspecialchars($supplier['supplier_phone']); ?>">
-            </td>
-            <td>
-                <input type="text" class="form-control form-control-sm inline-edit" name="supplier_location" value="<?php echo htmlspecialchars($supplier['supplier_location']); ?>">
-            </td>
-            <td>
-                <input type="text" class="form-control form-control-sm inline-edit" name="note" value="<?php echo htmlspecialchars($supplier['note']); ?>">
-            </td>
-            <td>
-                <input type="number" class="form-control form-control-sm inline-edit" name="supply_qty" value="<?php echo htmlspecialchars($supplier['supply_qty']); ?>">
-            </td>
+            <td class="editable" data-field="supplier_name"><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+<td class="editable" data-field="product_name"><?php echo htmlspecialchars($supplier['product_name']); ?></td>
+<td class="editable" data-field="supplier_email"><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
+<td class="editable" data-field="supplier_phone"><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
+<td class="editable" data-field="supplier_location"><?php echo htmlspecialchars($supplier['supplier_location']); ?></td>
+<td class="editable" data-field="note"><?php echo htmlspecialchars($supplier['note']); ?></td>
+<td class="editable" data-field="supply_qty"><?php echo htmlspecialchars($supplier['supply_qty']); ?></td>
+
             <td>
                 <button type="button" class="btn btn-success action-btn" data-action="edit" data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>" data-toggle="tooltip" data-placement="top" title="Edit">
                     <i class="ri-pencil-line mr-0"></i>

@@ -12,6 +12,31 @@ require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $invoice_id = $_POST['invoice_id'] ?? null;
+
+    if ($action === 'view' && $invoice_id) {
+        $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($invoice) {
+            echo json_encode([
+                'success' => true,
+                'invoice_number' => $invoice['invoice_number'],
+                'customer_name' => $invoice['customer_name'],
+                'order_date' => $invoice['order_date'],
+                'total_amount' => $invoice['total_amount']
+            ]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+    }
+}
+
 try {
     // Check if username is set in session
     if (!isset($_SESSION["username"])) {
@@ -529,27 +554,28 @@ try {
           </div>
       </div>
       <div class="modal fade" id="new-order" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered" role="document">
-              <div class="modal-content">
-                  <div class="modal-body">
-                      <div class="popup text-left">
-                          <h4 class="mb-3">New Invoice</h4>
-                          <div class="content create-workform bg-body">
-                              <div class="pb-3">
-                                  <label class="mb-2">Name</label>
-                                  <input type="text" class="form-control" placeholder="Enter Customer Name">
-                              </div>
-                              <div class="col-lg-12 mt-4">
-                                  <div class="d-flex flex-wrap align-items-ceter justify-content-center">
-                                      <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
-                                      <div class="btn btn-outline-primary" data-dismiss="modal">Create</div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="popup text-left">
+                    <h4 class="mb-3">New Invoice</h4>
+                    <div class="content create-workform bg-body">
+                        <div class="pb-3">
+                            <label class="mb-2">Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter Customer Name">
+                        </div>
+                        <div class="col-lg-12 mt-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-center">
+                                <div class="btn btn-primary mr-4" data-dismiss="modal">Cancel</div>
+                                <div class="btn btn-outline-primary" id="createButton">Create</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
       </div>      <div class="content-page">  
       <div class="container-fluid">
       <div class="container">
@@ -661,30 +687,66 @@ try {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($invoices as $invoice): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
-                            <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
-                            <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
-                            <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
-                            <td>
-                                        <div class="d-flex align-items-center list-action">
-                                            <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View" href="#"><i class="ri-eye-line mr-0"></i></a>
-                                            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit" href="#"><i class="ri-pencil-line mr-0"></i></a>
-                                            <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" href="#"><i class="ri-delete-bin-line mr-0"></i></a>
-                                        </div>
-                            </td>
+    <?php foreach ($invoices as $invoice): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
+            <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
+            <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+            <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
+            <td>
+                <div class="d-flex align-items-center list-action">
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
+                        <input type="hidden" name="action" value="view">
+                        <button type="submit" class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"><i class="ri-eye-line mr-0"></i></button>
+                    </form>
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
+                        <input type="hidden" name="action" value="save_pdf">
+                        <button type="submit" class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF"><i class="ri-download-line mr-0"></i></button>
+                    </form>
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
+                        <input type="hidden" name="action" value="edit">
+                        <button type="submit" class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class="ri-pencil-line mr-0"></i></button>
+                    </form>
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');"><i class="ri-delete-bin-line mr-0"></i></button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
 
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
             </table>
         <?php endif; ?>
     </div>
       </div>
     </div>
     <!-- Wrapper End-->
+     <!-- Modal for displaying invoice details -->
+<div id="invoiceModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invoice Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="invoiceModalContent" class="modal-body">
+                <!-- Invoice details will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer-->
     <footer class="iq-footer">
             <div class="container-fluid">
             <div class="card">
@@ -712,5 +774,132 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const action = this.getAttribute('data-action');
+                const invoiceId = this.getAttribute('data-invoice-id');
+                const row = this.closest('tr');
+
+                if (action === 'view') {
+                    fetch('fetch_invoice.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            action: 'view',
+                            invoice_id: invoiceId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Assuming you have a modal or section with id 'invoiceModal'
+                            document.getElementById('invoiceModalContent').innerHTML = `
+                                <h3>Invoice Details</h3>
+                                <p><strong>Invoice Number:</strong> ${data.invoice_number}</p>
+                                <p><strong>Customer Name:</strong> ${data.customer_name}</p>
+                                <p><strong>Order Date:</strong> ${data.order_date}</p>
+                                <p><strong>Total Amount:</strong> ${data.total_amount}</p>
+                            `;
+                            $('#invoiceModal').modal('show'); // Show the modal
+                        } else {
+                            alert('Invoice not found.');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+                // Handle other actions here
+            });
+        });
+    });
+</script>
+<script>
+$(document).ready(function() {
+    // Edit functionality
+    $('.editable').on('click', function() {
+        var $this = $(this);
+        var currentText = $this.text();
+        var input = $('<input>', {
+            type: 'text',
+            value: currentText,
+            class: 'form-control form-control-sm'
+        });
+        $this.html(input);
+        input.focus();
+
+        // Save the new text when the input loses focus or Enter key is pressed
+        input.on('blur keypress', function(e) {
+            if (e.type === 'blur' || e.which === 13) { // Enter key
+                var newText = $(this).val();
+                $this.html(newText);
+            }
+        });
+    });
+
+    // View functionality
+    $('.view-btn').on('click', function() {
+        var $row = $(this).closest('tr');
+        var invoiceId = $(this).data('invoice-id');
+
+        $.post('fetch_invoice.php', {
+            action: 'view',
+            invoice_id: invoiceId
+        }, function(data) {
+            if (data.success) {
+                // Assuming you have a modal with id 'invoiceModal'
+                $('#invoiceModalContent').html(`
+                    <h3>Invoice Details</h3>
+                    <p><strong>Invoice Number:</strong> ${data.invoice_number}</p>
+                    <p><strong>Customer Name:</strong> ${data.customer_name}</p>
+                    <p><strong>Order Date:</strong> ${data.order_date}</p>
+                    <p><strong>Total Amount:</strong> ${data.total_amount}</p>
+                `);
+                $('#invoiceModal').modal('show'); // Show the modal
+            } else {
+                alert('Invoice not found.');
+            }
+        }, 'json').fail(function() {
+            alert('Error fetching invoice details.');
+        });
+    });
+
+    // Save PDF functionality
+    $('.save-pdf-btn').on('click', function() {
+        var invoiceId = $(this).data('invoice-id');
+        window.location.href = 'generate_pdf.php?invoice_id=' + invoiceId;
+    });
+
+    // Delete functionality
+    $('.delete-btn').on('click', function() {
+        if (confirm('Are you sure you want to delete this invoice?')) {
+            var invoiceId = $(this).data('invoice-id');
+            $.post('update_invoice.php', {
+                action: 'delete',
+                invoice_id: invoiceId
+            }, function(response) {
+                alert('Invoice deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
+            }).fail(function() {
+                alert('Error deleting invoice.');
+            });
+        }
+    });
+});
+</script>
+
   </body>
 </html>
