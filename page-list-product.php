@@ -19,7 +19,7 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
-// Retrieve user information from the Staffs table
+// Retrieve user information from the Users table
 try {
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
