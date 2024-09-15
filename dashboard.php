@@ -47,11 +47,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         exit("Database error: " . $e->getMessage());
     }
 
-    // Display the user image in the <img> tag
-    echo '<img src="http://localhost/project/uploads/user/' . $user_image . '" alt="profile-img" class="rounded profile-img img-fluid avatar-70">';
-} else {
-    // Handle cases where the user is not logged in
-    echo '<img src="http://localhost/project/uploads/user/default.png" alt="profile-img" class="rounded profile-img img-fluid avatar-70">';
+    
 }
 
 
