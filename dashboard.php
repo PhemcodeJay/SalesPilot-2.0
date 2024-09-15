@@ -19,20 +19,15 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
     
     try {
-        $stmt = $connection->prepare('SELECT email, date, user_image FROM users WHERE username = ?');
+        // Fetch user data including user image
+        $stmt = $connection->prepare('SELECT id, email, date, user_image FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
         if ($user) {
             $email = htmlspecialchars($user['email']);
-            $user_image = htmlspecialchars($user['user_image']);
-    
-            // Use 'default.png' if no user image is found
-            if (empty($user_image)) {
-                $user_image = 'default.png';
-            }
-    
             $date = date('d F, Y', strtotime($user['date']));
+            $user_image = !empty($user['user_image']) ? htmlspecialchars($user['user_image']) : 'default.png';
             $current_hour = (int)date('H');
     
             if ($current_hour < 12) {
@@ -46,11 +41,19 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
             $greeting = "Hello, Guest";
+            $user_image = 'default.png';  // Fallback to default image for guest
         }
     } catch (PDOException $e) {
         exit("Database error: " . $e->getMessage());
     }
-}  
+
+    // Display the user image in the <img> tag
+    echo '<img src="http://localhost/project/uploads/user/' . $user_image . '" alt="profile-img" class="rounded profile-img img-fluid avatar-70">';
+} else {
+    // Handle cases where the user is not logged in
+    echo '<img src="http://localhost/project/uploads/user/default.png" alt="profile-img" class="rounded profile-img img-fluid avatar-70">';
+}
+
 
 try {
     // Calculate total revenue
@@ -534,12 +537,11 @@ $connection = null;
                                           <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     <!-- Hidden fields for user ID and existing image -->
-                                <input type="hidden" name="id" value="<?php echo $user_id; ?>">
-                                <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
+                                                    <input type="hidden" name="id" value="<?php echo $user_id; ?>">
+                                                    <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
 
-                                                    <img class="crm-profile-pic rounded-circle avatar-100" 
-                                                        src="<?php echo $existing_image ?: 'uploads/user/default.png'; ?>" 
-                                                        alt="profile-pic">
+                                                    <img src="<?php echo 'http://localhost/project/uploads/user/' . (!empty($user_image['user_image']) ? $user_image['user_image'] : 'default.png'); ?>" 
+                                                     alt="profile-img" class="rounded profile-img img-fluid avatar-70">
                                                     </a>
 
 
@@ -552,8 +554,9 @@ $connection = null;
                                                         class="rounded-top img-fluid mb-4">
                                                     
                                                     <!-- User Profile Image -->
-                                                    <img src="<?php echo 'http://localhost/project/uploads/user/' . (!empty($user_info['user_image']) ? $user_info['user_image'] : 'default.png'); ?>" 
-                                                        alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                                    <img src="http://localhost/project/uploads/user/<?php echo !empty($user_image['user_image']) ? htmlspecialchars($user_image['user_image']) : 'default.png'; ?>" 
+                                                       alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+
                                                 </div>
 
 
