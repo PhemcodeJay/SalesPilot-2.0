@@ -16,7 +16,7 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
-// Retrieve user information from the Staffs table
+// Retrieve user information from the users table
 $user_query = "SELECT username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
@@ -27,7 +27,6 @@ if (!$user_info) {
     throw new Exception("User not found.");
 }
 
-// Retrieve user email and registration date
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
@@ -39,101 +38,116 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Sanitize and validate form inputs
-        $name = htmlspecialchars(trim($_POST['name'])); // Product Name
-        $staff_name = htmlspecialchars(trim($_POST['staff_name'])); // Staff Name
-        $product_type = htmlspecialchars(trim($_POST['product_type'])); // Ensure this is one of 'goods', 'services', 'digital'
+        $name = htmlspecialchars(trim($_POST['name']));
+        $staff_name = htmlspecialchars(trim($_POST['staff_name']));
+        $product_type = htmlspecialchars(trim($_POST['product_type']));
         $category = htmlspecialchars(trim($_POST['category_name']));
-        $cost = floatval($_POST['cost']); // Cost (assuming it's a numeric field)
-        $price = floatval($_POST['price']); // Price (assuming it's a numeric field)
-        $stock_qty = intval($_POST['stock_qty']); // Stock Quantity (assuming it's an integer field)
-        $supply_qty = intval($_POST['supply_qty']); // Supply Quantity (assuming it's an integer field)
-        $description = htmlspecialchars(trim($_POST['description'])); // Description
+        $cost = floatval($_POST['cost']);
+        $price = floatval($_POST['price']);
+        $stock_qty = intval($_POST['stock_qty']);
+        $supply_qty = intval($_POST['supply_qty']);
+        $description = htmlspecialchars(trim($_POST['description']));
 
-        // Handle predefined and new categories
         if ($category === 'New') {
             $new_category = htmlspecialchars(trim($_POST['new_category']));
             // Check if the new category already exists
-            $select_category_query = "SELECT category_id FROM categories WHERE category_name = :category_name";
+            $select_category_query = "SELECT category_name FROM categories WHERE category_name = :category_name";
             $stmt = $connection->prepare($select_category_query);
             $stmt->bindParam(':category_name', $new_category);
             $stmt->execute();
-            $category_result = $stmt->fetch();
-            if ($category_result) {
-                $category_id = $category_result['category_id'];
-            } else {
-                // Insert new category into categories table
-                $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category)";
-                $stmt = $connection->prepare($insert_category_query);
-                $stmt->bindParam(':category', $new_category);
-                $stmt->execute();
-                $category_id = $connection->lastInsertId();
-                $category = $new_category; // Use the new category name for the products table
-            }
-        } else {
-            // Retrieve the category_id for the selected category
-            $select_category_query = "SELECT category_id FROM categories WHERE category_name = :category_name";
-            $stmt = $connection->prepare($select_category_query);
-            $stmt->bindParam(':category_name', $category);
-            $stmt->execute();
-            $category_result = $stmt->fetch();
+            $category_result = $stmt->fetch(PDO::FETCH_ASSOC);
+
             if (!$category_result) {
-                throw new Exception("Category not found.");
+                // Insert new category into categories table
+                $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category_name)";
+                $stmt = $connection->prepare($insert_category_query);
+                $stmt->bindParam(':category_name', $new_category);
+                $stmt->execute();
+                $category = $new_category; // Use the new category name for the products table
+            } else {
+                $category = $category_result['category_name'];
             }
-            $category_id = $category_result['category_id'];
         }
 
         // File upload handling
-        $upload_dir = 'uploads/products';
+        $upload_dir = 'uploads/products/';
         $image_name = $_FILES['pic']['name'];
         $image_tmp = $_FILES['pic']['tmp_name'];
-        $image_path = $upload_dir . $image_name;
+        $image_path = $upload_dir . basename($image_name);
 
         // Move uploaded file to designated directory
         if (!move_uploaded_file($image_tmp, $image_path)) {
             throw new Exception("File upload failed.");
         }
 
-        // SQL query for inserting into products table
-        $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category, category_id, cost, price, stock_qty, supply_qty, description, image_path)
-                                 VALUES (:name, :staff_name, :product_type, :category, :category_id, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
-        
-        // Prepare and execute statement
-        $stmt = $connection->prepare($insert_product_query);
+        // Check if the product already exists (to update it)
+        $check_product_query = "SELECT id FROM products WHERE name = :name AND category = :category";
+        $stmt = $connection->prepare($check_product_query);
         $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':staff_name', $staff_name);
-        $stmt->bindParam(':product_type', $product_type);
         $stmt->bindParam(':category', $category);
-        $stmt->bindParam(':category_id', $category_id);
-        $stmt->bindParam(':cost', $cost);
-        $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':stock_qty', $stock_qty);
-        $stmt->bindParam(':supply_qty', $supply_qty);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':image_path', $image_path);
-        
-        // Execute the statement and check for success
-        if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
-            header('Location: page-list-product.php');
-            exit();
+        $stmt->execute();
+        $existing_product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing_product) {
+            // Update existing product
+            $update_product_query = "UPDATE products
+                                     SET staff_name = :staff_name, product_type = :product_type, cost = :cost,
+                                         price = :price, stock_qty = :stock_qty, supply_qty = :supply_qty, description = :description, image_path = :image_path
+                                     WHERE id = :product_id";
+            $stmt = $connection->prepare($update_product_query);
+            $stmt->bindParam(':staff_name', $staff_name);
+            $stmt->bindParam(':product_type', $product_type);
+            $stmt->bindParam(':cost', $cost);
+            $stmt->bindParam(':price', $price);
+            $stmt->bindParam(':stock_qty', $stock_qty);
+            $stmt->bindParam(':supply_qty', $supply_qty);
+            $stmt->bindParam(':description', $description);
+            $stmt->bindParam(':image_path', $image_path);
+            $stmt->bindParam(':product_id', $existing_product['product_id']);
+
+            if ($stmt->execute()) {
+                header('Location: page-list-product.php');
+                exit();
+            } else {
+                error_log("Product update failed: " . implode(" | ", $stmt->errorInfo()));
+                throw new Exception("Product update failed.");
+            }
         } else {
-            // Log the error if insertion failed
-            error_log("Product insertion failed: " . implode(" | ", $stmt->errorInfo()));
-            throw new Exception("Product insertion failed.");
+            // Insert new product if it doesn't exist
+            $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category, cost, price, stock_qty, supply_qty, description, image_path)
+                                     VALUES (:name, :staff_name, :product_type, :category, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
+            
+            $stmt = $connection->prepare($insert_product_query);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':staff_name', $staff_name);
+            $stmt->bindParam(':product_type', $product_type);
+            $stmt->bindParam(':category', $category);
+            $stmt->bindParam(':cost', $cost);
+            $stmt->bindParam(':price', $price);
+            $stmt->bindParam(':stock_qty', $stock_qty);
+            $stmt->bindParam(':supply_qty', $supply_qty);
+            $stmt->bindParam(':description', $description);
+            $stmt->bindParam(':image_path', $image_path);
+
+            if ($stmt->execute()) {
+                header('Location: page-list-product.php');
+                exit();
+            } else {
+                error_log("Product insertion failed: " . implode(" | ", $stmt->errorInfo()));
+                throw new Exception("Product insertion failed.");
+            }
         }
     } catch (PDOException $e) {
-        // Handle database errors
         error_log("PDO Error: " . $e->getMessage());
         exit("Database Error: " . $e->getMessage());
     } catch (Exception $e) {
-        // Handle other errors (e.g., file upload)
         error_log("Error: " . $e->getMessage());
         exit("Error: " . $e->getMessage());
     }
 } else {
-    // Handle if the script is accessed directly or through another method
-    echo "Invalid request";
+    echo "Invalid request.";
 }
+
 
 try {
     // Fetch inventory notifications with product images
@@ -633,8 +647,21 @@ try {
                                 <select name="category_name" class="selectpicker form-control" data-style="py-0" id="categorySelect" required>
                                     <option value="">Select or add category...</option>
                                     
+                                    <?php
+                                    // Fetch categories from the database
+                                    $select_category_query = "SELECT category_name FROM categories";
+                                    $stmt = $connection->prepare($select_category_query);
+                                    $stmt->execute();
+                                    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    
+                                    foreach ($categories as $category) {
+                                        echo '<option value="' . htmlspecialchars($category['category_name']) . '">' . htmlspecialchars($category['category_name']) . '</option>';
+                                    }
+                                    ?>
+
                                     <option value="New">Add New Category...</option>
                                 </select>
+
                                 <input type="text" name="new_category" id="newCategoryInput" class="form-control" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
                                 <div class="help-block with-errors"></div>
                             </div>
