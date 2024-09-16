@@ -57,7 +57,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         // Handle file upload
         if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
             if ($_FILES['document']['size'] > 0) {
-                $upload_dir = 'uploads/';
+                $upload_dir = 'uploads/products';
                 $image_name = basename($_FILES['document']['name']);
                 $image_tmp = $_FILES['document']['tmp_name'];
                 $image_path = $upload_dir . $image_name;

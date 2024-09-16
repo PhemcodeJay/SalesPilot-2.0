@@ -632,16 +632,7 @@ try {
                                 <label>Category *</label>
                                 <select name="category_name" class="selectpicker form-control" data-style="py-0" id="categorySelect" required>
                                     <option value="">Select or add category...</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Apparel">Apparel</option>
-                                    <option value="Food">Food</option>
-                                    <option value="Beauty">Beauty</option>
-                                    <option value="Home">Home</option>
-                                    <option value="Auto">Auto</option>
-                                    <option value="Travel">Travel</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Education">Education</option>
+                                    
                                     <option value="New">Add New Category...</option>
                                 </select>
                                 <input type="text" name="new_category" id="newCategoryInput" class="form-control" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
