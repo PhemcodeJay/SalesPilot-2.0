@@ -692,7 +692,7 @@ $connection = null;
                         </div>
                     </div>                    
                     <div class="card-body">
-                    <h4>(Revenue vs Profit) Categories</h4>
+                    <h4>(Revenue) Categories</h4>
                         <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
                     </div>
                 </div>

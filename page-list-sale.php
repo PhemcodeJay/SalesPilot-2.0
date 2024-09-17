@@ -336,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           </a>
                           <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/age-list-customers.php">
+                                          <a href="http://localhost/project/page-list-customers.php">
                                               <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
