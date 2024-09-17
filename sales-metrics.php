@@ -647,7 +647,7 @@ try {
                         <table id="datatable" class="table data-tables table-striped">
                             <thead>
                                 <tr class="light">
-                                    <th>Category Name</th>
+                                    <th>Category</th>
                                     <th>Products Sold</th>
                                     <th>Total Sales</th>
                                     <th>Items Quantity</th>

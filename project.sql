@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 17, 2024 at 12:19 AM
+-- Generation Time: Sep 17, 2024 at 11:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -48,6 +48,20 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `category_name`, `description`, `created_at`) VALUES
+(66, 'Phones', NULL, '2024-09-16 22:23:33'),
+(67, 'Foods', NULL, '2024-09-16 22:46:14'),
+(68, 'Apparels', NULL, '2024-09-16 23:12:02'),
+(69, 'Electronics', NULL, '2024-09-16 23:17:01'),
+(70, 'Auto', NULL, '2024-09-16 23:19:18'),
+(71, 'Cosmetic', NULL, '2024-09-16 23:21:29'),
+(72, 'Jewellry', NULL, '2024-09-16 23:25:13'),
+(73, 'Items', NULL, '2024-09-16 23:29:51');
+
 -- --------------------------------------------------------
 
 --
@@ -63,6 +77,28 @@ CREATE TABLE `customers` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `customers`
+--
+
+INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_location`, `created_at`) VALUES
+(46, 'kimo', '', '', '', '2024-09-16 23:08:06'),
+(47, 'chris', '', '', '', '2024-09-16 23:58:29'),
+(48, 'joe', '', '', '', '2024-09-16 23:59:49'),
+(49, 'jane', '', '', '', '2024-09-17 00:03:47'),
+(50, 'gina', '', '', '', '2024-09-17 00:05:50'),
+(51, 'paul', '', '', '', '2024-09-17 00:07:59'),
+(52, 'joy', '', '', '', '2024-09-17 00:09:19'),
+(53, 'dave', '', '', '', '2024-09-17 00:12:27'),
+(54, 'vera', '', '', '', '2024-09-17 00:14:43'),
+(55, 'lanre', '', '', '', '2024-09-17 00:15:59'),
+(56, 'justina', '', '', '', '2024-09-17 00:17:18'),
+(57, 'mike', '', '', '', '2024-09-17 00:20:16'),
+(58, 'janice', '', '', '', '2024-09-17 00:21:31'),
+(59, 'kyle', '', '', '', '2024-09-17 00:39:08'),
+(60, 'olu', '', '', '', '2024-09-17 00:40:10'),
+(61, 'samuel', '', '', '', '2024-09-17 00:42:22');
+
 -- --------------------------------------------------------
 
 --
@@ -76,6 +112,15 @@ CREATE TABLE `expenses` (
   `expense_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `expenses`
+--
+
+INSERT INTO `expenses` (`id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
+(5, 'Rent', 3000.00, '2024-09-16 21:00:00', 'james'),
+(6, 'Power Bills', 1000.00, '2024-09-16 21:00:00', 'dapo'),
+(7, 'Delivery fees', 2500.00, '2024-09-16 21:00:00', 'yemi');
 
 -- --------------------------------------------------------
 
@@ -94,6 +139,34 @@ CREATE TABLE `inventory` (
   `inventory_qty` int(11) GENERATED ALWAYS AS (`stock_qty` + `supply_qty`) STORED,
   `product_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `inventory`
+--
+
+INSERT INTO `inventory` (`id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
+(8, 25, 4, '2024-09-17 00:47:20', 10, 15, 'Samsung Galaxy'),
+(9, 31, 23, '2024-09-17 00:18:46', 50, 100, 'Premium Beer'),
+(10, 29, 4, '2024-09-17 00:47:21', 10, 12, 'Apple iPhone'),
+(11, 30, 5, '2024-09-17 00:18:46', 20, 10, 'Floral Dress'),
+(12, 27, 50, '2024-09-17 00:18:46', 100, 120, 'Bottled Water'),
+(13, 32, 5, '2024-09-17 00:18:46', 10, 6, 'Camera'),
+(14, 33, 2, '2024-09-17 00:47:21', 2, 1, 'Chevrolet AWD'),
+(15, 34, 20, '2024-09-17 00:18:46', 28, 25, 'Mary Kay'),
+(16, 35, 5, '2024-09-17 00:18:47', 40, 10, 'Necklace'),
+(17, 36, 15, '2024-09-17 00:18:47', 30, 50, 'Sony Headphones'),
+(18, 37, 40, '2024-09-17 00:18:47', 100, 60, 'Hike Bag'),
+(19, 38, 5, '2024-09-17 00:18:47', 5, 10, 'Dior female shoes'),
+(20, 39, 25, '2024-09-17 00:29:11', 20, 50, 'Lip Stick'),
+(21, 40, 10, '2024-09-17 00:29:11', 70, 40, 'Make-up Kit'),
+(22, 41, 15, '2024-09-17 00:29:11', 25, 80, 'Leather Shoes'),
+(23, 42, 10, '2024-09-17 00:29:12', 20, 30, 'Tea mugs'),
+(24, 43, 15, '2024-09-17 00:29:12', 70, 15, 'Air Jordan'),
+(25, 44, 100, '2024-09-17 00:29:12', 150, 200, 'Perfume Spray'),
+(26, 45, 40, '2024-09-17 00:47:21', 100, 50, 'Rayban Sunglasses'),
+(27, 47, 25, '2024-09-17 00:47:21', 40, 60, 'Apple Speakers'),
+(28, 48, 2, '2024-09-17 00:47:21', 3, 2, 'Toyota corolla'),
+(29, 49, 10, '2024-09-17 00:47:21', 10, 30, 'Tissot  watch');
 
 -- --------------------------------------------------------
 
@@ -185,6 +258,35 @@ CREATE TABLE `products` (
   `profit` decimal(10,2) GENERATED ALWAYS AS (`price` - `cost`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `cost`, `category_id`, `created_at`, `stock_qty`, `supply_qty`, `image_path`, `product_type`, `staff_name`, `category`) VALUES
+(25, 'Samsung Galaxy', 'Samsung Galaxy A10s', 150.00, 100.00, 66, '2024-09-16 22:23:33', 10, 15, 'uploads/products/samsung-galaxy-a10s.jpg', 'Goods', 'james', 'Phones'),
+(27, 'Bottled Water', 'Spring Bottled Water', 15.00, 9.00, 67, '2024-09-16 22:46:14', 100, 120, 'uploads/products/water.jpg', 'Goods', 'john', 'Foods'),
+(29, 'Apple iPhone', 'Apple iPhone 15', 1500.00, 900.00, 0, '2024-09-16 23:06:06', 10, 12, 'uploads/products/iphone-15-128gb.jpg', 'Goods', 'john', 'Phones'),
+(30, 'Floral Dress', 'Floral Pleated Weave Dress', 45.00, 20.00, 0, '2024-09-16 23:12:02', 20, 10, 'uploads/products/floral-pleated-weave-dress.jpg', 'Goods', 'mark', 'Apparels'),
+(31, 'Premium Beer', 'Premium Beer', 25.00, 20.00, 0, '2024-09-16 23:15:20', 50, 100, 'uploads/products/beer.jpg', 'Goods', 'james', 'Foods'),
+(32, 'Camera', 'Camera', 100.00, 60.00, 0, '2024-09-16 23:17:01', 10, 6, 'uploads/products/camera.jpg', 'Goods', 'james', 'Electronics'),
+(33, 'Chevrolet AWD', 'Chevrolet  AWD 2024 White', 75000.00, 55000.00, 0, '2024-09-16 23:19:18', 2, 1, 'uploads/products/Chevrolet.jpg', 'Goods', 'sam', 'Auto'),
+(34, 'Mary Kay', 'Lip Gloss', 22.00, 14.00, 0, '2024-09-16 23:21:29', 28, 25, 'uploads/products/facials.jpg', 'Goods', 'stacey', 'Cosmetic'),
+(35, 'Necklace', 'Gold Necklace 50grams', 1800.00, 500.00, 0, '2024-09-16 23:25:13', 40, 10, 'uploads/products/goldnecklace.jpeg', 'Goods', 'kim', 'Jewellry'),
+(36, 'Sony Headphones', 'Sony Headphones', 30.00, 20.00, 0, '2024-09-16 23:26:41', 30, 50, 'uploads/products/headphones.jpg', 'Goods', 'chris', 'Electronics'),
+(37, 'Hike Bag', 'Hike Bag', 55.00, 40.00, 0, '2024-09-16 23:29:51', 100, 60, 'uploads/products/hike-bag.jpg', 'Goods', 'stacey', 'Items'),
+(38, 'Dior female shoes', 'Dior Female fashion shoes', 85.00, 60.00, 0, '2024-09-16 23:32:34', 5, 10, 'uploads/products/lady-shoes.jpg', 'Goods', 'james', 'Apparels'),
+(39, 'Lip Stick', 'Lip Stick Cosmetics', 10.00, 5.00, 0, '2024-09-16 23:34:38', 20, 50, 'uploads/products/lipstick.jpg', 'Goods', 'mark', 'Cosmetic'),
+(40, 'Make-up Kit', 'Mary Kay make-up kit', 45.00, 40.00, 0, '2024-09-16 23:36:32', 70, 40, 'uploads/products/make-up.jpg', 'Goods', 'kim', 'Cosmetic'),
+(41, 'Leather Shoes', 'Mens leather shoes', 35.00, 25.00, 0, '2024-09-16 23:39:14', 25, 80, 'uploads/products/men clothings.jpg', 'Goods', 'chris', 'Apparels'),
+(42, 'Tea mugs', 'Plain Tea mugs', 15.00, 10.00, 0, '2024-09-16 23:41:08', 20, 30, 'uploads/products/mugs.jpg', 'Goods', 'mark', 'Items'),
+(43, 'Air Jordan', 'Nike Air Jordan   Sneakers', 50.00, 30.00, 0, '2024-09-16 23:44:02', 70, 15, 'uploads/products/nike-sneakers.jpg', 'Goods', 'james', 'Apparels'),
+(44, 'Perfume Spray', 'Armani perfume spray', 17.00, 10.00, 0, '2024-09-16 23:46:02', 150, 200, 'uploads/products/perfume.jpg', 'Goods', 'chris', 'Cosmetic'),
+(45, 'Rayban Sunglasses', 'Rayban Sunglasses', 35.00, 20.00, 0, '2024-09-16 23:47:27', 100, 50, 'uploads/products/rayban.jpg', 'Goods', 'james', 'Apparels'),
+(46, 'Herbal  Soap', 'Cosmetic  Soap', 60.00, 40.00, 0, '2024-09-16 23:49:36', 45, 80, 'uploads/products/soap.jpg', 'Goods', 'james', 'Cosmetic'),
+(47, 'Apple Speakers', 'Apple Speakers', 75.00, 65.00, 0, '2024-09-16 23:53:45', 40, 60, 'uploads/products/speaker.jpg', 'Goods', 'mark', 'Electronics'),
+(48, 'Toyota corolla', 'Toyota corolla sedan 2024', 18000.00, 14000.00, 0, '2024-09-16 23:55:29', 3, 2, 'uploads/products/toyota-corolla-2024.jpg', 'Goods', 'john', 'Auto'),
+(49, 'Tissot  watch', 'Tissot  chronograph watch', 450.00, 300.00, 0, '2024-09-16 23:56:57', 10, 30, 'uploads/products/wristwatch.jpg', 'Goods', 'stacey', 'Apparels');
+
 -- --------------------------------------------------------
 
 --
@@ -214,6 +316,13 @@ CREATE TABLE `reports` (
   `net_profit` decimal(2,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reports`
+--
+
+INSERT INTO `reports` (`id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
+(18, '2024-09-17', 218765.00, 28.62, '[{\"product_id\":25,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"4\",\"total_sales\":\"600.00\",\"total_cost\":\"400.00\",\"total_profit\":\"200.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":27,\"product_name\":\"Bottled Water\",\"total_quantity\":\"50\",\"total_sales\":\"750.00\",\"total_cost\":\"450.00\",\"total_profit\":\"300.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":29,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"4\",\"total_sales\":\"6000.00\",\"total_cost\":\"3600.00\",\"total_profit\":\"2400.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":30,\"product_name\":\"Floral Dress\",\"total_quantity\":\"5\",\"total_sales\":\"225.00\",\"total_cost\":\"100.00\",\"total_profit\":\"125.00\",\"inventory_turnover_rate\":\"0.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":31,\"product_name\":\"Premium Beer\",\"total_quantity\":\"23\",\"total_sales\":\"575.00\",\"total_cost\":\"460.00\",\"total_profit\":\"115.00\",\"inventory_turnover_rate\":\"0.4600\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":32,\"product_name\":\"Camera\",\"total_quantity\":\"5\",\"total_sales\":\"500.00\",\"total_cost\":\"300.00\",\"total_profit\":\"200.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":33,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"150000.00\",\"total_cost\":\"110000.00\",\"total_profit\":\"40000.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":34,\"product_name\":\"Mary Kay\",\"total_quantity\":\"20\",\"total_sales\":\"440.00\",\"total_cost\":\"280.00\",\"total_profit\":\"160.00\",\"inventory_turnover_rate\":\"0.7143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":35,\"product_name\":\"Necklace\",\"total_quantity\":\"5\",\"total_sales\":\"9000.00\",\"total_cost\":\"2500.00\",\"total_profit\":\"6500.00\",\"inventory_turnover_rate\":\"0.1250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":36,\"product_name\":\"Sony Headphones\",\"total_quantity\":\"15\",\"total_sales\":\"450.00\",\"total_cost\":\"300.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":37,\"product_name\":\"Hike Bag\",\"total_quantity\":\"40\",\"total_sales\":\"2200.00\",\"total_cost\":\"1600.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":38,\"product_name\":\"Dior female shoes\",\"total_quantity\":\"5\",\"total_sales\":\"425.00\",\"total_cost\":\"300.00\",\"total_profit\":\"125.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":39,\"product_name\":\"Lip Stick\",\"total_quantity\":\"25\",\"total_sales\":\"250.00\",\"total_cost\":\"125.00\",\"total_profit\":\"125.00\",\"inventory_turnover_rate\":\"1.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":40,\"product_name\":\"Make-up Kit\",\"total_quantity\":\"10\",\"total_sales\":\"450.00\",\"total_cost\":\"400.00\",\"total_profit\":\"50.00\",\"inventory_turnover_rate\":\"0.1429\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":41,\"product_name\":\"Leather Shoes\",\"total_quantity\":\"15\",\"total_sales\":\"525.00\",\"total_cost\":\"375.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":42,\"product_name\":\"Tea mugs\",\"total_quantity\":\"10\",\"total_sales\":\"150.00\",\"total_cost\":\"100.00\",\"total_profit\":\"50.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":43,\"product_name\":\"Air Jordan\",\"total_quantity\":\"15\",\"total_sales\":\"750.00\",\"total_cost\":\"450.00\",\"total_profit\":\"300.00\",\"inventory_turnover_rate\":\"0.2143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":44,\"product_name\":\"Perfume Spray\",\"total_quantity\":\"100\",\"total_sales\":\"1700.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"700.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":45,\"product_name\":\"Rayban Sunglasses\",\"total_quantity\":\"40\",\"total_sales\":\"1400.00\",\"total_cost\":\"800.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":47,\"product_name\":\"Apple Speakers\",\"total_quantity\":\"25\",\"total_sales\":\"1875.00\",\"total_cost\":\"1625.00\",\"total_profit\":\"250.00\",\"inventory_turnover_rate\":\"0.6250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":48,\"product_name\":\"Toyota corolla\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"28000.00\",\"total_profit\":\"8000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":49,\"product_name\":\"Tissot  watch\",\"total_quantity\":\"10\",\"total_sales\":\"4500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 508.76, 0.20, 999.99, 0.00, 0.00, 62600.00, -93565.00, '2024-09-17 00:51:00', 218765, 430, 99, 99, -99);
+
 -- --------------------------------------------------------
 
 --
@@ -236,6 +345,34 @@ CREATE TABLE `sales` (
   `sale_note` varchar(255) NOT NULL,
   `image_path` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sales`
+--
+
+INSERT INTO `sales` (`id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `total_price`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `image_path`) VALUES
+(47, 25, 7, 46, 63, 4, 150.00, '2024-09-16 23:08:06', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 'uploads/productssamsung-galaxy-a10s.jpg'),
+(48, 31, 7, 47, 64, 23, 25.00, '2024-09-16 23:58:29', 'completed', 'paid', 'Premium Beer', 'Goods', 'sold', 'uploads/productsbeer.jpg'),
+(49, 29, 7, 48, 65, 4, 1500.00, '2024-09-16 23:59:49', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 'uploads/productsiphone-15-128gb.jpg'),
+(50, 30, 7, 46, 65, 5, 45.00, '2024-09-17 00:01:24', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 'uploads/productsfloral-pleated-weave-dress.jpg'),
+(51, 27, 7, 49, 66, 50, 15.00, '2024-09-17 00:03:47', 'completed', 'paid', 'Bottled Water', 'Goods', 'sold', 'uploads/productswater.jpg'),
+(52, 32, 7, 50, 63, 5, 100.00, '2024-09-17 00:05:50', 'completed', 'paid', 'Camera', 'Goods', 'sold', 'uploads/productscamera.jpg'),
+(53, 33, 7, 51, 65, 2, 75000.00, '2024-09-17 00:07:59', 'completed', 'paid', 'Chevrolet AWD', 'Goods', 'sold', 'uploads/productsChevrolet.jpg'),
+(54, 34, 7, 52, 67, 20, 22.00, '2024-09-17 00:09:19', 'completed', 'paid', 'Mary Kay', 'Goods', 'sold', 'uploads/productslipgloss.jpg'),
+(55, 35, 7, 53, 68, 5, 1800.00, '2024-09-17 00:12:27', 'completed', 'paid', 'Necklace', 'Goods', 'sold', 'uploads/productsgoldnecklace.jpeg'),
+(56, 36, 7, 54, 64, 15, 30.00, '2024-09-17 00:14:43', 'completed', 'paid', 'Sony Headphones', 'Goods', 'sold', 'uploads/productsheadphones.jpg'),
+(57, 37, 7, 55, 63, 40, 55.00, '2024-09-17 00:15:59', 'completed', 'paid', 'Hike Bag', 'Goods', 'sold', 'uploads/productshike-bag.jpg'),
+(58, 38, 7, 56, 65, 5, 85.00, '2024-09-17 00:17:18', 'completed', 'paid', 'Dior female shoes', 'Goods', 'sold', 'uploads/productslady-shoes.jpg'),
+(59, 39, 7, 57, 65, 25, 10.00, '2024-09-17 00:20:16', 'completed', 'paid', 'Lip Stick', 'Goods', 'sold', 'uploads/productslipstick.jpg'),
+(60, 40, 7, 58, 68, 10, 45.00, '2024-09-17 00:21:31', 'completed', 'paid', 'Make-up Kit', 'Goods', 'sold', 'uploads/productsmake-up.jpg'),
+(61, 41, 7, 48, 66, 15, 35.00, '2024-09-17 00:23:27', 'completed', 'paid', 'Leather Shoes', 'Goods', 'sold', 'uploads/productsmen clothings.jpg'),
+(62, 42, 7, 46, 66, 10, 15.00, '2024-09-17 00:24:43', 'completed', 'paid', 'Tea mugs', 'Goods', 'sold', 'uploads/productsmugs.jpg'),
+(63, 43, 7, 57, 68, 15, 50.00, '2024-09-17 00:25:56', 'completed', 'paid', 'Air Jordan', 'Goods', 'sold', 'uploads/productsnike-sneakers.jpg'),
+(64, 44, 7, 48, 67, 100, 17.00, '2024-09-17 00:26:59', 'completed', 'paid', 'Perfume Spray', 'Goods', 'sold', 'uploads/productsperfume.jpg'),
+(65, 45, 7, 47, 65, 40, 35.00, '2024-09-17 00:31:42', 'completed', 'paid', 'Rayban Sunglasses', 'Goods', 'sold', 'uploads/productsrayban.jpg'),
+(66, 47, 7, 59, 63, 25, 75.00, '2024-09-17 00:39:08', 'completed', 'paid', 'Apple Speakers', 'Goods', 'sold', 'uploads/productsspeaker.jpg'),
+(67, 48, 7, 60, 65, 2, 18000.00, '2024-09-17 00:40:10', 'completed', 'paid', 'Toyota corolla', 'Goods', 'sold', 'uploads/productstoyota-corolla-2024.jpg'),
+(68, 49, 7, 61, 66, 10, 450.00, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg');
 
 --
 -- Triggers `sales`
@@ -308,6 +445,16 @@ CREATE TABLE `sales_analytics` (
   `most_sold_product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `sales_analytics`
+--
+
+INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
+(171, '2024-09-17', 1350.00, 37.04, 0.00, 0.00, 25.00, 4.00, 999.99, 0.00, 0.00, 850.00, 500.00, '2024-09-17 00:51:03', 1350, 54, 99, 0, 0, 0, 0),
+(172, '2024-09-17', 1350.00, 37.04, 0.00, 0.00, 25.00, 4.00, 999.99, 0.00, 0.00, 850.00, 500.00, '2024-09-17 18:21:44', 1350, 54, 99, 0, 0, 0, 0),
+(173, '2024-09-17', 1350.00, 37.04, 0.00, 0.00, 25.00, 4.00, 999.99, 0.00, 0.00, 850.00, 500.00, '2024-09-17 18:47:37', 1350, 54, 99, 0, 0, 0, 0),
+(174, '2024-09-17', 1350.00, 37.04, 0.00, 0.00, 25.00, 4.00, 999.99, 0.00, 0.00, 850.00, 500.00, '2024-09-17 18:48:36', 1350, 54, 99, 0, 0, 0, 0);
+
 -- --------------------------------------------------------
 
 --
@@ -322,6 +469,18 @@ CREATE TABLE `staffs` (
   `position` enum('manager','sales') NOT NULL DEFAULT 'sales',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `staffs`
+--
+
+INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `position`, `created_at`) VALUES
+(63, 'chris', '', '', 'sales', '2024-09-16 23:08:06'),
+(64, 'stacey', '', '', 'sales', '2024-09-16 23:58:29'),
+(65, 'mark', '', '', 'sales', '2024-09-16 23:59:49'),
+(66, 'kim', '', '', 'sales', '2024-09-17 00:03:47'),
+(67, 'james', '', '', 'sales', '2024-09-17 00:09:19'),
+(68, 'john', '', '', 'sales', '2024-09-17 00:12:27');
 
 -- --------------------------------------------------------
 
@@ -340,6 +499,13 @@ CREATE TABLE `suppliers` (
   `supply_qty` int(11) NOT NULL,
   `note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `suppliers`
+--
+
+INSERT INTO `suppliers` (`id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
+(4, 'Gordons', 'gordons@gmail.com', '0101674356', 'Accra', '2024-09-17 00:48:46', 'Premium Beer', 100, 'delivered');
 
 -- --------------------------------------------------------
 
@@ -488,25 +654,25 @@ ALTER TABLE `activation_codes`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -530,37 +696,37 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `sales_analytics`
 --
 ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=175;
 
 --
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`

@@ -57,7 +57,6 @@ try {
             p.price,
             p.image_path,
             p.inventory_qty,
-            p.supply_qty,
             c.category_name
         FROM 
             products p

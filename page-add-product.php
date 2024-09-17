@@ -70,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // File upload handling
-        $upload_dir = 'uploads/products/';
+        $upload_dir = 'uploads/products';
         $image_name = $_FILES['pic']['name'];
         $image_tmp = $_FILES['pic']['tmp_name'];
         $image_path = $upload_dir . basename($image_name);
