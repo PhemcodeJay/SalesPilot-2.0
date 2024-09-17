@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost/project/page-add-expenses.php">
+                                          <a href="http://localhost/project/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
