@@ -50,24 +50,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($category === 'New') {
             $new_category = htmlspecialchars(trim($_POST['new_category']));
+            
             // Check if the new category already exists
-            $select_category_query = "SELECT category_name FROM categories WHERE category_name = :category_name";
+            $select_category_query = "SELECT category_id, category_name FROM categories WHERE category_name = :category_name";
             $stmt = $connection->prepare($select_category_query);
             $stmt->bindParam(':category_name', $new_category);
             $stmt->execute();
             $category_result = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        
             if (!$category_result) {
                 // Insert new category into categories table
                 $insert_category_query = "INSERT INTO categories (category_name) VALUES (:category_name)";
                 $stmt = $connection->prepare($insert_category_query);
                 $stmt->bindParam(':category_name', $new_category);
                 $stmt->execute();
-                $category = $new_category; // Use the new category name for the products table
+        
+                // Retrieve the newly inserted category_id
+                $category_id = $connection->lastInsertId();
+                $category_name = $new_category; // Use the new category name for the products table
             } else {
-                $category = $category_result['category_name'];
+                // Use the existing category_id and name
+                $category_id = $category_result['category_id'];
+                $category_name = $category_result['category_name'];
             }
+        
+            // You can now use both $category_id and $category_name
         }
+        
 
         // File upload handling
         $upload_dir = 'uploads/products';
