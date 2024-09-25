@@ -23,7 +23,7 @@ switch ($range) {
         break;
 }
 
-// Fetch revenue by category for the top 6 categories (Layered Column Chart)
+// Fetch revenue by category for the top 6 categories (am-layeredcolumn-chart)
 $categoryRevenueQuery = $connection->prepare("
     SELECT categories.category_name, SUM(sales_qty * price) AS revenue 
     FROM sales
@@ -37,7 +37,7 @@ $categoryRevenueQuery = $connection->prepare("
 $categoryRevenueQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $categoryRevenueData = $categoryRevenueQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch revenue and profit for the combination chart (Column and Line Chart)
+// Fetch revenue and profit for the combination chart (am-columnline-chart)
 $revenueProfitQuery = $connection->prepare("
     SELECT DATE(sale_date) AS date, 
            SUM(sales_qty * price) AS revenue,
@@ -50,7 +50,30 @@ $revenueProfitQuery = $connection->prepare("
 $revenueProfitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $revenueProfitData = $revenueProfitQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch profit and expenses data (Combined Column Chart)
+// Fetch profit data (layout1-chart-3 profit)
+$profitQuery = $connection->prepare("
+    SELECT DATE(sale_date) AS date, 
+           SUM(sales_qty * (price - cost)) AS profit
+    FROM sales
+    JOIN products ON sales.product_id = products.id
+    WHERE sale_date BETWEEN :startDate AND :endDate
+    GROUP BY DATE(sale_date)
+");
+$profitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$profitData = $profitQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch expenses data (layout1-chart-4 expense)
+$expensesQuery = $connection->prepare("
+    SELECT DATE(expense_date) AS date, 
+           SUM(amount) AS expenses
+    FROM expenses
+    WHERE expense_date BETWEEN :startDate AND :endDate
+    GROUP BY DATE(expense_date)
+");
+$expensesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+$expensesData = $expensesQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch profit and expenses data (layout1-chart-5 profit & expenses)
 $profitExpenseQuery = $connection->prepare("
     SELECT DATE(sale_date) AS date, 
            SUM(sales_qty * (price - cost)) AS profit,
@@ -63,36 +86,13 @@ $profitExpenseQuery = $connection->prepare("
 $profitExpenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $profitExpenseData = $profitExpenseQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch profit only data (Profit Only Column Chart)
-$profitQuery = $connection->prepare("
-    SELECT DATE(sale_date) AS date, 
-           SUM(sales_qty * (price - cost)) AS profit
-    FROM sales
-    JOIN products ON sales.product_id = products.id
-    WHERE sale_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE(sale_date)
-");
-$profitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
-$profitData = $profitQuery->fetchAll(PDO::FETCH_ASSOC);
-
-// Fetch expenses only data (Expenses Only Column Chart)
-$expensesQuery = $connection->prepare("
-    SELECT DATE(expense_date) AS date, 
-           SUM(amount) AS expenses
-    FROM expenses
-    WHERE expense_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE(expense_date)
-");
-$expensesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
-$expensesData = $expensesQuery->fetchAll(PDO::FETCH_ASSOC);
-
 // Combine data into the final response
 $response = [
-    'apexLayeredColumnChart' => $categoryRevenueData,  // Revenue by Top 6 Categories
-    'apexColumnLineChart' => $revenueProfitData,       // Revenue vs. Profit
-    'apexProfitExpenseChart' => $profitExpenseData,    // Profit and Expenses Combined
-    'apexProfitOnlyChart' => $profitData,              // Profit Only
-    'apexExpensesOnlyChart' => $expensesData,          // Expenses Only
+    'am-layeredcolumn-chart' => $categoryRevenueData,   // Revenue by Top 6 Categories
+    'am-columnlinr-chart' => $revenueProfitData,        // Revenue vs. Profit
+    'layout1-chart-3' => $profitData,                   // Profit Only
+    'layout1-chart-4' => $expensesData,                 // Expenses Only
+    'layout1-chart-5' => $profitExpenseData,            // Profit and Expenses Combined
 ];
 
 // Output the JSON response

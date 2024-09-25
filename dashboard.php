@@ -694,7 +694,7 @@ $connection = null;
                     <div class="card-body">
                     <h4>(Revenue) Categories</h4>
                         <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
-                    </div>
+                    </div> 
                 </div>
             </div>
             <div class="col-lg-6">
@@ -744,22 +744,22 @@ $connection = null;
                     </div>
                 </div>
                 <div class="card-body">
-    <ul class="list-unstyled row top-product mb-0">
-        <?php if (!empty($top_products)): ?>
-            <?php foreach ($top_products as $sales): ?>
-                <li class="col-lg-3">
-                    <div class="card card-block card-stretch card-height mb-0">
-                        <div class="card-body">
-                            <img src="<?php echo htmlspecialchars($sales['image_path']); ?>" class="style-img img-fluid m-auto p-3" alt="Product Image">
-                            <div class="style-text text-left mt-3">
-                                <h5 class="mb-1"><?php echo htmlspecialchars($sales['name']); ?></h5>
-                                <p class="mb-0"><?php echo number_format($sales['total_sold']) . ' Item'; ?></p>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            <?php endforeach; ?>
-        <?php else: ?>
+                <ul class="list-unstyled row top-product mb-0">
+                    <?php if (!empty($top_products)): ?>
+                        <?php foreach ($top_products as $sales): ?>
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <img src="<?php echo htmlspecialchars($sales['image_path']); ?>" class="style-img img-fluid m-auto p-3" alt="Product Image">
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1"><?php echo htmlspecialchars($sales['name']); ?></h5>
+                                            <p class="mb-0"><?php echo number_format($sales['total_sold']) . ' Item'; ?></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php else: ?>
             <li class="col-lg-12">
                 <div class="card card-block card-stretch card-height mb-0">
                     <div class="card-body text-center">

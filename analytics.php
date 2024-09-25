@@ -514,18 +514,17 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
+
                   <div class="card-body">
                      <div id="apex-basic"></div>
                   </div>
@@ -539,15 +538,13 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -566,15 +563,13 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -590,15 +585,13 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
+                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
+                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -659,6 +652,35 @@ document.getElementById('createButton').addEventListener('click', function() {
     
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+    const dropdownButton = document.getElementById('dropdownMenuButton001');
+
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const selectedPeriod = item.dataset.period;
+
+            // Update dropdown button text based on selection
+            dropdownButton.innerHTML = `This ${capitalizeFirstLetter(selectedPeriod)}<i class="ri-arrow-down-s-line ml-1"></i>`;
+
+            // Call a function to fetch and update data based on the selected period
+            fetchData(selectedPeriod);
+        });
+    });
+
+    function fetchData(period) {
+        // Replace with your logic to fetch data based on the selected period
+        console.log(`Fetching data for: ${period}`);
+        // Example: Use AJAX/fetch API to get data and update the UI
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
 });
 </script>
 </body>

@@ -5,7 +5,7 @@ if (jQuery('#am-layeredcolumn-chart').length) {
         type: 'GET',
         dataType: 'json',
         data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
         },
         success: function(response) {
             am4core.ready(function() {
@@ -79,7 +79,7 @@ if (jQuery('#am-columnlinr-chart').length) {
         type: 'GET',
         dataType: 'json',
         data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
         },
         success: function(response) {
             am4core.ready(function() {
@@ -165,7 +165,7 @@ if (jQuery("#layout1-chart-3").length) {
         type: 'GET',
         dataType: 'json',
         data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
         },
         success: function(response) {
             // Transform the response data to the format required by the chart
@@ -255,7 +255,7 @@ if (jQuery("#layout1-chart-4").length) {
         type: 'GET',
         dataType: 'json',
         data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
         },
         success: function(response) {
             // Transform the response data to the format required by the chart
@@ -336,7 +336,6 @@ if (jQuery("#layout1-chart-4").length) {
     });
 }
 
-
 if (jQuery("#layout1-chart-5").length) {
     // Fetch data from the PHP script
     jQuery.ajax({
@@ -344,7 +343,7 @@ if (jQuery("#layout1-chart-5").length) {
         type: 'GET',
         dataType: 'json',
         data: {
-            range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
         },
         success: function(response) {
             // Transform the response data to the format required by the chart
