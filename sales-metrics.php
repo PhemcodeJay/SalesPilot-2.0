@@ -70,12 +70,26 @@ foreach ($sales_category_data as $category) {
 
 // Additional calculations for the report table
 $revenue_by_category = json_encode($sales_category_data);
-$year_over_year_growth = 0; // Assuming this is calculated elsewhere
 $gross_margin = $total_sales - $total_profit;
 $net_margin = $total_profit;  // Assuming total profit represents net margin
 $inventory_turnover_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) : 0;
 $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 100 : 0;
 $sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
+
+// Fetch previous year's revenue for year-over-year growth calculation
+$previous_year_date = date('Y-m-d', strtotime($date . ' -1 year'));
+$previous_year_revenue_query = "
+    SELECT revenue FROM sales_analytics WHERE date = :previous_year_date";
+$stmt = $connection->prepare($previous_year_revenue_query);
+$stmt->bindParam(':previous_year_date', $previous_year_date);
+$stmt->execute();
+$previous_year_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$previous_year_revenue = $previous_year_data ? $previous_year_data['revenue'] : 0;
+
+// Calculate Year-Over-Year Growth
+$year_over_year_growth = ($previous_year_revenue > 0) ? 
+    (($total_sales - $previous_year_revenue) / $previous_year_revenue) * 100 : 0;
 
 // Check if a report for the current date already exists
 $check_report_query = "SELECT id FROM sales_analytics WHERE date = :date";
@@ -165,6 +179,8 @@ if (!$metrics_data) {
 }
 
 // Display metrics data in a table
+
+
 try {
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
