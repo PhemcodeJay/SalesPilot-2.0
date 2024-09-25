@@ -48,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $supply_qty = intval($_POST['supply_qty']);
         $description = htmlspecialchars(trim($_POST['description']));
 
+        // Handle new category
         if ($category === 'New') {
             $new_category = htmlspecialchars(trim($_POST['new_category']));
             
@@ -65,35 +66,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt->bindParam(':category_name', $new_category);
                 $stmt->execute();
         
-                // Retrieve the newly inserted category_id
+                // Retrieve the newly inserted category_id and category_name
                 $category_id = $connection->lastInsertId();
-                $category_name = $new_category; // Use the new category name for the products table
+                $category_name = $new_category;
             } else {
-                // Use the existing category_id and name
+                // Use the existing category_id and category_name
                 $category_id = $category_result['category_id'];
                 $category_name = $category_result['category_name'];
             }
-        
-            // You can now use both $category_id and $category_name
+        } else {
+            // If category is not 'New', assume it is selected from the existing categories
+            $select_existing_category_query = "SELECT category_id, category_name FROM categories WHERE category_name = :category_name";
+            $stmt = $connection->prepare($select_existing_category_query);
+            $stmt->bindParam(':category_name', $category);
+            $stmt->execute();
+            $existing_category = $stmt->fetch(PDO::FETCH_ASSOC);
+            $category_id = $existing_category['category_id'];
+            $category_name = $existing_category['category_name'];
         }
-        
 
         // File upload handling
-        $upload_dir = 'uploads/products';
-        $image_name = $_FILES['pic']['name'];
+        $upload_dir = 'uploads/products/';
+        $image_name = basename($_FILES['pic']['name']);
         $image_tmp = $_FILES['pic']['tmp_name'];
-        $image_path = $upload_dir . basename($image_name);
+        $image_path = $upload_dir . $image_name;
 
-        // Move uploaded file to designated directory
+        // Check if the directory exists, if not create it
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true); // Ensure the directory is created with appropriate permissions
+        }
+
+        // Move the uploaded file to the directory
         if (!move_uploaded_file($image_tmp, $image_path)) {
             throw new Exception("File upload failed.");
         }
 
         // Check if the product already exists (to update it)
-        $check_product_query = "SELECT id FROM products WHERE name = :name AND category = :category";
+        $check_product_query = "SELECT id FROM products WHERE name = :name AND category_id = :category_id";
         $stmt = $connection->prepare($check_product_query);
         $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':category', $category);
+        $stmt->bindParam(':category_id', $category_id);
         $stmt->execute();
         $existing_product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -101,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Update existing product
             $update_product_query = "UPDATE products
                                      SET staff_name = :staff_name, product_type = :product_type, cost = :cost,
-                                         price = :price, stock_qty = :stock_qty, supply_qty = :supply_qty, description = :description, image_path = :image_path
+                                         price = :price, stock_qty = :stock_qty, supply_qty = :supply_qty, description = :description, image_path = :image_path, category_id = :category_id, category_name = :category_name
                                      WHERE id = :product_id";
             $stmt = $connection->prepare($update_product_query);
             $stmt->bindParam(':staff_name', $staff_name);
@@ -112,7 +124,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':supply_qty', $supply_qty);
             $stmt->bindParam(':description', $description);
             $stmt->bindParam(':image_path', $image_path);
-            $stmt->bindParam(':product_id', $existing_product['product_id']);
+            $stmt->bindParam(':category_id', $category_id);
+            $stmt->bindParam(':category_name', $category_name);
+            $stmt->bindParam(':product_id', $existing_product['id']);
 
             if ($stmt->execute()) {
                 header('Location: page-list-product.php');
@@ -123,14 +137,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         } else {
             // Insert new product if it doesn't exist
-            $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category, cost, price, stock_qty, supply_qty, description, image_path)
-                                     VALUES (:name, :staff_name, :product_type, :category, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
+            $insert_product_query = "INSERT INTO products (name, staff_name, product_type, category_id, category_name, cost, price, stock_qty, supply_qty, description, image_path)
+                                     VALUES (:name, :staff_name, :product_type, :category_id, :category_name, :cost, :price, :stock_qty, :supply_qty, :description, :image_path)";
             
             $stmt = $connection->prepare($insert_product_query);
             $stmt->bindParam(':name', $name);
             $stmt->bindParam(':staff_name', $staff_name);
             $stmt->bindParam(':product_type', $product_type);
-            $stmt->bindParam(':category', $category);
+            $stmt->bindParam(':category_id', $category_id);
+            $stmt->bindParam(':category_name', $category_name);
             $stmt->bindParam(':cost', $cost);
             $stmt->bindParam(':price', $price);
             $stmt->bindParam(':stock_qty', $stock_qty);
