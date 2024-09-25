@@ -97,4 +97,45 @@ $response = [
 
 // Output the JSON response
 echo json_encode($response);
+
+
+// Example: Fetch data from the database (this is a placeholder for actual SQL queries)
+$categoryRevenueData = [
+    ["category_name" => "Category 1", "revenue" => 500],
+    ["category_name" => "Category 2", "revenue" => 300]
+];
+
+$revenueProfitData = [
+    ["date" => "2024-01", "revenue" => 1000, "profit" => 500],
+    ["date" => "2024-02", "revenue" => 1200, "profit" => 600]
+];
+
+$profitData = [
+    ["date" => "2024-01", "profit" => 500],
+    ["date" => "2024-02", "profit" => 600]
+];
+
+$expensesData = [
+    ["date" => "2024-01", "expenses" => 400],
+    ["date" => "2024-02", "expenses" => 450]
+];
+
+$profitExpenseData = [
+    ["date" => "2024-01", "profit" => 500, "expenses" => 400],
+    ["date" => "2024-02", "profit" => 600, "expenses" => 450]
+];
+
+// Prepare response
+$response = [
+    'am-layeredcolumn-chart' => $categoryRevenueData,
+    'am-columnline-chart' => $revenueProfitData,
+    'layout1-chart-3' => $profitData,
+    'layout1-chart-4' => $expensesData,
+    'layout1-chart-5' => $profitExpenseData
+];
+
+// Send JSON response
+header('Content-Type: application/json');
+echo json_encode($response);
 ?>
+

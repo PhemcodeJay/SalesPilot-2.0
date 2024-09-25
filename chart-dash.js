@@ -1,3 +1,4 @@
+// am-layeredcolumn-chart
 if (jQuery('#am-layeredcolumn-chart').length) {
     jQuery.ajax({
         url: 'chart-dash.php',
@@ -10,10 +11,10 @@ if (jQuery('#am-layeredcolumn-chart').length) {
                 var chart = am4core.create("am-layeredcolumn-chart", am4charts.XYChart);
                 chart.colors.list = [am4core.color("#37e6b0"), am4core.color("#4788ff")];
                 chart.numberFormatter.numberFormat = "#.#'%'";
-                chart.data = response.apexLayeredColumnChart.map(function(item) {
+                chart.data = response['am-layeredcolumn-chart'].map(function(item) {
                     return { "category": item.category_name, "revenue": item.revenue };
                 });
-                
+
                 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
                 categoryAxis.dataFields.category = "category";
                 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
@@ -38,7 +39,8 @@ if (jQuery('#am-layeredcolumn-chart').length) {
     });
 }
 
-if (jQuery('#am-columnlinr-chart').length) {
+// am-columnline-chart
+if (jQuery('#am-columnline-chart').length) {
     jQuery.ajax({
         url: 'chart-dash.php',
         type: 'GET',
@@ -47,22 +49,22 @@ if (jQuery('#am-columnlinr-chart').length) {
         success: function(response) {
             am4core.ready(function() {
                 am4core.useTheme(am4themes_animated);
-                var chart = am4core.create("am-columnlinr-chart", am4charts.XYChart);
+                var chart = am4core.create("am-columnline-chart", am4charts.XYChart);
                 chart.colors.list = [am4core.color("#4788ff")];
                 chart.exporting.menu = new am4core.ExportMenu();
-                chart.data = response.apexColumnLineChart.map(function(item) {
+                chart.data = response['am-columnline-chart'].map(function(item) {
                     return { "date": item.date, "revenue": item.revenue, "profit": item.profit };
                 });
-                
+
                 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
                 categoryAxis.dataFields.category = "date";
-                
+
                 var columnSeries = chart.series.push(new am4charts.ColumnSeries());
                 columnSeries.name = "Revenue";
                 columnSeries.dataFields.valueY = "revenue";
                 columnSeries.dataFields.categoryX = "date";
                 columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} on {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/]";
-                
+
                 var lineSeries = chart.series.push(new am4charts.LineSeries());
                 lineSeries.name = "Profit";
                 lineSeries.dataFields.valueY = "profit";
@@ -81,6 +83,7 @@ if (jQuery('#am-columnlinr-chart').length) {
     });
 }
 
+// layout1-chart-3 (Profit)
 if (jQuery("#layout1-chart-3").length) {
     jQuery.ajax({
         url: 'chart-dash.php',
@@ -88,7 +91,7 @@ if (jQuery("#layout1-chart-3").length) {
         dataType: 'json',
         data: { range: 'yearly' },
         success: function(response) {
-            const data = response.apexLineChart.map(function(item) {
+            const data = response['layout1-chart-3'].map(function(item) {
                 return { x: item.date, y: item.profit };
             });
 
@@ -97,12 +100,12 @@ if (jQuery("#layout1-chart-3").length) {
                 colors: ['#FF7E41'],
                 chart: { height: 150, type: 'line', zoom: { enabled: false }, sparkline: { enabled: true }},
                 stroke: { curve: 'smooth', width: 3 },
-                xaxis: { categories: response.apexLineChart.map(item => item.date) }
+                xaxis: { categories: response['layout1-chart-3'].map(item => item.date) }
             };
 
             const chart = new ApexCharts(document.querySelector("#layout1-chart-3"), options);
             chart.render();
-            
+
             const body = document.querySelector('body');
             if (body.classList.contains('dark')) apexChartUpdate(chart, { dark: true });
             document.addEventListener('ChangeColorMode', function(e) {
@@ -115,6 +118,7 @@ if (jQuery("#layout1-chart-3").length) {
     });
 }
 
+// layout1-chart-4 (Expenses)
 if (jQuery("#layout1-chart-4").length) {
     jQuery.ajax({
         url: 'chart-dash.php',
@@ -122,7 +126,7 @@ if (jQuery("#layout1-chart-4").length) {
         dataType: 'json',
         data: { range: 'yearly' },
         success: function(response) {
-            const data = response.apexLineChart.map(function(item) {
+            const data = response['layout1-chart-4'].map(function(item) {
                 return { x: item.date, y: item.expenses };
             });
 
@@ -131,12 +135,12 @@ if (jQuery("#layout1-chart-4").length) {
                 colors: ['#32BDEA'],
                 chart: { height: 150, type: 'line', zoom: { enabled: false }, sparkline: { enabled: true }},
                 stroke: { curve: 'smooth', width: 3 },
-                xaxis: { categories: response.apexLineChart.map(item => item.date) }
+                xaxis: { categories: response['layout1-chart-4'].map(item => item.date) }
             };
 
             const chart = new ApexCharts(document.querySelector("#layout1-chart-4"), options);
             chart.render();
-            
+
             const body = document.querySelector('body');
             if (body.classList.contains('dark')) apexChartUpdate(chart, { dark: true });
             document.addEventListener('ChangeColorMode', function(e) {
@@ -149,6 +153,7 @@ if (jQuery("#layout1-chart-4").length) {
     });
 }
 
+// layout1-chart-5 (Profit and Expenses Combined)
 if (jQuery("#layout1-chart-5").length) {
     jQuery.ajax({
         url: 'chart-dash.php',
@@ -157,22 +162,21 @@ if (jQuery("#layout1-chart-5").length) {
         data: { range: 'yearly' },
         success: function(response) {
             const data = {
-                profit: response.apexBarChart.map(item => item.profit),
-                expenses: response.apexBarChart.map(item => item.expenses),
-                categories: response.apexBarChart.map(item => item.date)
+                profit: response['layout1-chart-5'].map(item => item.profit),
+                expenses: response['layout1-chart-5'].map(item => item.expenses),
+                categories: response['layout1-chart-5'].map(item => item.date)
             };
 
             const options = {
                 series: [{ name: 'Profit', data: data.profit }, { name: 'Expenses', data: data.expenses }],
                 chart: { type: 'bar', height: 300 },
-                colors: ['#32BDEA', '#FF7E41'],
-                plotOptions: { bar: { horizontal: false, columnWidth: '30%', endingShape: 'rounded' }},
+                colors: ['#37e6b0', '#ff4d6b'],
                 xaxis: { categories: data.categories }
             };
 
             const chart = new ApexCharts(document.querySelector("#layout1-chart-5"), options);
             chart.render();
-            
+
             const body = document.querySelector('body');
             if (body.classList.contains('dark')) apexChartUpdate(chart, { dark: true });
             document.addEventListener('ChangeColorMode', function(e) {
