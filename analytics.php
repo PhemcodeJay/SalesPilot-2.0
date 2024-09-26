@@ -525,7 +525,7 @@ try {
                             </div>
                         </div>
 
-                  <div class="card-body">
+                   <div class="card-body">
                      <div id="apex-basic"></div>
                   </div>
                </div>
@@ -640,7 +640,7 @@ try {
 <script src="http://localhost/project/assets/js/customizer.js"></script>
     
     <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/assets/js/chart-custom1.js"></script>
+    <script async src="http://localhost/project/chart-data.js"></script>
     
 
 <!-- app JavaScript -->
