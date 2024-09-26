@@ -23,7 +23,7 @@ switch ($range) {
         break;
 }
 
-// Fetch revenue by category for the top 6 categories (Layered Column Chart)
+// Fetch revenue by category for the top 5 categories (Layered Column Chart)
 $categoryRevenueQuery = $connection->prepare("
     SELECT categories.category_name, SUM(sales_qty * price) AS revenue 
     FROM sales
@@ -50,33 +50,32 @@ $revenueProfitQuery = $connection->prepare("
 $revenueProfitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $revenueProfitData = $revenueProfitQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch profit only data (Layout Chart 3)
+// Fetch profit only data (layout1-chart-3)
 $profitQuery = $connection->prepare("
-    SELECT DATE(sale_date) AS date, 
+    SELECT DATE_FORMAT(sale_date, '%b %Y') AS date,  -- Format date as 'Mon YYYY'
            SUM(sales_qty * (price - cost)) AS profit
     FROM sales
     JOIN products ON sales.product_id = products.id
     WHERE sale_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE(sale_date)
+    GROUP BY DATE_FORMAT(sale_date, '%b %Y')
 ");
 $profitQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $profitData = $profitQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch expenses only data (Layout Chart 4)
+// Fetch expenses only data (layout1-chart-4)
 $expensesQuery = $connection->prepare("
-    SELECT DATE(expense_date) AS date, 
+    SELECT DATE_FORMAT(expense_date, '%b %Y') AS date,  -- Format date as 'Mon YYYY'
            SUM(amount) AS expenses
     FROM expenses
     WHERE expense_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE(expense_date)
+    GROUP BY DATE_FORMAT(expense_date, '%b %Y')
 ");
 $expensesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $expensesData = $expensesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch profit and expenses data (Combined Column Chart - Layout Chart 5)
-// This query calculates the total cost and adds total expenses from the `expenses` table
+// Fetch profit and expenses data (layout1-chart-5)
 $profitExpenseQuery = $connection->prepare("
-    SELECT DATE(sale_date) AS date, 
+    SELECT DATE_FORMAT(sale_date, '%b %Y') AS date,  -- Format date as 'Mon YYYY'
            SUM(sales_qty * (price - cost)) AS profit,
            (
                (SELECT SUM(sales_qty * cost) FROM sales WHERE sale_date = DATE(sales.sale_date)) + 
@@ -85,7 +84,7 @@ $profitExpenseQuery = $connection->prepare("
     FROM sales
     JOIN products ON sales.product_id = products.id
     WHERE sale_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE(sale_date)
+    GROUP BY DATE_FORMAT(sale_date, '%b %Y')
 ");
 $profitExpenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $profitExpenseData = $profitExpenseQuery->fetchAll(PDO::FETCH_ASSOC);
@@ -94,9 +93,9 @@ $profitExpenseData = $profitExpenseQuery->fetchAll(PDO::FETCH_ASSOC);
 $response = [
     'apexLayeredColumnChart' => $categoryRevenueData,  // Revenue by Top 6 Categories
     'apexColumnLineChart' => $revenueProfitData,       // Revenue vs. Profit
-    'layoutChartProfitOnly' => $profitData,             // Profit Only (layout1-chart-3)
-    'layoutChartExpensesOnly' => $expensesData,         // Expenses Only (layout1-chart-4)
-    'layoutChartProfitExpense' => $profitExpenseData,   // Profit and Expenses Combined (layout1-chart-5)
+    'layout1-chart-3' => $profitData,             // Profit Only (layout1-chart-3)
+    'layout1-chart-4' => $expensesData,           // Expenses Only (layout1-chart-4)
+    'layout1-chart-5' => $profitExpenseData       // Profit and Expenses Combined (layout1-chart-5)
 ];
 
 // Output the JSON response

@@ -93,16 +93,33 @@ try {
     // Calculate profit
     $total_profit = $total_revenue - $total_expenses_combined;
 
+    // Calculate the percentage of total expenses combined compared to revenue
+    $percentage_expenses_to_revenue = 0;  // Default value
+    if ($total_revenue > 0) {
+        // Total expenses combined divided by total revenue * 100
+        $percentage_expenses_to_revenue = ($total_expenses_combined / $total_revenue) * 100;
+    }
+
+    // Calculate the percentage of total profit combined compared to revenue
+    $percentage_profit_to_revenue = 0;  // Default value
+    if ($total_revenue > 0) {
+        // Total profit combined divided by total revenue * 100
+        $percentage_profit_to_revenue = ($total_profit / $total_revenue) * 100;
+    }
+
     // Format the final outputs for display
     $total_revenue = number_format($total_revenue, 2);
     $total_expenses_combined = number_format($total_expenses_combined, 2);
     $total_profit = number_format($total_profit, 2);
+    $percentage_expenses_to_revenue = number_format($percentage_expenses_to_revenue,);
+    $percentage_profit_to_revenue = number_format($percentage_profit_to_revenue,);
 
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
     $total_profit = "0.00";
+    $percentage_expenses_to_revenue = "0.00";
+    $percentage_profit_to_revenue = "0.00";
 }
-
 
 
 
@@ -673,7 +690,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Overview</h4>
+                            <h4 class="card-title">Revenue</h4>
                            
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
@@ -692,7 +709,7 @@ $connection = null;
                         </div>
                     </div>                    
                     <div class="card-body">
-                    <h4>(Revenue) Categories</h4>
+                    <h4>Top Categories</h4>
                         <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
                     </div> 
                 </div>
@@ -701,7 +718,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Expenditure</h4>
+                            <h4 class="card-title">Income</h4>
                         </div>
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
@@ -832,7 +849,7 @@ $connection = null;
                     <div class="card-body">
                         <div class="d-flex align-items-top justify-content-between">
                             <div class="">
-                                <p class="mb-0">Expenses</p>
+                                <p class="mb-0">Expenditure</p>
                                 <h5>$<?php echo $total_expenses_combined; ?></h5>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
@@ -858,7 +875,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Profit vs Expenses</h4>
+                            <h4 class="card-title">Profit vs Expenditure</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
@@ -885,11 +902,14 @@ $connection = null;
                                     <span class="progress-right">
                                         <span class="progress-bar"></span>
                                     </span>
-                                    <div class="progress-value text-secondary">46%</div>
+                                    <div class="progress-value text-secondary">
+                                        <?php echo $percentage_expenses_to_revenue; ?>%
+                                    </div>
+
                                 </div>
                                 <div class="progress-value ml-3 pr-5 border-right">
                                     <h5>$<?php echo $total_expenses_combined; ?></h5>
-                                    <p class="mb-0">Expenses</p>
+                                    <p class="mb-0">Expenditure</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center ml-5 progress-order-right">
@@ -900,7 +920,9 @@ $connection = null;
                                     <span class="progress-right">
                                         <span class="progress-bar"></span>
                                     </span>
-                                    <div class="progress-value text-primary">46%</div>
+                                    <div class="progress-value text-primary">
+                                        <?php echo $percentage_profit_to_revenue; ?>%
+                                    </div>
                                 </div>
                                 <div class="progress-value ml-3">
                                     <h5>$<?php echo $total_profit; ?></h5>
