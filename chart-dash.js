@@ -168,7 +168,10 @@ if (jQuery("#layout1-chart-5").length) {
             };
 
             const options = {
-                series: [{ name: 'Profit', data: data.profit }, { name: 'Expenses', data: data.expenses }],
+                series: [
+                    { name: 'Profit', data: data.profit },
+                    { name: 'Expenses', data: data.expenses }
+                ],
                 chart: { type: 'bar', height: 300 },
                 colors: ['#37e6b0', '#ff4d6b'],
                 xaxis: { categories: data.categories }
