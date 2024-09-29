@@ -31,6 +31,8 @@ if (!$user_info) {
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
+  
+
 
 try {
     // Fetch inventory notifications with product images
@@ -607,11 +609,17 @@ h2 {
     <table class="data-table">
         <thead>
             <tr>
-                
+                <th>Product Name</th>
+                <th>Total Sales</th>
             </tr>
         </thead>
         <tbody id="barTableBody">
-            <!-- Data rows will be inserted here -->
+            <?php foreach ($productMetrics as $product): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 
@@ -619,11 +627,17 @@ h2 {
     <table class="data-table">
         <thead>
             <tr>
-                
+                <th>Product Name</th>
+                <th>Revenue</th>
             </tr>
         </thead>
         <tbody id="pieTableBody">
-            <!-- Data rows will be inserted here -->
+            <?php foreach ($topProducts as $product): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($product['revenue']); ?></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 
@@ -631,11 +645,19 @@ h2 {
     <table class="data-table">
         <thead>
             <tr>
-                
+                <th>Product Name</th>
+                <th>Available Stock</th>
+                <th>Inventory Quantity</th>
             </tr>
         </thead>
         <tbody id="candleTableBody">
-            <!-- Data rows will be inserted here -->
+            <?php foreach ($inventoryMetrics as $inventory): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($inventory['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($inventory['available_stock']); ?></td>
+                    <td><?php echo htmlspecialchars($inventory['inventory_qty']); ?></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 
@@ -643,11 +665,21 @@ h2 {
     <table class="data-table">
         <thead>
             <tr>
-                
+                <th>Date</th>
+                <th>Revenue</th>
+                <th>Total Expenses</th>
+                <th>Profit</th>
             </tr>
         </thead>
         <tbody id="areaTableBody">
-            <!-- Data rows will be inserted here -->
+            <?php foreach ($incomeOverview as $income): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($income['date']); ?></td>
+                    <td><?php echo htmlspecialchars($income['revenue']); ?></td>
+                    <td><?php echo htmlspecialchars($income['total_expenses']); ?></td>
+                    <td><?php echo htmlspecialchars($income['profit']); ?></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 </div>

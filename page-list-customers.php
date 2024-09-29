@@ -675,7 +675,7 @@ $(document).ready(function() {
         var customerPhone = $row.find('[data-field="customer_phone"]').text();
         var customerLocation = $row.find('[data-field="customer_location"]').text();
 
-        $.post('update_customer.php', {
+        $.post('page-list-customers.php', {
             customer_id: customerId,
             customer_name: customerName,
             customer_email: customerEmail,
@@ -692,7 +692,7 @@ $(document).ready(function() {
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this customer?')) {
             var customerId = $(this).data('customer-id');
-            $.post('update_customer.php', {
+            $.post('page-list-customers.php', {
                 customer_id: customerId,
                 action: 'delete'
             }, function(response) {
@@ -706,7 +706,7 @@ $(document).ready(function() {
 
     $('.save-pdf-btn').on('click', function() {
         var customerId = $(this).data('customer-id');
-        window.location.href = 'generate_pdf.php?customer_id=' + customerId;
+        window.location.href = 'page-list-customers.php?customer_id=' + customerId;
     });
 });
 </script>

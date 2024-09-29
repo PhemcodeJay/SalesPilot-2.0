@@ -82,7 +82,7 @@ try {
     <link rel="stylesheet" href="http://localhost/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="http://localhost/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="http://localhost/project/assets/vendor/remixicon/fonts/remixicon.css"> 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="http://localhost/project/asset/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
@@ -638,9 +638,9 @@ try {
 
 <!-- Chart Custom JavaScript -->
 <script src="http://localhost/project/assets/js/customizer.js"></script>
-    
+   
     <!-- Chart Custom JavaScript -->
-    <script async src="http://localhost/project/chart-data.js"></script>
+    <script async src="http://localhost/project/assets/js/chart-custom2.js"></script>
     
 
 <!-- app JavaScript -->
