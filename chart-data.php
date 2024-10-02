@@ -23,7 +23,6 @@ try {
             $endDate = date('Y-12-31');
             break;
         default:
-            // If an unsupported range is given, use yearly by default
             $startDate = date('Y-01-01');
             $endDate = date('Y-12-31');
             break;
@@ -58,20 +57,36 @@ try {
     $revenueByProductData = $revenueByProductQuery->fetchAll(PDO::FETCH_ASSOC);
 
     // Decode the revenue_by_product JSON data and aggregate it
-    $revenueByProduct = [];
-    foreach ($revenueByProductData as $report) {
-        $products = json_decode($report['revenue_by_product'], true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('JSON decode error: ' . json_last_error_msg());
-            continue;
-        }
+$revenueByProduct = [];
+foreach ($revenueByProductData as $report) {
+    // Decode JSON, ensuring we get an associative array
+    $products = json_decode($report['revenue_by_product'], true);
+
+    // Check for JSON decode errors
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('JSON decode error: ' . json_last_error_msg());
+        continue;
+    }
+
+    // Ensure $products is an array before proceeding
+    if (is_array($products)) {
         foreach ($products as $product => $revenue) {
-            if (!isset($revenueByProduct[$product])) {
-                $revenueByProduct[$product] = 0;
+            // Ensure the product name is a valid string and revenue is numeric
+            if (is_string($product) && is_numeric($revenue)) {
+                if (!isset($revenueByProduct[$product])) {
+                    $revenueByProduct[$product] = 0;
+                }
+                // Aggregate revenue, ensuring it is cast to a float for numeric accuracy
+                $revenueByProduct[$product] += (float)$revenue;
             }
-            $revenueByProduct[$product] += $revenue;
         }
     }
+}
+
+// Sort the products by revenue and get the top 5 products
+arsort($revenueByProduct);
+$top5Products = array_slice($revenueByProduct, 0, 5, true);
+
 
     // Sort the products by revenue and get the top 5 products
     arsort($revenueByProduct);
@@ -108,13 +123,13 @@ try {
     $combinedData = [];
     foreach ($revenueData as $data) {
         $date = $data['date'];
-        $revenue = (float)$data['revenue']; // Cast to float for precision
+        $revenue = isset($data['revenue']) ? (float)$data['revenue'] : 0;
 
         // Find matching total cost data
         $totalCost = 0;
         foreach ($totalCostData as $cost) {
             if ($cost['date'] === $date) {
-                $totalCost = (float)$cost['total_cost']; // Cast to float for precision
+                $totalCost = isset($cost['total_cost']) ? (float)$cost['total_cost'] : 0;
                 break;
             }
         }
@@ -123,7 +138,7 @@ try {
         $expenses = 0;
         foreach ($expenseData as $expense) {
             if ($expense['date'] === $date) {
-                $expenses = (float)$expense['total_expenses']; // Cast to float for precision
+                $expenses = isset($expense['total_expenses']) ? (float)$expense['total_expenses'] : 0;
                 break;
             }
         }

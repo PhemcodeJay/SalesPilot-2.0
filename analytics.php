@@ -646,6 +646,8 @@ try {
 <!-- app JavaScript -->
 <script src="http://localhost/project/assets/js/app.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
