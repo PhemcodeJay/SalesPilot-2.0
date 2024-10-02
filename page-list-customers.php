@@ -587,7 +587,7 @@ try {
         <?php if (!empty($customers)): ?>
             <?php foreach ($customers as $customer): ?>
                 <tr data-customer-id="<?php echo $customer['customer_id']; ?>">
-                    <td><span class="editable" data-field="customer_name"><?php echo htmlspecialchars($customer['customer_name']); ?></span></td>
+                    <td contenteditable="true" class="editable" data-field="customer_name"><?php echo htmlspecialchars($customer['customer_name']); ?></span></td>
                     <td><span class="editable" data-field="customer_email"><?php echo htmlspecialchars($customer['customer_email']); ?></span></td>
                     <td><span class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></span></td>
                     <td><span class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></span></td>

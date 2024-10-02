@@ -578,7 +578,7 @@ try {
             <?php foreach ($expenses as $expense): ?>
                 <tr data-expense-id="<?php echo $expense['id']; ?>">
                     <!-- Inline editable fields -->
-                    <td class="editable" data-field="expense_date" contenteditable="true"><?php echo htmlspecialchars($expense['expense_date']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="expense_date"><?php echo htmlspecialchars($expense['expense_date']); ?></td>
                     <td class="editable" data-field="description" contenteditable="true"><?php echo htmlspecialchars($expense['description']); ?></td>
                     <td class="editable" data-field="amount" contenteditable="true">$<?php echo htmlspecialchars($expense['amount']); ?></td>
                     <td class="editable" data-field="created_by" contenteditable="true"><?php echo htmlspecialchars($expense['created_by']); ?></td>

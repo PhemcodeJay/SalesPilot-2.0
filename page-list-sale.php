@@ -621,7 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (!empty($sales_data)): ?>
         <?php foreach ($sales_data as $sale): ?>
             <tr data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
-                <td class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
+                <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
                 <td class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
                 <td class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
                 <td class="editable" data-field="sales_status">

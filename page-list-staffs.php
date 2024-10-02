@@ -603,7 +603,7 @@ try {
     <?php if (!empty($staff)): ?>
         <?php foreach ($staff as $member): ?>
             <tr data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
-                <td class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
+                <td contenteditable="true" class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
                 <td class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
                 <td class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
                 <td class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>

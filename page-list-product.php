@@ -650,7 +650,6 @@ try {
         <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product['price'], 2); ?></td>
         <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
         <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
-        
         <td>
             <form method="post" action="page-list-product.php">
                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">

@@ -700,7 +700,7 @@ try {
                     <label for="checkbox<?php echo $supplier['id']; ?>" class="mb-0"></label>
                 </div>
             </td>
-            <td class="editable" data-field="supplier_name"><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+            <td contenteditable="true" class="editable" data-field="supplier_name"><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
 <td class="editable" data-field="product_name"><?php echo htmlspecialchars($supplier['product_name']); ?></td>
 <td class="editable" data-field="supplier_email"><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
 <td class="editable" data-field="supplier_phone"><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
