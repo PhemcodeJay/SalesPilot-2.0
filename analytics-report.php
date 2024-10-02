@@ -31,10 +31,125 @@ if (!$user_info) {
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
-  
+// Retrieve the time range from the request
+$range = $_GET['range'] ?? 'yearly';
+$startDate = '';
+$endDate = '';
 
+// Define the date range based on the selected period
+switch ($range) {
+    case 'weekly':
+        $startDate = date('Y-m-d', strtotime('this week Monday'));
+        $endDate = date('Y-m-d', strtotime('this week Sunday'));
+        break;
+    case 'monthly':
+        $startDate = date('Y-m-01');
+        $endDate = date('Y-m-t');
+        break;
+    case 'yearly':
+    default:
+        $startDate = date('Y-01-01');
+        $endDate = date('Y-12-31');
+        break;
+}
 
 try {
+    // Fetch product metrics for the first table (Product Name and Total Sales)
+    $productMetricsQuery = $connection->prepare("
+        SELECT p.name, SUM(s.sales_qty) AS total_sales 
+        FROM sales s 
+        JOIN products p ON s.product_id = p.id 
+        WHERE DATE(s.sale_date) BETWEEN :startDate AND :endDate 
+        GROUP BY p.name
+    ");
+    $productMetricsQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+    $productMetrics = $productMetricsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch top 5 products by revenue
+    $revenueByProductQuery = $connection->prepare("
+        SELECT p.name, SUM(s.sales_qty * p.price) AS revenue 
+        FROM sales s 
+        JOIN products p ON s.product_id = p.id 
+        WHERE DATE(s.sale_date) BETWEEN :startDate AND :endDate 
+        GROUP BY p.name 
+        ORDER BY revenue DESC 
+        LIMIT 5
+    ");
+    $revenueByProductQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+    $topProducts = $revenueByProductQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch inventory metrics for the third table
+    $inventoryMetricsQuery = $connection->prepare("
+        SELECT p.name, i.available_stock, i.inventory_qty 
+        FROM inventory i 
+        JOIN products p ON i.product_id = p.id
+    ");
+    $inventoryMetricsQuery->execute();
+    $inventoryMetrics = $inventoryMetricsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch income overview for the last table
+    $revenueQuery = $connection->prepare("
+        SELECT DATE(s.sale_date) AS date, SUM(s.sales_qty * p.price) AS revenue 
+        FROM sales s 
+        JOIN products p ON s.product_id = p.id 
+        WHERE DATE(s.sale_date) BETWEEN :startDate AND :endDate 
+        GROUP BY DATE(s.sale_date)
+    ");
+    $revenueQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+    $revenueData = $revenueQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    $totalCostQuery = $connection->prepare("
+        SELECT DATE(sale_date) AS date, SUM(sales_qty * cost) AS total_cost 
+        FROM sales 
+        JOIN products ON sales.product_id = products.id 
+        WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
+        GROUP BY DATE(sale_date)
+    ");
+    $totalCostQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+    $totalCostData = $totalCostQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    $expenseQuery = $connection->prepare("
+        SELECT DATE(expense_date) AS date, SUM(amount) AS total_expenses 
+        FROM expenses 
+        WHERE DATE(expense_date) BETWEEN :startDate AND :endDate 
+        GROUP BY DATE(expense_date)
+    ");
+    $expenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
+    $expenseData = $expenseQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Combine revenue, total cost, and additional expenses for the income overview
+    $incomeOverview = [];
+    foreach ($revenueData as $data) {
+        $date = $data['date'];
+        $revenue = isset($data['revenue']) ? (float)$data['revenue'] : 0;
+
+        $totalCost = 0;
+        foreach ($totalCostData as $cost) {
+            if ($cost['date'] === $date) {
+                $totalCost = isset($cost['total_cost']) ? (float)$cost['total_cost'] : 0;
+                break;
+            }
+        }
+
+        $expenses = 0;
+        foreach ($expenseData as $expense) {
+            if ($expense['date'] === $date) {
+                $expenses = isset($expense['total_expenses']) ? (float)$expense['total_expenses'] : 0;
+                break;
+            }
+        }
+
+        $totalExpenses = $totalCost + $expenses;
+        $profit = $revenue - $totalExpenses;
+
+        $incomeOverview[] = [
+            'date' => $date,
+            'revenue' => number_format($revenue, 2),
+            'total_expenses' => number_format($totalExpenses, 2),
+            'profit' => number_format($profit, 2)
+        ];
+    }
+
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
@@ -47,7 +162,7 @@ try {
         ':low_stock' => 10,
         ':high_stock' => 1000,
     ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch reports notifications with product images
     $reportsQuery = $connection->prepare("
@@ -64,12 +179,14 @@ try {
         ':high_revenue' => 10000,
         ':low_revenue' => 1000,
     ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     // Handle any errors during database queries
     echo "Error: " . $e->getMessage();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -617,7 +734,7 @@ h2 {
             <?php foreach ($productMetrics as $product): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                    <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
+                    <td>$<?php echo number_format(htmlspecialchars($product['total_sales']), 2); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -634,8 +751,8 @@ h2 {
         <tbody id="pieTableBody">
             <?php foreach ($topProducts as $product): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                    <td><?php echo htmlspecialchars($product['revenue']); ?></td>
+                    <td><?php echo htmlspecialchars($product['name']); ?></td>
+                    <td>$<?php echo number_format (htmlspecialchars($product['revenue']), 2); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -653,7 +770,7 @@ h2 {
         <tbody id="candleTableBody">
             <?php foreach ($inventoryMetrics as $inventory): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($inventory['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($inventory['name']); ?></td>
                     <td><?php echo htmlspecialchars($inventory['available_stock']); ?></td>
                     <td><?php echo htmlspecialchars($inventory['inventory_qty']); ?></td>
                 </tr>
@@ -675,13 +792,15 @@ h2 {
             <?php foreach ($incomeOverview as $income): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($income['date']); ?></td>
-                    <td><?php echo htmlspecialchars($income['revenue']); ?></td>
-                    <td><?php echo htmlspecialchars($income['total_expenses']); ?></td>
-                    <td><?php echo htmlspecialchars($income['profit']); ?></td>
+                    <td>$<?php echo htmlspecialchars($income['revenue']); ?></td>
+                    <td>$<?php echo htmlspecialchars($income['total_expenses']); ?></td>
+                    <td>$<?php echo  htmlspecialchars($income['profit']); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
+
+ 
 </div>
 
 </div>
