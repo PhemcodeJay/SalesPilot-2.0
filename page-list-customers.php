@@ -588,9 +588,9 @@ try {
             <?php foreach ($customers as $customer): ?>
                 <tr data-customer-id="<?php echo $customer['customer_id']; ?>">
                     <td contenteditable="true" class="editable" data-field="customer_name"><?php echo htmlspecialchars($customer['customer_name']); ?></span></td>
-                    <td><span class="editable" data-field="customer_email"><?php echo htmlspecialchars($customer['customer_email']); ?></span></td>
-                    <td><span class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></span></td>
-                    <td><span class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></span></td>
+                    <td contenteditable="true" class="editable" data-field="customer_email"><?php echo htmlspecialchars($customer['customer_email']); ?></span></td>
+                    <td contenteditable="true" class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></span></td>
+                    <td contenteditable="true" class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></span></td>
                     <td>
                         <button type="button" class="btn btn-success save-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
                         <button type="button" class="btn btn-warning delete-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>

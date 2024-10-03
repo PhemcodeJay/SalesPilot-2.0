@@ -701,12 +701,12 @@ try {
                 </div>
             </td>
             <td contenteditable="true" class="editable" data-field="supplier_name"><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
-<td class="editable" data-field="product_name"><?php echo htmlspecialchars($supplier['product_name']); ?></td>
-<td class="editable" data-field="supplier_email"><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
-<td class="editable" data-field="supplier_phone"><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
-<td class="editable" data-field="supplier_location"><?php echo htmlspecialchars($supplier['supplier_location']); ?></td>
-<td class="editable" data-field="note"><?php echo htmlspecialchars($supplier['note']); ?></td>
-<td class="editable" data-field="supply_qty"><?php echo htmlspecialchars($supplier['supply_qty']); ?></td>
+<td contenteditable="true" class="editable" data-field="product_name""><?php echo htmlspecialchars($supplier['product_name']); ?></td>
+<td contenteditable="true" class="editable" data-field="supplier_email"><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
+<td contenteditable="true" class="editable" data-field="supplier_phone"><?php echo htmlspecialchars($supplier['supplier_phone']); ?></td>
+<td contenteditable="true" class="editable" data-field="supplier_location"><?php echo htmlspecialchars($supplier['supplier_location']); ?></td>
+<td contenteditable="true" class="editable" data-field="note"><?php echo htmlspecialchars($supplier['note']); ?></td>
+<td contenteditable="true" class="editable" data-field="supply_qty"><?php echo htmlspecialchars($supplier['supply_qty']); ?></td>
 
             <td>
                 <button type="button" class="btn btn-success action-btn" data-action="edit" data-supplier-id="<?php echo htmlspecialchars($supplier['id']); ?>" data-toggle="tooltip" data-placement="top" title="Edit">

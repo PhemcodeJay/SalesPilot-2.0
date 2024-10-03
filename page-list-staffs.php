@@ -604,9 +604,9 @@ try {
         <?php foreach ($staff as $member): ?>
             <tr data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
                 <td contenteditable="true" class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
-                <td class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
-                <td class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
-                <td class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>
+                <td contenteditable="true" class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
+                <td contenteditable="true" class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
+                <td contenteditable="true" class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>
                 <td>
                     <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
                         <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>

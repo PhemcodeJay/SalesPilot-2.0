@@ -611,8 +611,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <th>Date</th>
             <th>Name</th>
             <th>Price</th>
-            <th>Sales</th>
             <th>Quantity</th>
+            <th>Sales</th>
             <th>Payment</th>
             <th>Action</th>
         </tr>
@@ -622,13 +622,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php foreach ($sales_data as $sale): ?>
             <tr data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
                 <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
-                <td class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
-                <td class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
-                <td class="editable" data-field="sales_status">
+                <td contenteditable="true" class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
+                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
+                <td contenteditable="true" class="editable" data-field="sales-qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
+                <td contenteditable="true" class="editable" data-field="sales_status">
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div>
                 </td>
-                <td class="editable" data-field="sales_qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
-                <td class="editable" data-field="payment_status">
+                
+                <td contenteditable="true" class="editable" data-field="payment_status">
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div>
                 </td>
                 <td>
