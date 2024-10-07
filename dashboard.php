@@ -19,17 +19,28 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
     
     try {
-        // Fetch user data including user image
-        $stmt = $connection->prepare('SELECT id, email, date, user_image FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Prepare and execute the query to fetch user information from the users table
+        $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+        $stmt = $connection->prepare($user_query);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        
+        // Fetch user data
+        $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
     
-        if ($user) {
-            $email = htmlspecialchars($user['email']);
-            $date = date('d F, Y', strtotime($user['date']));
-            $user_image = !empty($user['user_image']) ? htmlspecialchars($user['user_image']) : 'default.png';
+        if ($user_info) {
+            // Retrieve user details and sanitize output
+            $email = htmlspecialchars($user_info['email']);
+            $date = date('d F, Y', strtotime($user_info['date']));
+            $location = htmlspecialchars($user_info['location']);
+            $user_id = htmlspecialchars($user_info['id']);
+            
+            // Check if a user image exists, use default if not
+            $existing_image = htmlspecialchars($user_info['user_image']);
+            $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
+    
+            // Determine the time of day for personalized greeting
             $current_hour = (int)date('H');
-    
             if ($current_hour < 12) {
                 $time_of_day = "Morning";
             } elseif ($current_hour < 18) {
@@ -38,14 +49,21 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
                 $time_of_day = "Evening";
             }
     
+            // Personalized greeting
             $greeting = "Hi " . $username . ", Good " . $time_of_day;
         } else {
+            // If no user data, fallback to guest greeting and default image
             $greeting = "Hello, Guest";
-            $user_image = 'default.png';  // Fallback to default image for guest
+            $image_to_display = 'uploads/user/default.png';
         }
     } catch (PDOException $e) {
+        // Handle database errors
         exit("Database error: " . $e->getMessage());
+    } catch (Exception $e) {
+        // Handle user not found or other exceptions
+        exit("Error: " . $e->getMessage());
     }
+    
 
     
 }
@@ -547,15 +565,17 @@ $connection = null;
 
                               <li class="nav-item nav-icon dropdown caption-content">
                                 
-                                          <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <!-- Hidden fields for user ID and existing image -->
-                                                    <input type="hidden" name="id" value="<?php echo $user_id; ?>">
-                                                    <input type="hidden" name="existing_image" value="<?php echo $existing_image; ?>">
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <!-- Hidden fields for user ID and existing image -->
+    <input type="hidden" name="id" value="<?php echo htmlspecialchars($user_id); ?>">
+    <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($existing_image); ?>">
 
-                                                    <img src="<?php echo 'http://localhost/project/uploads/user/' . (!empty($user_image['user_image']) ? $user_image['user_image'] : 'default.png'); ?>" 
-                                                     alt="profile-img" class="rounded profile-img img-fluid avatar-70">
-                                                    </a>
+    <!-- Display the user image or fallback to default -->
+    <img src="http://localhost/project/<?php echo htmlspecialchars($image_to_display); ?>" 
+         alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+</a>
+
 
 
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -566,9 +586,8 @@ $connection = null;
                                                     <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                         class="rounded-top img-fluid mb-4">
                                                     
-                                                    <!-- User Profile Image -->
-                                                    <img src="http://localhost/project/uploads/user/<?php echo !empty($user_image['user_image']) ? htmlspecialchars($user_image['user_image']) : 'default.png'; ?>" 
-                                                       alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                                        <img src="http://localhost/project/<?php echo htmlspecialchars($image_to_display); ?>" 
+                                                        alt="profile-img" class="rounded profile-img img-fluid avatar-70">
 
                                                 </div>
 
