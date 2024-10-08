@@ -15,6 +15,51 @@ $total_products_sold = $total_sales = $total_cost = "0.00";
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Default to monthly data
+$range = $_GET['range'] ?? 'month'; // Can be 'year', 'month', or 'week'
+
+try {
+    // Query for different ranges
+    if ($range === 'year') {
+        $sql = "
+            SELECT
+                IFNULL(SUM(s.sales_qty * p.price), 0) AS total_revenue
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            WHERE YEAR(s.sale_date) = YEAR(CURDATE())
+        ";
+    } elseif ($range === 'week') {
+        $sql = "
+            SELECT
+                IFNULL(SUM(s.sales_qty * p.price), 0) AS total_revenue
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            WHERE WEEK(s.sale_date) = WEEK(CURDATE()) AND YEAR(s.sale_date) = YEAR(CURDATE())
+        ";
+    } else {
+        // Default to month
+        $sql = "
+            SELECT
+                IFNULL(SUM(s.sales_qty * p.price), 0) AS total_revenue
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            WHERE MONTH(s.sale_date) = MONTH(CURDATE()) AND YEAR(s.sale_date) = YEAR(CURDATE())
+        ";
+    }
+    
+    $stmt = $connection->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Return the total revenue as JSON
+    echo json_encode([
+        'total_revenue' => number_format($result['total_revenue'], 2)
+    ]);
+
+} catch (PDOException $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+}
+
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
     
@@ -713,19 +758,18 @@ $connection = null;
                            
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
-                            </div>
-                        </div>
+    <div class="dropdown">
+        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
+            This Month<i class="ri-arrow-down-s-line ml-1"></i>
+        </span>
+        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
+            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
+        </div>
+    </div>
+</div>
+
                     </div>                    
                     <div class="card-body">
                     <h4>Top Categories</h4>
@@ -747,9 +791,9 @@ $connection = null;
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none"
                                     aria-labelledby="dropdownMenuButton002">
-                                    <a class="dropdown-item" href="#">Yearly</a>
-                                    <a class="dropdown-item" href="#">Monthly</a>
-                                    <a class="dropdown-item" href="#">Weekly</a>
+                                    <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                                    <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                                    <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -772,9 +816,9 @@ $connection = null;
                                 This Month<i class="ri-arrow-down-s-line ml-1"></i>
                             </span>
                             <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton006">
-                                <a class="dropdown-item" href="#">Year</a>
-                                <a class="dropdown-item" href="#">Month</a>
-                                <a class="dropdown-item" href="#">Week</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
                             </div>
                         </div>
                     </div>
@@ -854,9 +898,9 @@ $connection = null;
                                     </span>
                                     <div class="dropdown-menu dropdown-menu-right shadow-none"
                                         aria-labelledby="dropdownMenuButton003">
-                                        <a class="dropdown-item" href="#">Year</a>
-                                        <a class="dropdown-item" href="#">Month</a>
-                                        <a class="dropdown-item" href="#">Week</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
                                     </div>
                                 </div>
                             </div>
@@ -879,9 +923,9 @@ $connection = null;
                                     </span>
                                     <div class="dropdown-menu dropdown-menu-right shadow-none"
                                         aria-labelledby="dropdownMenuButton004">
-                                        <a class="dropdown-item" href="#">Year</a>
-                                        <a class="dropdown-item" href="#">Month</a>
-                                        <a class="dropdown-item" href="#">Week</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
                                     </div>
                                 </div>
                             </div>
@@ -897,19 +941,18 @@ $connection = null;
                             <h4 class="card-title">Profit vs Expenditure</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton005">
-                                    <a class="dropdown-item" href="#">Year</a>
-                                    <a class="dropdown-item" href="#">Month</a>
-                                    <a class="dropdown-item" href="#">Week</a>
-                                </div>
-                            </div>
-                        </div>
+    <div class="dropdown">
+        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005" data-toggle="dropdown">
+            Week <i class="ri-arrow-down-s-line ml-1"></i> <!-- Default initial time frame -->
+        </span>
+        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton005">
+            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
+        </div>
+    </div>
+</div>
+
                     </div> 
                     <div class="card-body">
                         <div class="d-flex flex-wrap align-items-center mt-2">
@@ -994,13 +1037,171 @@ $connection = null;
     
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-document.getElementById('createButton').addEventListener('click', function() {
-    // Optional: Validate input or perform any additional checks here
-    
-    // Redirect to invoice-form.php
-    window.location.href = 'invoice-form.php';
+document.addEventListener('DOMContentLoaded', function () {
+    // Function to update all charts based on the selected time range
+    function updateCharts(range) {
+        fetch(`/chart-dash.php?range=${range}`) // Update with actual PHP endpoint path
+            .then(response => response.json())
+            .then(data => {
+                // Update each chart with the respective data
+                updateLayeredColumnChart(data.apexLayeredColumnChart); // Top 5 Categories Revenue Chart
+                updateColumnLineChart(data.apexColumnLineChart);       // Revenue vs. Profit Chart
+                updateProfitChart(data['layout1-chart-3']);           // Profit Only Chart
+                updateExpensesChart(data['layout1-chart-4']);         // Expenses Only Chart
+                updateProfitExpensesChart(data['layout1-chart-5']);    // Profit and Expenses Combined Chart
+            })
+            .catch(error => console.error('Error fetching chart data:', error));
+    }
+
+    // Attach event listeners to dropdown items
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default anchor behavior
+            const timeframe = this.dataset.timeframe; // Get the selected timeframe
+            const dropdownButton = this.closest('.dropdown').querySelector('.dropdown-toggle');
+            dropdownButton.innerHTML = timeframe + '<i class="ri-arrow-down-s-line ml-1"></i>'; // Update button text
+            updateCharts(timeframe.toLowerCase()); // Update charts with selected timeframe
+        });
+    });
+
+    // Initial chart load with default timeframe
+    updateCharts('monthly'); // Default to monthly on page load
 });
+
+// Function to update layered column chart with fetched data
+function updateLayeredColumnChart(data) {
+    const categories = data.map(item => item.category_name);
+    const revenues = data.map(item => parseFloat(item.revenue)); // Ensure revenue is a float
+
+    const options = {
+        chart: {
+            type: 'bar',
+            height: 350,
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true,
+            },
+        },
+        xaxis: {
+            categories: categories,
+        },
+        series: [{
+            name: 'Revenue',
+            data: revenues,
+        }],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#layered-column-chart"), options);
+    chart.render();
+}
+
+// Function to update column line chart with fetched data
+function updateColumnLineChart(data) {
+    const dates = data.map(item => item.date);
+    const revenues = data.map(item => parseFloat(item.revenue));
+    const profits = data.map(item => parseFloat(item.profit));
+
+    const options = {
+        chart: {
+            type: 'line',
+            height: 350,
+        },
+        xaxis: {
+            categories: dates,
+        },
+        series: [{
+            name: 'Revenue',
+            type: 'column',
+            data: revenues,
+        }, {
+            name: 'Profit',
+            type: 'line',
+            data: profits,
+        }],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#column-line-chart"), options);
+    chart.render();
+}
+
+// Function to update profit chart with fetched data
+function updateProfitChart(data) {
+    const dates = data.map(item => item.date);
+    const profits = data.map(item => parseFloat(item.profit));
+
+    const options = {
+        chart: {
+            type: 'line',
+            height: 350,
+        },
+        xaxis: {
+            categories: dates,
+        },
+        series: [{
+            name: 'Profit',
+            data: profits,
+        }],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#profit-chart"), options);
+    chart.render();
+}
+
+// Function to update expenses chart with fetched data
+function updateExpensesChart(data) {
+    const dates = data.map(item => item.date);
+    const expenses = data.map(item => parseFloat(item.expenses));
+
+    const options = {
+        chart: {
+            type: 'line',
+            height: 350,
+        },
+        xaxis: {
+            categories: dates,
+        },
+        series: [{
+            name: 'Expenses',
+            data: expenses,
+        }],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#expenses-chart"), options);
+    chart.render();
+}
+
+// Function to update profit and expenses combined chart with fetched data
+function updateProfitExpensesChart(data) {
+    const dates = data.map(item => item.date);
+    const profits = data.map(item => parseFloat(item.profit));
+    const expenses = data.map(item => parseFloat(item.expenses));
+
+    const options = {
+        chart: {
+            type: 'line',
+            height: 350,
+        },
+        xaxis: {
+            categories: dates,
+        },
+        series: [{
+            name: 'Profit',
+            data: profits,
+        }, {
+            name: 'Expenses',
+            data: expenses,
+        }],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#profit-expenses-chart"), options);
+    chart.render();
+}
+
 </script>
-  </body>
+
+</body>
 </html>

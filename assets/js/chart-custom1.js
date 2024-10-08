@@ -242,90 +242,95 @@ if (jQuery("#apex-column").length) {
    Am Charts
 -----------------------------------------------------------------------*/
 
-   if (jQuery('#am-columnlinr-chart').length) {
-    // Fetch data from the PHP script
-    jQuery.ajax({
-        url: 'chart-dash.php', // Replace with the correct path to your PHP script
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            range: 'yearly' // Adjust this based on your requirement (weekly, monthly, yearly)
-        },
-        success: function(response) {
-            am4core.ready(function() {
+if (jQuery('#am-columnlinr-chart').length) {
+  // Fetch data from the PHP script
+  jQuery.ajax({
+      url: 'chart-dash.php', // Replace with the correct path to your PHP script
+      type: 'GET',
+      dataType: 'json',
+      data: {
+          range: 'monthly' // Adjust this based on your requirement (weekly, monthly, yearly)
+      },
+      success: function(response) {
+          am4core.ready(function() {
 
-                // Themes begin
-                am4core.useTheme(am4themes_animated);
-                // Themes end
+              // Themes begin
+              am4core.useTheme(am4themes_animated);
+              // Themes end
 
-                // Create chart instance
-                var chart = am4core.create("am-columnlinr-chart", am4charts.XYChart);
-                chart.colors.list = [am4core.color("#4788ff")];
+              // Create chart instance
+              var chart = am4core.create("am-columnlinr-chart", am4charts.XYChart);
+              chart.colors.list = [am4core.color("#4788ff")];
 
-                // Export
-                chart.exporting.menu = new am4core.ExportMenu();
+              // Export
+              chart.exporting.menu = new am4core.ExportMenu();
 
-                // Transform the response data to the format required by the chart
-                chart.data = response.apexColumnLineChart.map(function(item) {
-                    return {
-                        "date": item.date,         // Assuming `date` is in your response
-                        "revenue": item.revenue,   // Assuming `revenue` is in your response
-                        "profit": item.profit      // Assuming `profit` is in your response
-                    };
-                });
+              // Transform the response data to the format required by the chart
+              chart.data = response.apexColumnLineChart.map(function(item) {
+                var date = new Date(item.date); // Assuming `item.date` is in YYYY-MM-DD format
+                var options = { month: 'short' };
+                var formattedDate = date.toLocaleDateString('en-GB', options); // Example: "Jan", "Feb"
+                
+                  return {
+                      "date": formattedDate,    // Use the formatted month-only date
+                      "revenue": item.revenue,  // Assuming `revenue` is in your response
+                      "profit": item.profit     // Assuming `profit` is in your response
+                  };
+              });
 
-                /* Create axes */
-                var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-                categoryAxis.dataFields.category = "date";
-                categoryAxis.renderer.minGridDistance = 30;
+              /* Create axes */
+              var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+              categoryAxis.dataFields.category = "date";
+              categoryAxis.renderer.minGridDistance = 30;
 
-                /* Create value axis */
-                var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+              /* Create value axis */
+              var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
-                /* Create series for revenue */
-                var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-                columnSeries.name = "Revenue";
-                columnSeries.dataFields.valueY = "revenue";
-                columnSeries.dataFields.categoryX = "date";
+              /* Create series for revenue */
+              var columnSeries = chart.series.push(new am4charts.ColumnSeries());
+              columnSeries.name = "Revenue";
+              columnSeries.dataFields.valueY = "revenue";
+              columnSeries.dataFields.categoryX = "date";
 
-                columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} on {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/]";
-                columnSeries.tooltip.label.textAlign = "middle";
+              columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/]";
+              columnSeries.tooltip.label.textAlign = "middle";
 
-                /* Create series for profit */
-                var lineSeries = chart.series.push(new am4charts.LineSeries());
-                lineSeries.name = "Profit";
-                lineSeries.dataFields.valueY = "profit";
-                lineSeries.dataFields.categoryX = "date";
+              /* Create series for profit */
+              var lineSeries = chart.series.push(new am4charts.LineSeries());
+              lineSeries.name = "Profit";
+              lineSeries.dataFields.valueY = "profit";
+              lineSeries.dataFields.categoryX = "date";
 
-                lineSeries.stroke = am4core.color("#4788ff");
-                lineSeries.strokeWidth = 3;
-                lineSeries.tooltip.label.textAlign = "middle";
+              lineSeries.stroke = am4core.color("#4788ff");
+              lineSeries.strokeWidth = 3;
+              lineSeries.tooltip.label.textAlign = "middle";
 
-                var bullet = lineSeries.bullets.push(new am4charts.Bullet());
-                bullet.fill = am4core.color("#fdd400");
-                bullet.tooltipText = "[#fff font-size: 15px]{name} on {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/]";
-                var circle = bullet.createChild(am4core.Circle);
-                circle.radius = 4;
-                circle.fill = am4core.color("#fff");
-                circle.strokeWidth = 3;
+              var bullet = lineSeries.bullets.push(new am4charts.Bullet());
+              bullet.fill = am4core.color("#fdd400");
+              bullet.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/]";
+              var circle = bullet.createChild(am4core.Circle);
+              circle.radius = 4;
+              circle.fill = am4core.color("#fff");
+              circle.strokeWidth = 3;
 
-                // Check for dark mode and update chart
-                const body = document.querySelector('body');
-                if (body.classList.contains('dark')) {
-                    amChartUpdate(chart, { dark: true });
-                }
+              // Check for dark mode and update chart
+              const body = document.querySelector('body');
+              if (body.classList.contains('dark')) {
+                  amChartUpdate(chart, { dark: true });
+              }
 
-                document.addEventListener('ChangeColorMode', function(e) {
-                    amChartUpdate(chart, e.detail);
-                });
+              document.addEventListener('ChangeColorMode', function(e) {
+                  amChartUpdate(chart, e.detail);
+              });
 
-            }); // end am4core.ready()
-        },
-        error: function(xhr, status, error) {
-            console.error("Error fetching chart data: " + error);
-        }
-    });
+          }); // end am4core.ready()
+      },
+      error: function(xhr, status, error) {
+          console.error("Error fetching chart data: " + error);
+      }
+  });
 }
+
    
 if(jQuery('#am-3dpie-chart').length){
     am4core.ready(function() {

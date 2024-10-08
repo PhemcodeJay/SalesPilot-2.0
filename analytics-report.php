@@ -714,12 +714,7 @@ h2 {
 <div class="dashboard" id="dashboard">
     <div class="control-panel">
         <h1 style="font-weight: bold; text-decoration: underline;">Analytics Report</h1>
-        <button class="print-btn" onclick="printPDF()">Save as PDF</button>
-        <div class="button-group">
-            <button class="time-btn" onclick="fetchData('weekly')">Weekly</button>
-            <button class="time-btn" onclick="fetchData('monthly')">Monthly</button>
-            <button class="time-btn" onclick="fetchData('yearly')">Yearly</button>
-        </div>
+        
     </div>
 
     <h2 style="text-decoration: underline;">Product Metrics</h2>
@@ -727,14 +722,14 @@ h2 {
         <thead>
             <tr>
                 <th>Product Name</th>
-                <th>Total Sales</th>
+                <th>Product Sold</th>
             </tr>
         </thead>
         <tbody id="barTableBody">
             <?php foreach ($productMetrics as $product): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                    <td>$<?php echo number_format(htmlspecialchars($product['total_sales']), 2); ?></td>
+                    <td><?php echo htmlspecialchars($product['name']); ?></td>
+                    <td><?php echo htmlspecialchars($product['total_sales']); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -839,46 +834,85 @@ h2 {
 <script src="http://localhost/project/assets/js/app.js"></script>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    // Function to fetch data for the dashboard based on the selected range
     function fetchData(range) {
-        fetch(`chart-data.php?range=${range}`)
-            .then(response => response.json())
-            .then(data => {
-                updateTable('barTableBody', data.apexBasicChart, ['date', 'total_sales']);
-                updateTable('pieTableBody', Object.entries(data.apex3DPieChart), ['product', 'revenue']);
-                updateTable('candleTableBody', data.apexLineAreaChart, ['date', 'avg_sell_through_rate', 'avg_inventory_turnover_rate']);
-                updateTable('areaTableBody', data.apex3ColumnChart, ['date', 'revenue', 'total_expenses', 'profit']);
-            })
-            .catch(error => console.error('Error fetching data:', error));
+        // Fetch data dynamically based on the range (weekly, monthly, yearly)
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `fetch-data.php?range=${range}`, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                
+                // Populate Product Metrics
+                const barTableBody = document.getElementById('barTableBody');
+                barTableBody.innerHTML = '';
+                data.productMetrics.forEach(product => {
+                    const row = `<tr>
+                        <td>${product.product_name}</td>
+                        <td>$${parseFloat(product.total_sales).toFixed(2)}</td>
+                    </tr>`;
+                    barTableBody.innerHTML += row;
+                });
+
+                // Populate Top 5 Products by Revenue
+                const pieTableBody = document.getElementById('pieTableBody');
+                pieTableBody.innerHTML = '';
+                data.topProducts.forEach(product => {
+                    const row = `<tr>
+                        <td>${product.name}</td>
+                        <td>$${parseFloat(product.revenue).toFixed(2)}</td>
+                    </tr>`;
+                    pieTableBody.innerHTML += row;
+                });
+
+                // Populate Inventory Metrics
+                const candleTableBody = document.getElementById('candleTableBody');
+                candleTableBody.innerHTML = '';
+                data.inventoryMetrics.forEach(inventory => {
+                    const row = `<tr>
+                        <td>${inventory.name}</td>
+                        <td>${inventory.available_stock}</td>
+                        <td>${inventory.inventory_qty}</td>
+                    </tr>`;
+                    candleTableBody.innerHTML += row;
+                });
+
+                // Populate Income Overview
+                const areaTableBody = document.getElementById('areaTableBody');
+                areaTableBody.innerHTML = '';
+                data.incomeOverview.forEach(income => {
+                    const row = `<tr>
+                        <td>${income.date}</td>
+                        <td>$${parseFloat(income.revenue).toFixed(2)}</td>
+                        <td>$${parseFloat(income.total_expenses).toFixed(2)}</td>
+                        <td>$${parseFloat(income.profit).toFixed(2)}</td>
+                    </tr>`;
+                    areaTableBody.innerHTML += row;
+                });
+            } else {
+                console.error("Failed to fetch data.");
+            }
+        };
+        xhr.send();
     }
 
-    function updateTable(tableId, data, headers) {
-        const tableBody = document.getElementById(tableId);
-        tableBody.innerHTML = ''; // Clear existing data
-
-        // Create table header row
-        let headerRow = '<tr>';
-        headers.forEach(header => headerRow += `<th>${header.replace(/_/g, ' ').toUpperCase()}</th>`);
-        headerRow += '</tr>';
-        tableBody.innerHTML += headerRow;
-
-        // Create data rows
-        data.forEach(row => {
-            let dataRow = '<tr>';
-            headers.forEach((header, index) => {
-                const cellData = Array.isArray(row) ? row[index] : row[header];
-                dataRow += `<td>${cellData !== undefined ? cellData : ''}</td>`;
-            });
-            dataRow += '</tr>';
-            tableBody.innerHTML += dataRow;
+    // Add event listeners to the buttons
+    document.querySelectorAll('.time-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            fetchData(this.innerText.toLowerCase());
         });
-    }
+    });
 
-    function printPDF() {
-        // Your print PDF logic here
-    }
-
-    // Initialize with default data
+    // Initial data load (default to 'yearly')
     fetchData('yearly');
+    
+    // Function to print the dashboard as PDF
+    window.printPDF = function() {
+        window.print();  // This is a basic implementation, you can customize it further if needed
+    };
+});
+
 </script>
 
 
