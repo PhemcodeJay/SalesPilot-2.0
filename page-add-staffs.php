@@ -134,6 +134,37 @@ try {
     error_log("Error: " . $e->getMessage());
     exit("Error: " . $e->getMessage());
 }
+
+try {
+    // Prepare and execute the query to fetch user information from the users table
+    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    
+    // Fetch user data
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user_info) {
+        // Retrieve user details and sanitize output
+        $email = htmlspecialchars($user_info['email']);
+        $date = date('d F, Y', strtotime($user_info['date']));
+        $location = htmlspecialchars($user_info['location']);
+        $user_id = htmlspecialchars($user_info['id']);
+        
+        // Check if a user image exists, use default if not
+        $existing_image = htmlspecialchars($user_info['user_image']);
+        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
+
+    }
+} catch (PDOException $e) {
+    // Handle database errors
+    exit("Database error: " . $e->getMessage());
+} catch (Exception $e) {
+    // Handle user not found or other exceptions
+    exit("Error: " . $e->getMessage());
+}
+
 ?>
 
 
@@ -508,7 +539,10 @@ try {
                               <li class="nav-item nav-icon dropdown caption-content">
                                   <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <img src="http://localhost/project/assets/images/user/1.png" class="img-fluid rounded" alt="user">
+                                      <img src="http://localhost/project/<?php echo htmlspecialchars($image_to_display); ?>" 
+         alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+
+
                                   </a>
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
@@ -516,8 +550,10 @@ try {
                                               <div class="media-body profile-detail text-center">
                                                   <img src="http://localhost/project/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
                                                       class="rounded-top img-fluid mb-4">
-                                                  <img src="http://localhost/project/assets/images/user/1.png" alt="profile-img"
-                                                      class="rounded profile-img img-fluid avatar-70">
+                                                      <img src="http://localhost/project/<?php echo htmlspecialchars($image_to_display); ?>" 
+         alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+
+
                                               </div>
                                               <div class="p-3">
                                                 <h5 class="mb-1"><?php echo $email; ?></h5>
