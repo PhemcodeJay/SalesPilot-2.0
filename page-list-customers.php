@@ -33,66 +33,108 @@ try {
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Fetch customers
-    $customer_query = "SELECT customer_id, customer_name, customer_email, customer_phone, customer_location FROM customers";
-    $stmt = $connection->prepare($customer_query);
-    $stmt->execute();
-    $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Fetch all customer data to display on the page
+$query = "SELECT * FROM customers";
+$stmt = $connection->prepare($query);
+$stmt->execute();
+$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Handle form actions
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $action = $_POST['action'] ?? null;
-        $customer_id = $_POST['customer_id'] ?? null;
 
-        if (isset($_POST['edit'])) {
-            // Handle edit action
-            // Process edit (e.g., redirect to edit form or update customer details)
-        } elseif (isset($_POST['delete'])) {
-            // Handle delete action
-            $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
-            $stmt = $connection->prepare($delete_query);
+// Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $customer_id = $_POST['customer_id'] ?? null;
+
+    // Collect customer data from form
+    $customer_name = $_POST['customer_name'] ?? null;
+    $customer_email = $_POST['customer_email'] ?? null;
+    $customer_phone = $_POST['customer_phone'] ?? null;
+    $customer_location = $_POST['customer_location'] ?? null;
+
+    if (isset($_POST['edit'])) {
+        // Handle both insert and update action
+        if ($customer_id) {
+            // Update existing customer details
+            $update_query = "
+                UPDATE customers 
+                SET customer_name = :customer_name, 
+                    customer_email = :customer_email, 
+                    customer_phone = :customer_phone, 
+                    customer_location = :customer_location 
+                WHERE customer_id = :customer_id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':customer_name', $customer_name);
+            $stmt->bindParam(':customer_email', $customer_email);
+            $stmt->bindParam(':customer_phone', $customer_phone);
+            $stmt->bindParam(':customer_location', $customer_location);
             $stmt->bindParam(':customer_id', $customer_id);
             $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-            exit;
-        } elseif (isset($_POST['save_pdf'])) {
-            // Handle save as PDF action
-            // Generate and save the PDF
-            require('fpdf/fpdf.php'); // Include your PDF library
 
-            if ($customer_id) {
-                $query = "SELECT * FROM customers WHERE customer_id = :customer_id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':customer_id', $customer_id);
-                $stmt->execute();
-                $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo "Customer details updated successfully!";
+        } else {
+            // Insert new customer
+            $insert_query = "
+                INSERT INTO customers (customer_name, customer_email, customer_phone, customer_location) 
+                VALUES (:customer_name, :customer_email, :customer_phone, :customer_location)";
+            $stmt = $connection->prepare($insert_query);
+            $stmt->bindParam(':customer_name', $customer_name);
+            $stmt->bindParam(':customer_email', $customer_email);
+            $stmt->bindParam(':customer_phone', $customer_phone);
+            $stmt->bindParam(':customer_location', $customer_location);
+            $stmt->execute();
 
-                if ($customer) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Customer Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Name: ' . $customer['customer_name']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Email: ' . $customer['customer_email']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
-
-                    // Output the PDF
-                    $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
-                } else {
-                    echo 'Customer not found.';
-                }
-            } else {
-                echo 'No customer ID provided.';
-            }
-            exit;
+            echo "New customer inserted successfully!";
         }
+
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page after operation
+        exit;
+    } elseif (isset($_POST['delete'])) {
+        // Handle delete action
+        $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':customer_id', $customer_id);
+        $stmt->execute();
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+        exit;
+    } elseif (isset($_POST['save_pdf'])) {
+        // Handle save as PDF action
+        require('fpdf/fpdf.php'); // Include your PDF library
+
+        if ($customer_id) {
+            $query = "SELECT * FROM customers WHERE customer_id = :customer_id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':customer_id', $customer_id);
+            $stmt->execute();
+            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($customer) {
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Customer Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Name: ' . $customer['customer_name']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Email: ' . $customer['customer_email']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
+
+                // Output the PDF
+                $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
+            } else {
+                echo 'Customer not found.';
+            }
+        } else {
+            echo 'No customer ID provided.';
+        }
+        exit;
     }
+}
+
 
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
