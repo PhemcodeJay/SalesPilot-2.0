@@ -52,88 +52,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_phone = $_POST['customer_phone'] ?? null;
     $customer_location = $_POST['customer_location'] ?? null;
 
-    if (isset($_POST['edit'])) {
-        // Handle both insert and update action
-        if ($customer_id) {
-            // Update existing customer details
-            $update_query = "
-                UPDATE customers 
-                SET customer_name = :customer_name, 
-                    customer_email = :customer_email, 
-                    customer_phone = :customer_phone, 
-                    customer_location = :customer_location 
-                WHERE customer_id = :customer_id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':customer_name', $customer_name);
-            $stmt->bindParam(':customer_email', $customer_email);
-            $stmt->bindParam(':customer_phone', $customer_phone);
-            $stmt->bindParam(':customer_location', $customer_location);
-            $stmt->bindParam(':customer_id', $customer_id);
-            $stmt->execute();
+    try {
+        if ($action === 'edit' && $customer_id) {
+            // Prepare the update query dynamically
+            $update_query = "UPDATE customers SET ";
+            $params = [];
 
-            echo "Customer details updated successfully!";
-        } else {
-            // Insert new customer
-            $insert_query = "
-                INSERT INTO customers (customer_name, customer_email, customer_phone, customer_location) 
-                VALUES (:customer_name, :customer_email, :customer_phone, :customer_location)";
-            $stmt = $connection->prepare($insert_query);
-            $stmt->bindParam(':customer_name', $customer_name);
-            $stmt->bindParam(':customer_email', $customer_email);
-            $stmt->bindParam(':customer_phone', $customer_phone);
-            $stmt->bindParam(':customer_location', $customer_location);
-            $stmt->execute();
-
-            echo "New customer inserted successfully!";
-        }
-
-        header("Location: " . $_SERVER['PHP_SELF']); // Reload page after operation
-        exit;
-    } elseif (isset($_POST['delete'])) {
-        // Handle delete action
-        $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
-        $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':customer_id', $customer_id);
-        $stmt->execute();
-        header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-        exit;
-    } elseif (isset($_POST['save_pdf'])) {
-        // Handle save as PDF action
-        require('fpdf/fpdf.php'); // Include your PDF library
-
-        if ($customer_id) {
-            $query = "SELECT * FROM customers WHERE customer_id = :customer_id";
-            $stmt = $connection->prepare($query);
-            $stmt->bindParam(':customer_id', $customer_id);
-            $stmt->execute();
-            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($customer) {
-                $pdf = new FPDF();
-                $pdf->AddPage();
-                $pdf->SetFont('Arial', 'B', 16);
-                $pdf->Cell(40, 10, 'Customer Details');
-                $pdf->Ln();
-                $pdf->SetFont('Arial', '', 12);
-                $pdf->Cell(40, 10, 'Name: ' . $customer['customer_name']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Email: ' . $customer['customer_email']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
-
-                // Output the PDF
-                $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
-            } else {
-                echo 'Customer not found.';
+            if ($customer_name !== null) {
+                $update_query .= "customer_name = :customer_name, ";
+                $params[':customer_name'] = $customer_name;
             }
-        } else {
-            echo 'No customer ID provided.';
+            if ($customer_email !== null) {
+                $update_query .= "customer_email = :customer_email, ";
+                $params[':customer_email'] = $customer_email;
+            }
+            if ($customer_phone !== null) {
+                $update_query .= "customer_phone = :customer_phone, ";
+                $params[':customer_phone'] = $customer_phone;
+            }
+            if ($customer_location !== null) {
+                $update_query .= "customer_location = :customer_location, ";
+                $params[':customer_location'] = $customer_location;
+            }
+
+            // Remove the last comma and add the where clause
+            $update_query = rtrim($update_query, ', ') . " WHERE customer_id = :customer_id";
+            $params[':customer_id'] = $customer_id;
+
+            $stmt = $connection->prepare($update_query);
+            foreach ($params as $key => &$value) {
+                $stmt->bindParam($key, $value);
+            }
+            $stmt->execute();
+
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page after operation
+            exit;
+        } elseif ($action === 'delete') {
+            // Handle delete action
+            if ($customer_id) {
+                $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
+                $stmt = $connection->prepare($delete_query);
+                $stmt->bindParam(':customer_id', $customer_id);
+                $stmt->execute();
+            }
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+            exit;
+        } elseif ($action === 'save_pdf') {
+            // Handle save as PDF action
+            require('fpdf/fpdf.php'); // Include your PDF library
+
+            if ($customer_id) {
+                $query = "SELECT * FROM customers WHERE customer_id = :customer_id";
+                $stmt = $connection->prepare($query);
+                $stmt->bindParam(':customer_id', $customer_id);
+                $stmt->execute();
+                $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($customer) {
+                    $pdf = new FPDF();
+                    $pdf->AddPage();
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->Cell(40, 10, 'Customer Details');
+                    $pdf->Ln();
+                    $pdf->SetFont('Arial', '', 12);
+                    $pdf->Cell(40, 10, 'Name: ' . $customer['customer_name']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Email: ' . $customer['customer_email']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
+
+                    // Output the PDF
+                    $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
+                } else {
+                    echo 'Customer not found.';
+                }
+            } else {
+                echo 'No customer ID provided.';
+            }
+            exit;
         }
-        exit;
+    } catch (PDOException $e) {
+        echo "Database error: " . $e->getMessage();
     }
 }
+
 
 
     // Fetch inventory notifications with product images
@@ -654,25 +658,33 @@ try {
             <table class="data-tables table mb-0 tbl-server-info">
     <thead class="bg-white text-uppercase">
         <tr class="light light-data">
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Location</th>
-            <th>Action</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Location</th>
+            <th scope="col">Action</th>
         </tr>
     </thead>
     <tbody class="light-body">
         <?php if (!empty($customers)): ?>
             <?php foreach ($customers as $customer): ?>
-                <tr data-customer-id="<?php echo $customer['customer_id']; ?>">
-                    <td contenteditable="true" class="editable" data-field="customer_name"><?php echo htmlspecialchars($customer['customer_name']); ?></span></td>
-                    <td contenteditable="true" class="editable" data-field="customer_email"><?php echo htmlspecialchars($customer['customer_email']); ?></span></td>
-                    <td contenteditable="true" class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></span></td>
-                    <td contenteditable="true" class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></span></td>
+                <tr data-customer_id="<?php echo $customer['customer_id']; ?>">
+                    <td contenteditable="true" class="editable" data-field="customer_name"><?php echo htmlspecialchars($customer['customer_name']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="customer_email"><?php echo htmlspecialchars($customer['customer_email']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></td>
                     <td>
-                        <button type="button" class="btn btn-success save-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
-                        <button type="button" class="btn btn-warning delete-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
-                        <button type="button" class="btn btn-info save-pdf-btn" data-customer-id="<?php echo $customer['customer_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
+    
+                            <button type="button" class="btn btn-success save-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
+                                <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                            </button>
+                        </button>
+                        <button type="button" class="btn btn-warning delete-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                        </button>
+                        <button type="button" class="btn btn-info save-pdf-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -683,6 +695,7 @@ try {
         <?php endif; ?>
     </tbody>
 </table>
+
 
     
             </div>
@@ -723,10 +736,10 @@ try {
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
+$(document).ready(function() { 
     $('.editable').on('click', function() {
         var $this = $(this);
-        var currentText = $this.text();
+        var currentText = $this.text().trim(); // trim to avoid empty input
         var input = $('<input>', {
             type: 'text',
             value: currentText,
@@ -734,10 +747,16 @@ $(document).ready(function() {
         });
         $this.html(input);
         input.focus();
+        
         input.on('blur', function() {
-            var newText = $(this).val();
-            $this.html(newText);
+            var newText = $(this).val().trim(); // trim the input
+            if (newText) {
+                $this.html(newText);
+            } else {
+                $this.html(currentText); // revert to original text if empty
+            }
         });
+        
         input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 $(this).blur();
@@ -747,12 +766,14 @@ $(document).ready(function() {
 
     $('.save-btn').on('click', function() {
         var $row = $(this).closest('tr');
-        var customerId = $(this).data('customer-id');
-        var customerName = $row.find('[data-field="customer_name"]').text();
-        var customerEmail = $row.find('[data-field="customer_email"]').text();
-        var customerPhone = $row.find('[data-field="customer_phone"]').text();
-        var customerLocation = $row.find('[data-field="customer_location"]').text();
+        var customerId = $(this).data('customer_id');
+        var customerName = $row.find('[data-field="customer_name"]').text().trim();
+        var customerEmail = $row.find('[data-field="customer_email"]').text().trim();
+        var customerPhone = $row.find('[data-field="customer_phone"]').text().trim();
+        var customerLocation = $row.find('[data-field="customer_location"]').text().trim();
 
+        // Validate inputs here if necessary
+        
         $.post('page-list-customers.php', {
             customer_id: customerId,
             customer_name: customerName,
@@ -769,7 +790,7 @@ $(document).ready(function() {
 
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this customer?')) {
-            var customerId = $(this).data('customer-id');
+            var customerId = $(this).data('customer_id');
             $.post('page-list-customers.php', {
                 customer_id: customerId,
                 action: 'delete'
@@ -783,10 +804,11 @@ $(document).ready(function() {
     });
 
     $('.save-pdf-btn').on('click', function() {
-        var customerId = $(this).data('customer-id');
+        var customerId = $(this).data('customer_id');
         window.location.href = 'page-list-customers.php?customer_id=' + customerId;
     });
 });
+
 </script>
 
     <script>
