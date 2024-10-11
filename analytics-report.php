@@ -752,7 +752,8 @@ h2 {
     </div>
 
     <h2 style="text-decoration: underline;">Product Metrics</h2>
-    <table class="data-table">
+    <div class="table-responsive rounded mb-3">
+                <table class="data-tables table mb-0 tbl-server-info">
         <thead>
             <tr>
                 <th>Product Name</th>
@@ -770,7 +771,8 @@ h2 {
     </table>
 
     <h2 style="text-decoration: underline;">Top 5 Products by Revenue</h2>
-    <table class="data-table">
+    <div class="table-responsive rounded mb-3">
+                <table class="data-tables table mb-0 tbl-server-info">
         <thead>
             <tr>
                 <th>Product Name</th>
@@ -788,7 +790,8 @@ h2 {
     </table>
 
     <h2 style="text-decoration: underline;">Inventory Metrics</h2>
-    <table class="data-table">
+    <div class="table-responsive rounded mb-3">
+                <table class="data-tables table mb-0 tbl-server-info">
         <thead>
             <tr>
                 <th>Product Name</th>
@@ -808,7 +811,8 @@ h2 {
     </table>
 
     <h2 style="text-decoration: underline;">Income Overview</h2>
-    <table class="data-table">
+    <div class="table-responsive rounded mb-3">
+                <table class="data-tables table mb-0 tbl-server-info">
         <thead>
             <tr>
                 <th>Date</th>

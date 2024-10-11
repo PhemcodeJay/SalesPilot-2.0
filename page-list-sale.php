@@ -640,8 +640,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             <div class="col-lg-12">
-                <div class="table-responsive rounded mb-3">
-                <table class="data-table table mb-0 tbl-server-info">
+            <div class="table-responsive rounded mb-3">
+            <table class="data-tables table mb-0 tbl-server-info">
     <thead class="bg-white text-uppercase">
         <tr class="light light-data">
             <th>Date</th>

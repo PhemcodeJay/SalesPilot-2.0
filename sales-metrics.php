@@ -695,8 +695,8 @@ try {
                      <p>Sales Metrics Report:</p>
 
                      <p>The report generates Sales Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
-                     <div class="table-responsive">
-                        <table id="datatable" class="table data-tables table-striped">
+                     <div class="table-responsive rounded mb-3">
+                <table class="data-tables table mb-0 tbl-server-info">
                             <thead>
                                 <tr class="light">
                                     <th>Category</th>
