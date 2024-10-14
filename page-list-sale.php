@@ -325,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="http://localhost/project/page-list-expenses.php">
+                                          <a href="http://localhost/project/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>

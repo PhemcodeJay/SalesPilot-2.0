@@ -553,7 +553,7 @@ if (jQuery("#layout1-chart-4").length) {
     url: 'chart-dash.php',
     type: 'GET',
     dataType: 'json',
-    data: { range: 'monthly' },
+    data: { range: 'yearly' },
     success: function(response) {
       const data = response['layout1-chart-4'].map(function(item) {
         return { x: item.date, y: item.expenses };
