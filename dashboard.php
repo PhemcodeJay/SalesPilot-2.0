@@ -160,7 +160,7 @@ try {
     $percentage_expenses_to_revenue = 0;  // Default value
     if ($total_revenue > 0) {
         // Total expenses combined divided by total revenue * 100
-        $percentage_expenses_to_revenue = ($total_expenses / $total_profit) * 100;
+        $percentage_expenses_to_revenue = ($total_expenses_combined / $total_revenue) * 100;
     }
 
     // Calculate the percentage of total profit combined compared to revenue
@@ -939,7 +939,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Profit vs Expenses</h4>
+                            <h4 class="card-title">Profit vs Expenditure</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
     <div class="dropdown">
@@ -971,8 +971,8 @@ $connection = null;
 
                                 </div>
                                 <div class="progress-value ml-3 pr-5 border-right">
-                                    <h5>$<?php echo $total_expenses; ?></h5>
-                                    <p class="mb-0">Expenses</p>
+                                    <h5>$<?php echo $total_expenses_combined; ?></h5>
+                                    <p class="mb-0">Expenditure</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center ml-5 progress-order-right">

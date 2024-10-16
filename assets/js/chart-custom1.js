@@ -644,7 +644,7 @@ if (jQuery("#layout1-chart-5").length) {
       const options = {
         series: [
           { name: 'Profit', data: data.profit },
-          { name: 'Expenses', data: data.expenses }
+          { name: 'Expenditure', data: data.expenses }
         ],
         chart: {
           type: 'bar',

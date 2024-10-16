@@ -57,38 +57,26 @@ try {
     $revenueByProductData = $revenueByProductQuery->fetchAll(PDO::FETCH_ASSOC);
 
     // Decode the revenue_by_product JSON data and aggregate it
-$revenueByProduct = [];
-foreach ($revenueByProductData as $report) {
-    // Decode JSON, ensuring we get an associative array
-    $products = json_decode($report['revenue_by_product'], true);
+    $revenueByProduct = [];
+    foreach ($revenueByProductData as $report) {
+        $products = json_decode($report['revenue_by_product'], true);
 
-    // Check for JSON decode errors
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log('JSON decode error: ' . json_last_error_msg());
-        continue;
-    }
+        // Check for JSON decode errors
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('JSON decode error: ' . json_last_error_msg());
+            continue;
+        }
 
-    // Ensure $products is an array before proceeding
-    if (is_array($products)) {
-        foreach ($products as $product => $revenue) {
-            // Ensure the product name is a valid string and revenue is numeric
-            if (is_string($product) && is_numeric($revenue)) {
-                if (!isset($revenueByProduct[$product])) {
-                    $revenueByProduct[$product] = 0;
+        if (is_array($products)) {
+            foreach ($products as $product => $revenue) {
+                if (is_string($product) && is_numeric($revenue)) {
+                    $revenueByProduct[$product] = ($revenueByProduct[$product] ?? 0) + (float)$revenue;
                 }
-                // Aggregate revenue, ensuring it is cast to a float for numeric accuracy
-                $revenueByProduct[$product] += (float)$revenue;
             }
         }
     }
-}
 
-// Sort the products by revenue and get the top 5 products
-arsort($revenueByProduct);
-$top5Products = array_slice($revenueByProduct, 0, 5, true);
-
-
-    // Sort the products by revenue and get the top 5 products
+    // Sort and get the top 5 products
     arsort($revenueByProduct);
     $top5Products = array_slice($revenueByProduct, 0, 5, true);
 
@@ -123,31 +111,17 @@ $top5Products = array_slice($revenueByProduct, 0, 5, true);
     $combinedData = [];
     foreach ($revenueData as $data) {
         $date = $data['date'];
-        $revenue = isset($data['revenue']) ? (float)$data['revenue'] : 0;
+        $revenue = (float)($data['revenue'] ?? 0);
 
         // Find matching total cost data
-        $totalCost = 0;
-        foreach ($totalCostData as $cost) {
-            if ($cost['date'] === $date) {
-                $totalCost = isset($cost['total_cost']) ? (float)$cost['total_cost'] : 0;
-                break;
-            }
-        }
+        $totalCost = (float)($totalCostData[array_search($date, array_column($totalCostData, 'date'))]['total_cost'] ?? 0);
 
         // Find matching expense data
-        $expenses = 0;
-        foreach ($expenseData as $expense) {
-            if ($expense['date'] === $date) {
-                $expenses = isset($expense['total_expenses']) ? (float)$expense['total_expenses'] : 0;
-                break;
-            }
-        }
+        $expenses = (float)($expenseData[array_search($date, array_column($expenseData, 'date'))]['total_expenses'] ?? 0);
 
-        // Calculate total expenses and profit
         $totalExpenses = $totalCost + $expenses;
         $profit = $revenue - $totalExpenses;
 
-        // Add to combined data
         $combinedData[] = [
             'date' => $date,
             'revenue' => number_format($revenue, 2),
@@ -167,7 +141,6 @@ $top5Products = array_slice($revenueByProduct, 0, 5, true);
     echo json_encode($response);
 
 } catch (PDOException $e) {
-    // Handle any database-related exceptions
     error_log('Database error: ' . $e->getMessage());
     echo json_encode(['error' => 'Failed to retrieve data.']);
     exit;

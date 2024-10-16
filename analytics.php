@@ -344,7 +344,7 @@ try {
             </div>
             <div class="p-3"></div>
         </div>
-        </div>      <div class="iq-top-navbar">
+    </div>      <div class="iq-top-navbar">
         <div class="iq-navbar-custom">
             <nav class="navbar navbar-expand-lg navbar-light p-0">
                 <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
@@ -561,7 +561,7 @@ try {
                         </div>
 
                    <div class="card-body">
-                     <div id="apex-basic"></div>
+                     <div id="apex-basic" style="height: 300px;"></div>
                   </div>
                </div>
         
@@ -609,7 +609,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="am-3dpie-chart" style="height: 400px;"></div>
+                     <div id="am-3dpie-chart" style="height: 300px;"></div>
                   </div>
                </div>
                <div class="card">
@@ -682,6 +682,11 @@ try {
 <script src="http://localhost/project/assets/js/app.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<!-- Include AmCharts 4 core and charts -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
 
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
