@@ -19,27 +19,28 @@ try {
             $endDate = date('Y-m-t');
             break;
         case 'yearly':
-            $startDate = date('Y-01-01');
-            $endDate = date('Y-12-31');
+            // Start from the beginning of the year and end at the current date (today)
+            $startDate = date('Y-01-01');  // January 1st of the current year
+            $endDate = date('Y-m-d');      // Current date
             break;
         default:
             $startDate = date('Y-01-01');
-            $endDate = date('Y-12-31');
+            $endDate = date('Y-m-d');
             break;
     }
 
-    // Fetch sales quantity data for Apex Basic Chart
+    // Fetch sales quantity data for Apex Basic Chart with 3-letter month abbreviation
     $salesQuery = $connection->prepare("
-        SELECT DATE(sale_date) AS date, SUM(sales_qty) AS total_sales 
+        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty) AS total_sales 
         FROM sales 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
         GROUP BY DATE(sale_date)");
     $salesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $salesData = $salesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch sell-through rate and inventory turnover rate for Apex Line Area Chart
+    // Fetch sell-through rate and inventory turnover rate for Apex Line Area Chart with 3-letter month abbreviation
     $metricsQuery = $connection->prepare("
-        SELECT DATE(report_date) AS date, 
+        SELECT DATE_FORMAT(report_date, '%b %d') AS date, 
                AVG(sell_through_rate) AS avg_sell_through_rate, 
                AVG(inventory_turnover_rate) AS avg_inventory_turnover_rate 
         FROM reports 
@@ -68,9 +69,11 @@ try {
         }
 
         if (is_array($products)) {
-            foreach ($products as $product => $revenue) {
-                if (is_string($product) && is_numeric($revenue)) {
-                    $revenueByProduct[$product] = ($revenueByProduct[$product] ?? 0) + (float)$revenue;
+            foreach ($products as $product) {
+                if (is_array($product) && isset($product['product_name'], $product['total_sales'])) {
+                    $productName = $product['product_name'];
+                    $totalSales = (float)$product['total_sales'];
+                    $revenueByProduct[$productName] = ($revenueByProduct[$productName] ?? 0) + $totalSales;
                 }
             }
         }
@@ -80,9 +83,9 @@ try {
     arsort($revenueByProduct);
     $top5Products = array_slice($revenueByProduct, 0, 5, true);
 
-    // Fetch revenue, total cost, and additional expenses for Apex 3-Column Chart
+    // Fetch revenue, total cost, and additional expenses for Apex 3-Column Chart with 3-letter month abbreviation
     $revenueQuery = $connection->prepare("
-        SELECT DATE(sale_date) AS date, SUM(sales_qty * price) AS revenue 
+        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty * price) AS revenue 
         FROM sales 
         JOIN products ON sales.product_id = products.id 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
@@ -91,7 +94,7 @@ try {
     $revenueData = $revenueQuery->fetchAll(PDO::FETCH_ASSOC);
 
     $totalCostQuery = $connection->prepare("
-        SELECT DATE(sale_date) AS date, SUM(sales_qty * cost) AS total_cost 
+        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty * cost) AS total_cost 
         FROM sales 
         JOIN products ON sales.product_id = products.id 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
@@ -100,7 +103,7 @@ try {
     $totalCostData = $totalCostQuery->fetchAll(PDO::FETCH_ASSOC);
 
     $expenseQuery = $connection->prepare("
-        SELECT DATE(expense_date) AS date, SUM(amount) AS total_expenses 
+        SELECT DATE_FORMAT(expense_date, '%b %d') AS date, SUM(amount) AS total_expenses 
         FROM expenses 
         WHERE DATE(expense_date) BETWEEN :startDate AND :endDate 
         GROUP BY DATE(expense_date)");

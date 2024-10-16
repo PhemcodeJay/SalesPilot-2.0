@@ -609,7 +609,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="am-3dpie-chart" style="height: 300px;"></div>
+                     <div id="am-3dpie-chart" style="height: 350px;"></div>
                   </div>
                </div>
                <div class="card">
