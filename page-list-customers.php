@@ -11,8 +11,8 @@ include('config.php'); // Database connection
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
-
 try {
+    // Check if user is logged in
     if (!isset($_SESSION["username"])) {
         throw new Exception("No username found in session.");
     }
@@ -20,7 +20,7 @@ try {
     $username = htmlspecialchars($_SESSION["username"]);
 
     // Fetch user information
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -31,17 +31,18 @@ try {
     }
 
     $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
+    $date = date('d F, Y', strtotime($user_info['date']));
+    $location = htmlspecialchars($user_info['location']);
+    $existing_image = htmlspecialchars($user_info['user_image']);
+    $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
-    
     // Fetch all customer data to display on the page
-$query = "SELECT * FROM customers";
-$stmt = $connection->prepare($query);
-$stmt->execute();
-$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $query = "SELECT * FROM customers";
+    $stmt = $connection->prepare($query);
+    $stmt->execute();
+    $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-// Handle form actions
+    // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
     $customer_id = $_POST['customer_id'] ?? null;
@@ -53,91 +54,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_location = $_POST['customer_location'] ?? null;
 
     try {
-        if ($action === 'edit' && $customer_id) {
+        if ($action === 'update' && $customer_id) {
             // Prepare the update query dynamically
             $update_query = "UPDATE customers SET ";
             $params = [];
 
+            // Update fields if provided
             if ($customer_name !== null) {
                 $update_query .= "customer_name = :customer_name, ";
-                $params[':customer_name'] = $customer_name;
+                $params[':customer_name'] = $customer_name !== '' ? $customer_name : null;
             }
             if ($customer_email !== null) {
                 $update_query .= "customer_email = :customer_email, ";
-                $params[':customer_email'] = $customer_email;
+                $params[':customer_email'] = $customer_email !== '' ? $customer_email : null;
             }
             if ($customer_phone !== null) {
                 $update_query .= "customer_phone = :customer_phone, ";
-                $params[':customer_phone'] = $customer_phone;
+                $params[':customer_phone'] = $customer_phone !== '' ? $customer_phone : null;
             }
             if ($customer_location !== null) {
                 $update_query .= "customer_location = :customer_location, ";
-                $params[':customer_location'] = $customer_location;
+                $params[':customer_location'] = $customer_location !== '' ? $customer_location : null;
             }
 
-            // Remove the last comma and add the where clause
+            // Remove the last comma and add the WHERE clause
             $update_query = rtrim($update_query, ', ') . " WHERE customer_id = :customer_id";
             $params[':customer_id'] = $customer_id;
 
+            // Prepare and execute the query
             $stmt = $connection->prepare($update_query);
+
             foreach ($params as $key => &$value) {
-                $stmt->bindParam($key, $value);
+                $stmt->bindParam($key, $value, $value === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
             }
-            $stmt->execute();
 
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page after operation
-            exit;
-        } elseif ($action === 'delete') {
-            // Handle delete action
-            if ($customer_id) {
-                $delete_query = "DELETE FROM customers WHERE customer_id = :customer_id";
-                $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':customer_id', $customer_id);
-                $stmt->execute();
-            }
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-            exit;
-        } elseif ($action === 'save_pdf') {
-            // Handle save as PDF action
-            require('fpdf/fpdf.php'); // Include your PDF library
-
-            if ($customer_id) {
-                $query = "SELECT * FROM customers WHERE customer_id = :customer_id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':customer_id', $customer_id);
-                $stmt->execute();
-                $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($customer) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Customer Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Name: ' . $customer['customer_name']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Email: ' . $customer['customer_email']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
-
-                    // Output the PDF
-                    $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
-                } else {
-                    echo 'Customer not found.';
-                }
+            if ($stmt->execute()) {
+                // Return success response as JSON
+                echo json_encode(['success' => true, 'message' => 'Record updated successfully!']);
             } else {
-                echo 'No customer ID provided.';
+                // Return failure response as JSON
+                echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
             }
-            exit;
         }
     } catch (PDOException $e) {
-        echo "Database error: " . $e->getMessage();
+        // Return error response as JSON
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
     }
 }
-
 
 
     // Fetch inventory notifications with product images
@@ -170,7 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ':low_revenue' => 1000,
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
-
 } catch (PDOException $e) {
     error_log("PDO Error: " . $e->getMessage());
     exit("Database Error: " . $e->getMessage());
@@ -178,37 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     error_log("Error: " . $e->getMessage());
     exit("Error: " . $e->getMessage());
 }
-
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
 ?>
 
 
@@ -674,15 +605,16 @@ try {
                     <td contenteditable="true" class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
                     <td contenteditable="true" class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></td>
                     <td>
-    
-                            <button type="button" class="btn btn-success save-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
-                                <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
-                            </button>
+                        <!-- Update button -->
+                        <button type="button" class="btn btn-success save-btn" data-customer_id="<?php echo $customer['customer_id']; ?>" aria-label="Update customer">
+                            <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
                         </button>
-                        <button type="button" class="btn btn-warning delete-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
+                        <!-- Delete button -->
+                        <button type="button" class="btn btn-warning delete-btn" data-customer_id="<?php echo $customer['customer_id']; ?>" aria-label="Delete customer">
                             <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                         </button>
-                        <button type="button" class="btn btn-info save-pdf-btn" data-customer_id="<?php echo $customer['customer_id']; ?>">
+                        <!-- Save as PDF button -->
+                        <button type="button" class="btn btn-info save-pdf-btn" data-customer_id="<?php echo $customer['customer_id']; ?>" aria-label="Save as PDF">
                             <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
                         </button>
                     </td>
@@ -695,6 +627,7 @@ try {
         <?php endif; ?>
     </tbody>
 </table>
+
 
 
     
@@ -735,45 +668,37 @@ try {
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() { 
+    <script>
+$(document).ready(function() {
+    // Handle editable fields when clicked
     $('.editable').on('click', function() {
-        var $this = $(this);
-        var currentText = $this.text().trim(); // trim to avoid empty input
-        var input = $('<input>', {
+        const $this = $(this);
+        const currentText = $this.text().trim(); // Trim to avoid empty input
+        
+        // Create an input field
+        const input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
+
+        // Replace the current text with the input field
         $this.html(input);
-        input.focus();
-        
-        input.on('blur', function() {
-            var newText = $(this).val().trim(); // trim the input
-            if (newText) {
-                $this.html(newText);
-            } else {
-                $this.html(currentText); // revert to original text if empty
-            }
-        });
-        
-        input.on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
-                $(this).blur();
-            }
-        });
+        input.focus(); // Focus on the new input field
     });
 
+    // Handle save button click to update the record
     $('.save-btn').on('click', function() {
-        var $row = $(this).closest('tr');
-        var customerId = $(this).data('customer_id');
-        var customerName = $row.find('[data-field="customer_name"]').text().trim();
-        var customerEmail = $row.find('[data-field="customer_email"]').text().trim();
-        var customerPhone = $row.find('[data-field="customer_phone"]').text().trim();
-        var customerLocation = $row.find('[data-field="customer_location"]').text().trim();
-
-        // Validate inputs here if necessary
+        const $row = $(this).closest('tr');
+        const customerId = $(this).data('customer_id');
         
+        // Gather customer data from the row
+        const customerName = $row.find('[data-field="customer_name"] input').val().trim() || null; // Get value from input
+        const customerEmail = $row.find('[data-field="customer_email"] input').val().trim() || null; // Get value from input
+        const customerPhone = $row.find('[data-field="customer_phone"] input').val().trim() || null; // Get value from input
+        const customerLocation = $row.find('[data-field="customer_location"] input').val().trim() || null; // Get value from input
+
+        // Send AJAX POST request to update the customer data in the database
         $.post('page-list-customers.php', {
             customer_id: customerId,
             customer_name: customerName,
@@ -782,34 +707,60 @@ $(document).ready(function() {
             customer_location: customerLocation,
             action: 'update'
         }, function(response) {
-            alert('Customer updated successfully!');
+            // Assuming response is JSON
+            const res = JSON.parse(response);
+            if (res.success) {
+                alert(res.message);
+                // Update the displayed text after a successful save
+                $row.find('[data-field="customer_name"]').text(customerName);
+                $row.find('[data-field="customer_email"]').text(customerEmail);
+                $row.find('[data-field="customer_phone"]').text(customerPhone);
+                $row.find('[data-field="customer_location"]').text(customerLocation);
+            } else {
+                alert(res.message);
+            }
         }).fail(function() {
+            // Handle failure
             alert('Error updating customer.');
         });
     });
 
+    // Handle delete button click
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this customer?')) {
-            var customerId = $(this).data('customer_id');
+            const customerId = $(this).data('customer_id');
+
+            // Send AJAX POST request to delete the customer
             $.post('page-list-customers.php', {
                 customer_id: customerId,
                 action: 'delete'
             }, function(response) {
-                alert('Customer deleted successfully!');
-                location.reload(); // Refresh the page to reflect changes
+                // Assuming response is JSON
+                const res = JSON.parse(response);
+                // Handle success
+                if (res.success) {
+                    alert('Customer deleted successfully!');
+                    $row.remove(); // Remove the row from the DOM
+                } else {
+                    alert('Failed to delete customer.');
+                }
             }).fail(function() {
+                // Handle failure
                 alert('Error deleting customer.');
             });
         }
     });
 
+    // Handle save as PDF button click
     $('.save-pdf-btn').on('click', function() {
-        var customerId = $(this).data('customer_id');
-        window.location.href = 'page-list-customers.php?customer_id=' + customerId;
+        const customerId = $(this).data('customer_id');
+        window.location.href = `page-list-customers.php?customer_id=${customerId}&action=download`;
     });
 });
-
 </script>
+
+ 
+
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
