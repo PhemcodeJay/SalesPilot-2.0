@@ -73,19 +73,18 @@ $expensesQuery = $connection->prepare("
 $expensesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $expensesData = $expensesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch profit and expenses data (layout1-chart-5)
 $profitExpenseQuery = $connection->prepare("
-    SELECT DATE_FORMAT(sale_date, '%b %Y') AS date,  -- Format date as 'Mon YYYY'
-           SUM(sales_qty * (price - cost)) AS profit,
-           (
-               (SELECT SUM(sales_qty * cost) FROM sales WHERE sale_date = DATE(sales.sale_date)) + 
-               (SELECT IFNULL(SUM(amount), 0) FROM expenses WHERE expense_date = DATE(sales.sale_date))
-           ) AS expenses
-    FROM sales
-    JOIN products ON sales.product_id = products.id
-    WHERE sale_date BETWEEN :startDate AND :endDate
-    GROUP BY DATE_FORMAT(sale_date, '%b %Y')
+    SELECT 
+        DATE_FORMAT(s.sale_date, '%b %Y') AS date,  -- Format date as 'Mon YYYY'
+        SUM(s.sales_qty * (p.price - p.cost)) AS profit,
+        COALESCE(SUM(s.sales_qty * p.cost), 0) + COALESCE(SUM(e.amount), 0) AS expenses
+    FROM sales s
+    JOIN products p ON s.product_id = p.id
+    LEFT JOIN expenses e ON DATE(e.expense_date) = DATE(s.sale_date)  -- Match expenses by day
+    WHERE s.sale_date BETWEEN :startDate AND :endDate
+    GROUP BY DATE_FORMAT(s.sale_date, '%b %Y')
 ");
+
 $profitExpenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
 $profitExpenseData = $profitExpenseQuery->fetchAll(PDO::FETCH_ASSOC);
 
