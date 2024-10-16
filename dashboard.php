@@ -160,7 +160,7 @@ try {
     $percentage_expenses_to_revenue = 0;  // Default value
     if ($total_revenue > 0) {
         // Total expenses combined divided by total revenue * 100
-        $percentage_expenses_to_revenue = ($total_expenses_combined / $total_revenue) * 100;
+        $percentage_expenses_to_revenue = ($total_expenses / $total_profit) * 100;
     }
 
     // Calculate the percentage of total profit combined compared to revenue
@@ -173,6 +173,7 @@ try {
     // Format the final outputs for display
     $total_revenue = number_format($total_revenue, 2);
     $total_expenses_combined = number_format($total_expenses_combined, 2);
+    $total_expenses = number_format($total_expenses, 2);
     $total_profit = number_format($total_profit, 2);
     $percentage_expenses_to_revenue = number_format($percentage_expenses_to_revenue,);
     $percentage_profit_to_revenue = number_format($percentage_profit_to_revenue,);
@@ -699,7 +700,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/1.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Total Revenue</p>
+                                    <p class="mb-2">Revenue</p>
                                     <h4>$<?php echo $total_revenue; ?></h4>
                                     </div>
                                 </div>                                
@@ -718,7 +719,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Total Expenses</p>
+                                    <p class="mb-2">Expenditure</p>
                                     <h4>$<?php echo $total_expenses_combined; ?></h4>
                                     </div>
                                 </div>
@@ -737,7 +738,7 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/3.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Total Profit</p>
+                                    <p class="mb-2">Profit</p>
                                     <h4><?php echo $total_profit; ?></h4>
                                     </div>
                                 </div>
@@ -912,8 +913,8 @@ $connection = null;
                     <div class="card-body">
                         <div class="d-flex align-items-top justify-content-between">
                             <div class="">
-                                <p class="mb-0">Expenditure</p>
-                                <h5>$<?php echo $total_expenses_combined; ?></h5>
+                                <p class="mb-0">Expenses</p>
+                                <h5>$<?php echo $total_expenses; ?></h5>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
                                 <div class="dropdown">
@@ -938,12 +939,12 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Profit vs Expenditure</h4>
+                            <h4 class="card-title">Profit vs Expenses</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
     <div class="dropdown">
         <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005" data-toggle="dropdown">
-            Week <i class="ri-arrow-down-s-line ml-1"></i> <!-- Default initial time frame -->
+            This Month <i class="ri-arrow-down-s-line ml-1"></i> <!-- Default initial time frame -->
         </span>
         <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton005">
             <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
@@ -970,8 +971,8 @@ $connection = null;
 
                                 </div>
                                 <div class="progress-value ml-3 pr-5 border-right">
-                                    <h5>$<?php echo $total_expenses_combined; ?></h5>
-                                    <p class="mb-0">Expenditure</p>
+                                    <h5>$<?php echo $total_expenses; ?></h5>
+                                    <p class="mb-0">Expenses</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center ml-5 progress-order-right">
