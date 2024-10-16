@@ -19,7 +19,6 @@ try {
             $endDate = date('Y-m-t');
             break;
         case 'yearly':
-            // Start from the beginning of the year and end at the current date (today)
             $startDate = date('Y-01-01');  // January 1st of the current year
             $endDate = date('Y-m-d');      // Current date
             break;
@@ -29,23 +28,23 @@ try {
             break;
     }
 
-    // Fetch sales quantity data for Apex Basic Chart with 3-letter month abbreviation
+    // Fetch sales quantity data for Apex Basic Chart with 3-letter month and 2-digit year abbreviation (e.g., Jun 24)
     $salesQuery = $connection->prepare("
-        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty) AS total_sales 
+        SELECT DATE_FORMAT(sale_date, '%b %y') AS date, SUM(sales_qty) AS total_sales 
         FROM sales 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
-        GROUP BY DATE(sale_date)");
+        GROUP BY DATE_FORMAT(sale_date, '%b %y')");
     $salesQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $salesData = $salesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch sell-through rate and inventory turnover rate for Apex Line Area Chart with 3-letter month abbreviation
+    // Fetch sell-through rate and inventory turnover rate for Apex Line Area Chart with 3-letter month and 2-digit year abbreviation
     $metricsQuery = $connection->prepare("
-        SELECT DATE_FORMAT(report_date, '%b %d') AS date, 
+        SELECT DATE_FORMAT(report_date, '%b %y') AS date, 
                AVG(sell_through_rate) AS avg_sell_through_rate, 
                AVG(inventory_turnover_rate) AS avg_inventory_turnover_rate 
         FROM reports 
         WHERE DATE(report_date) BETWEEN :startDate AND :endDate 
-        GROUP BY DATE(report_date)");
+        GROUP BY DATE_FORMAT(report_date, '%b %y')");
     $metricsQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $metricsData = $metricsQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -83,30 +82,30 @@ try {
     arsort($revenueByProduct);
     $top5Products = array_slice($revenueByProduct, 0, 5, true);
 
-    // Fetch revenue, total cost, and additional expenses for Apex 3-Column Chart with 3-letter month abbreviation
+    // Fetch revenue, total cost, and additional expenses for Apex 3-Column Chart with 3-letter month and 2-digit year abbreviation
     $revenueQuery = $connection->prepare("
-        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty * price) AS revenue 
+        SELECT DATE_FORMAT(sale_date, '%b %y') AS date, SUM(sales_qty * price) AS revenue 
         FROM sales 
         JOIN products ON sales.product_id = products.id 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
-        GROUP BY DATE(sale_date)");
+        GROUP BY DATE_FORMAT(sale_date, '%b %y')");
     $revenueQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $revenueData = $revenueQuery->fetchAll(PDO::FETCH_ASSOC);
 
     $totalCostQuery = $connection->prepare("
-        SELECT DATE_FORMAT(sale_date, '%b %d') AS date, SUM(sales_qty * cost) AS total_cost 
+        SELECT DATE_FORMAT(sale_date, '%b %y') AS date, SUM(sales_qty * cost) AS total_cost 
         FROM sales 
         JOIN products ON sales.product_id = products.id 
         WHERE DATE(sale_date) BETWEEN :startDate AND :endDate 
-        GROUP BY DATE(sale_date)");
+        GROUP BY DATE_FORMAT(sale_date, '%b %y')");
     $totalCostQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $totalCostData = $totalCostQuery->fetchAll(PDO::FETCH_ASSOC);
 
     $expenseQuery = $connection->prepare("
-        SELECT DATE_FORMAT(expense_date, '%b %d') AS date, SUM(amount) AS total_expenses 
+        SELECT DATE_FORMAT(expense_date, '%b %y') AS date, SUM(amount) AS total_expenses 
         FROM expenses 
         WHERE DATE(expense_date) BETWEEN :startDate AND :endDate 
-        GROUP BY DATE(expense_date)");
+        GROUP BY DATE_FORMAT(expense_date, '%b %y')");
     $expenseQuery->execute(['startDate' => $startDate, 'endDate' => $endDate]);
     $expenseData = $expenseQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -149,3 +148,4 @@ try {
     exit;
 }
 ?>
+

@@ -54,7 +54,7 @@ $(document).ready(function() {
 
         return {
             chart: {
-                height: 350,
+                height: 400,
                 type: "line",
                 zoom: { enabled: false }
             },
@@ -76,7 +76,7 @@ $(document).ready(function() {
 
         return {
             chart: {
-                height: 350,
+                height: 400,
                 type: "area",
                 zoom: { enabled: false }
             },
@@ -102,7 +102,7 @@ $(document).ready(function() {
 
         return {
             chart: {
-                height: 350,
+                height: 400,
                 type: "bar",
                 stacked: true
             },
@@ -134,7 +134,7 @@ $(document).ready(function() {
 
         return {
             chart: {
-                height: 350,
+                height: 400,
                 type: "pie"
             },
             series: pieValues,
