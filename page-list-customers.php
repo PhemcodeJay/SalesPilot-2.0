@@ -36,7 +36,7 @@ try {
     $existing_image = htmlspecialchars($user_info['user_image']);
     $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
-// Retrieve customers from the customers table
+    // Retrieve customers from the customers table
 $customers_query = "SELECT customer_id, customer_name, customer_email, customer_phone, customer_location FROM customers";
 $stmt = $connection->prepare($customers_query);
 $stmt->execute();
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $connection->prepare($delete_query);
             $stmt->bindParam(':customer_id', $customer_id);
             $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+            header("Location: " . $_SERVER['PHP_SELF']);
             exit;
         } else {
             echo 'No customer ID provided.';
@@ -82,8 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdf->Cell(40, 10, 'Phone: ' . $customer['customer_phone']);
                 $pdf->Ln();
                 $pdf->Cell(40, 10, 'Location: ' . $customer['customer_location']);
-
-                // Output the PDF
                 $pdf->Output('D', 'customer_' . $customer_id . '.pdf');
             } else {
                 echo 'Customer not found.';
@@ -111,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':customer_phone', $customer_phone);
             $stmt->bindParam(':customer_location', $customer_location);
             $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+            header("Location: " . $_SERVER['PHP_SELF']);
             exit;
         } else {
             echo 'Incomplete form data.';
@@ -622,19 +620,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <td contenteditable="true" class="editable" data-field="customer_phone"><?php echo htmlspecialchars($customer['customer_phone']); ?></td>
                     <td contenteditable="true" class="editable" data-field="customer_location"><?php echo htmlspecialchars($customer['customer_location']); ?></td>
                     <td>
-                    <button type="button" class="btn btn-success save-btn" 
-                            data-customer-id="<?php echo $customer['customer_id']; ?>" 
-                            data-action="update">
+                        <button type="button" class="btn btn-success save-btn" 
+                                data-customer-id="<?php echo $customer['customer_id']; ?>" 
+                                data-action="update">
                             <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
                         </button>
                         <button type="button" class="btn btn-warning delete-btn" 
-                            data-customer-id="<?php echo $customer['customer_id']; ?>" 
-                            data-action="delete">
+                                data-customer-id="<?php echo $customer['customer_id']; ?>" 
+                                data-action="delete">
                             <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                         </button>
                         <button type="button" class="btn btn-info save-pdf-btn" 
-                            data-customer-id="<?php echo $customer['customer_id']; ?>" 
-                            data-action="save_pdf">
+                                data-customer-id="<?php echo $customer['customer_id']; ?>" 
+                                data-action="save_pdf">
                             <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
                         </button>
                     </td>
@@ -716,7 +714,7 @@ $(document).ready(function() {
     // Save updated customer details
     $('.save-btn').on('click', function() {
         var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var customerId = $row.data('customer_id'); // Use data attribute for customer ID
+        var customerId = $(this).data('customer-id'); // Use data attribute for customer ID
         var customerName = $row.find('[data-field="customer_name"]').text().trim(); // Get the text from the editable cell
         var customerEmail = $row.find('[data-field="customer_email"]').text().trim();
         var customerPhone = $row.find('[data-field="customer_phone"]').text().trim();
@@ -728,7 +726,7 @@ $(document).ready(function() {
         }
 
         $.post('page-list-customers.php', {
-            id: customerId,
+            customer_id: customerId, // Send 'customer_id' to match with PHP
             customer_name: customerName,
             customer_email: customerEmail,
             customer_phone: customerPhone,
@@ -737,7 +735,7 @@ $(document).ready(function() {
         })
         .done(function(response) {
             alert('Customer updated successfully!');
-            location.reload(); // Refresh the page to reflect changes
+            location.reload(); // Reload the page to reflect the updates
         })
         .fail(function() {
             alert('Error updating customer.');
@@ -747,9 +745,9 @@ $(document).ready(function() {
     // Delete a customer
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this customer?')) {
-            var customerId = $(this).closest('tr').data('customer_id');
+            var customerId = $(this).data('customer-id');
             $.post('page-list-customers.php', {
-                id: customerId,
+                customer_id: customerId, // Send 'customer_id' to match with PHP
                 action: 'delete'
             })
             .done(function(response) {
@@ -764,12 +762,11 @@ $(document).ready(function() {
 
     // Save customer details as PDF
     $('.save-pdf-btn').on('click', function() {
-        var customerId = $(this).closest('tr').data('customer_id');
-        window.location.href = 'pdf_generate.php?id=' + customerId;
+        var customerId = $(this).data('customer-id');
+        window.location.href = 'pdf_generate.php?customer_id=' + customerId; // Pass 'customer_id' to the PDF generator
     });
 });
 </script>
-
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {

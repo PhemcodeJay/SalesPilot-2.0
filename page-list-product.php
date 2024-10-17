@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle edit action
         // Process edit (e.g., redirect to edit form or update product details)
         // For example:
-        header("Location: edit_product.php?id=" . $product_id);
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page
         exit;
     } elseif (isset($_POST['delete'])) {
         // Handle delete action
@@ -774,7 +774,7 @@ $(document).ready(function() {
         var inventoryQty = $row.find('[data-field="inventory_qty"]').text();
         var cost = $row.find('[data-field="cost"]').text().replace('$', '');
 
-        $.post('update_product.php', {
+        $.post('page-list-product.php', {
             product_id: productId,
             name: name,
             description: description,
@@ -794,7 +794,7 @@ $(document).ready(function() {
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this product?')) {
             var productId = $(this).closest('tr').data('id');
-            $.post('update_product.php', {
+            $.post('page-list-product.php', {
                 product_id: productId,
                 action: 'delete'
             }, function(response) {
@@ -809,7 +809,7 @@ $(document).ready(function() {
     // Save as PDF button functionality
     $('.save-pdf-btn').on('click', function() {
         var productId = $(this).closest('tr').data('id');
-        window.location.href = 'generate_pdf.php?product_id=' + productId;
+        window.location.href = 'pdf_generate.php?product_id=' + productId;
     });
 });
 </script>
