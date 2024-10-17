@@ -31,8 +31,8 @@ function generatePDF($title, $data, $filename) {
 }
 
 function fetchData($table, $idColumn, $id) {
-    global $pdo; // Access the PDO instance
-    $stmt = $pdo->prepare("SELECT * FROM $table WHERE $idColumn = :id");
+    global $connection; // Access the PDO instance
+    $stmt = $connection->prepare("SELECT * FROM $table WHERE $idColumn = :id");
     $stmt->execute(['id' => $id]);
     return $stmt->fetch();
 }
@@ -184,9 +184,9 @@ if (isset($_GET['customer_id'])) {
 
 // Function to generate product report PDF
 function generateProductReport() {
-    global $pdo;
+    global $connection;
 
-    $stmt = $pdo->query("SELECT * FROM products");
+    $stmt = $connection->query("SELECT * FROM products");
     if ($stmt->rowCount() > 0) {
         $pdf = new FPDF();
         $pdf->AddPage();
@@ -211,7 +211,7 @@ function generateProductReport() {
         // Loop through each product record and add to the PDF
         while ($product = $stmt->fetch()) {
             $pdf->Cell(30, 10, $product['id'], 1);
-            $pdf->Cell(60, 10, $product['product_name'], 1);
+            $pdf->Cell(60, 10, $product['name'], 1);
             $pdf->Cell(30, 10, '$' . number_format($product['price'], 2), 1);
             $pdf->Cell(30, 10, '$' . number_format($product['cost'], 2), 1);
             $pdf->Cell(30, 10, $product['stock_qty'], 1);
@@ -219,7 +219,7 @@ function generateProductReport() {
         }
 
         // Output the PDF as a download
-        $pdf->Output('D', 'product_report.pdf');
+        $pdf->Output('D', 'pdf_generate.pdf');
     } else {
         echo "No products found.";
     }
@@ -229,6 +229,3 @@ if (!isset($_GET['product_id'])) {
     generateProductReport();
 }
 ?>
-
-
-
