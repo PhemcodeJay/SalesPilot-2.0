@@ -862,7 +862,7 @@ $(document).ready(function() {
         var inventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
         var availableStock = $row.find('[data-field="available_stock"]').text().trim();
 
-        $.post('update_cell.php', {
+        $.post('page-list-inventory.php', {
             product_id: productId,
             sale_date: saleDate,
             product_name: productName,
@@ -881,7 +881,7 @@ $(document).ready(function() {
     $('.btn-delete').on('click', function() {
         if (confirm('Are you sure you want to delete this item?')) {
             var productId = $(this).data('product-id');
-            $.post('delete_item.php', {
+            $.post('page-list-inventory.php', {
                 product_id: productId,
                 action: 'delete'
             }, function(response) {
@@ -896,11 +896,11 @@ $(document).ready(function() {
     // Save as PDF Button
     $('.btn-save-pdf').on('click', function() {
         var productId = $(this).data('product-id');
-        window.location.href = 'generate_pdf.php?product_id=' + productId;
+        window.location.href = 'pdf_generate.php?product_id=' + productId;
     });
 
     function updateCell(productId, field, newValue) {
-        $.post('update_cell.php', {
+        $.post('page-list-inventory.php', {
             product_id: productId,
             field: field,
             value: newValue
