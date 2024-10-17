@@ -34,64 +34,87 @@ try {
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
-    // Retrieve expenses from the expenses table
-    $expenses_query = "SELECT id, description, amount, expense_date, created_by FROM expenses";
-    $stmt = $connection->prepare($expenses_query);
-    $stmt->execute();
-    $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  // Retrieve expenses from the expenses table
+$expenses_query = "SELECT id, description, amount, expense_date, created_by FROM expenses";
+$stmt = $connection->prepare($expenses_query);
+$stmt->execute();
+$expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Handle form actions
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $action = $_POST['action'] ?? null;
-        $id = $_POST['id'] ?? null;
+// Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $id = $_POST['id'] ?? null;
 
-        if ($action === 'delete') {
-            // Handle delete action
-            if ($id) {
-                $delete_query = "DELETE FROM expenses WHERE id = :id";
-                $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':id', $id);
-                $stmt->execute();
-                header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-                exit;
-            } else {
-                echo 'No expense ID provided.';
-            }
-        } elseif ($action === 'save_pdf') {
-            // Handle save as PDF action
-            if ($id) {
-                $query = "SELECT * FROM expenses WHERE id = :id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':id', $id);
-                $stmt->execute();
-                $expense = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($expense) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Expense Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Date: ' . $expense['expense_date']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Description: ' . $expense['description']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Amount: $' . $expense['amount']);
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Created by: ' . $expense['created_by']);
-
-                    // Output the PDF
-                    $pdf->Output('D', 'expense_' . $id . '.pdf');
-                } else {
-                    echo 'Expense not found.';
-                }
-            } else {
-                echo 'No expense ID provided.';
-            }
+    if ($action === 'delete') {
+        // Handle delete action
+        if ($id) {
+            $delete_query = "DELETE FROM expenses WHERE id = :id";
+            $stmt = $connection->prepare($delete_query);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
             exit;
+        } else {
+            echo 'No expense ID provided.';
+        }
+    } elseif ($action === 'save_pdf') {
+        // Handle save as PDF action
+        if ($id) {
+            $query = "SELECT * FROM expenses WHERE id = :id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($expense) {
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Expense Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Date: ' . $expense['expense_date']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Description: ' . $expense['description']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Amount: $' . $expense['amount']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Created by: ' . $expense['created_by']);
+
+                // Output the PDF
+                $pdf->Output('D', 'expense_' . $id . '.pdf');
+            } else {
+                echo 'Expense not found.';
+            }
+        } else {
+            echo 'No expense ID provided.';
+        }
+        exit;
+    } elseif ($action === 'update') {
+        // Handle update action
+        $description = $_POST['description'] ?? null;
+        $amount = $_POST['amount'] ?? null;
+        $expense_date = $_POST['expense_date'] ?? null;
+        $created_by = $_POST['created_by'] ?? null;
+
+        if ($id && $description && $amount && $expense_date && $created_by) {
+            $update_query = "UPDATE expenses 
+                             SET description = :description, amount = :amount, expense_date = :expense_date, created_by = :created_by
+                             WHERE id = :id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':description', $description);
+            $stmt->bindParam(':amount', $amount);
+            $stmt->bindParam(':expense_date', $expense_date);
+            $stmt->bindParam(':created_by', $created_by);
+            $stmt->execute();
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
+            exit;
+        } else {
+            echo 'Incomplete form data.';
         }
     }
+}
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -683,18 +706,22 @@ $(document).ready(function() {
     // Enable inline editing on click
     $('.editable').on('click', function() {
         var $this = $(this);
-        var currentText = $this.text();
+        var currentText = $this.text().trim(); // Trim any whitespace
         var input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
-        $this.html(input);
+        $this.html(input); // Replace the text with an input element
         input.focus();
+
+        // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val();
-            $this.html(newText);
+            var newText = $(this).val().trim(); // Trim the new value as well
+            $this.html(newText); // Restore text to the div
         });
+
+        // Handle pressing the enter key to save and blur
         input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 $(this).blur();
@@ -704,12 +731,17 @@ $(document).ready(function() {
 
     // Save updated expense details
     $('.save-btn').on('click', function() {
-        var $row = $(this).closest('tr');
-        var expenseId = $(this).data('expense-id');
-        var expenseDate = $row.find('[data-field="expense_date"]').text().trim();
+        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
+        var expenseId = $(this).data('expense-id'); // Use data attribute for expense ID
+        var expenseDate = $row.find('[data-field="expense_date"]').text().trim(); // Get the text from the editable cell
         var description = $row.find('[data-field="description"]').text().trim();
         var amount = $row.find('[data-field="amount"]').text().trim();
         var createdBy = $row.find('[data-field="created_by"]').text().trim();
+
+        if (!expenseDate || !description || !amount || !createdBy) {
+            alert('Please fill in all fields before saving.');
+            return; // Stop execution if any field is empty
+        }
 
         $.post('page-list-expense.php', {
             id: expenseId,
@@ -752,6 +784,7 @@ $(document).ready(function() {
     });
 });
 </script>
+
 
 
     <script>
