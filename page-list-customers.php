@@ -714,7 +714,7 @@ try {
             formData.append('customer_location', customer_location);
 
             // Send AJAX request to PHP handler for update
-            fetch('your-php-script.php', {
+            fetch('page-list-customers.php', {
                 method: 'POST',
                 body: formData,
             })
@@ -748,7 +748,7 @@ try {
             formData.append('customer_id', customer_id);
 
             // Send AJAX request to PHP handler for delete
-            fetch('your-php-script.php', {
+            fetch('page-list-customers.php', {
                 method: 'POST',
                 body: formData,
             })
@@ -776,7 +776,7 @@ try {
             var customer_id = this.getAttribute('data-customer_id');
 
             // Redirect to the PHP script to generate the PDF
-            window.location.href = 'generate-pdf.php?customer_id=' + customer_id;
+            window.location.href = 'pdf_generate.php?customer_id=' + customer_id;
         });
     });
 });
