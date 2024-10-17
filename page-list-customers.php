@@ -43,64 +43,85 @@ try {
     $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Handle form actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    $customer_id = $_POST['customer_id'] ?? null;
-
-    // Collect customer data from form
-    $customer_name = $_POST['customer_name'] ?? null;
-    $customer_email = $_POST['customer_email'] ?? null;
-    $customer_phone = $_POST['customer_phone'] ?? null;
-    $customer_location = $_POST['customer_location'] ?? null;
-
-    try {
-        if ($action === 'update' && $customer_id) {
-            // Prepare the update query dynamically
-            $update_query = "UPDATE customers SET ";
-            $params = [];
-
-            // Update fields if provided
-            if ($customer_name !== null) {
-                $update_query .= "customer_name = :customer_name, ";
-                $params[':customer_name'] = $customer_name !== '' ? $customer_name : null;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json'); // Set content type to JSON
+    
+        // Fetch the form action and customer ID from POST data
+        $action = $_POST['action'] ?? null;
+        $customer_id = $_POST['customer_id'] ?? null;
+    
+        // Collect customer data from the form
+        $customer_name = $_POST['customer_name'] ?? null;
+        $customer_email = $_POST['customer_email'] ?? null;
+        $customer_phone = $_POST['customer_phone'] ?? null;
+        $customer_location = $_POST['customer_location'] ?? null;
+    
+        try {
+            // Validate the customer ID
+            if (empty($customer_id) || !is_numeric($customer_id)) {
+                echo json_encode(['success' => false, 'message' => 'Invalid customer ID.']);
+                exit;
             }
-            if ($customer_email !== null) {
-                $update_query .= "customer_email = :customer_email, ";
-                $params[':customer_email'] = $customer_email !== '' ? $customer_email : null;
+    
+            // Process the update action
+            if ($action === 'update' && $customer_id) {
+                // Initialize the update query and parameters array
+                $update_query = "UPDATE customers SET ";
+                $params = [];
+    
+                // Dynamically build the query based on available form data
+                if ($customer_name !== null) {
+                    $update_query .= "customer_name = :customer_name, ";
+                    $params[':customer_name'] = $customer_name !== '' ? $customer_name : null;
+                }
+                if ($customer_email !== null) {
+                    // Validate the email format
+                    if (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+                        echo json_encode(['success' => false, 'message' => 'Invalid email format.']);
+                        exit;
+                    }
+                    $update_query .= "customer_email = :customer_email, ";
+                    $params[':customer_email'] = $customer_email !== '' ? $customer_email : null;
+                }
+                if ($customer_phone !== null) {
+                    $update_query .= "customer_phone = :customer_phone, ";
+                    $params[':customer_phone'] = $customer_phone !== '' ? $customer_phone : null;
+                }
+                if ($customer_location !== null) {
+                    $update_query .= "customer_location = :customer_location, ";
+                    $params[':customer_location'] = $customer_location !== '' ? $customer_location : null;
+                }
+    
+                // Check if there are fields to update
+                if (empty($params)) {
+                    echo json_encode(['success' => false, 'message' => 'No fields to update.']);
+                    exit;
+                }
+    
+                // Finalize the update query by removing the trailing comma and adding the WHERE clause
+                $update_query = rtrim($update_query, ', ') . " WHERE customer_id = :customer_id";
+                $params[':customer_id'] = $customer_id;
+    
+                // Prepare and execute the update query
+                $stmt = $connection->prepare($update_query);
+                foreach ($params as $key => $value) {
+                    $stmt->bindValue($key, $value, $value === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+                }
+    
+                if ($stmt->execute()) {
+                    // Respond with success message
+                    echo json_encode(['success' => true, 'message' => 'Record updated successfully!']);
+                } else {
+                    // Respond with failure message if execution fails
+                    echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
+                }
             }
-            if ($customer_phone !== null) {
-                $update_query .= "customer_phone = :customer_phone, ";
-                $params[':customer_phone'] = $customer_phone !== '' ? $customer_phone : null;
-            }
-            if ($customer_location !== null) {
-                $update_query .= "customer_location = :customer_location, ";
-                $params[':customer_location'] = $customer_location !== '' ? $customer_location : null;
-            }
-
-            // Remove the last comma and add the WHERE clause
-            $update_query = rtrim($update_query, ', ') . " WHERE customer_id = :customer_id";
-            $params[':customer_id'] = $customer_id;
-
-            // Prepare and execute the query
-            $stmt = $connection->prepare($update_query);
-
-            foreach ($params as $key => &$value) {
-                $stmt->bindParam($key, $value, $value === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-            }
-
-            if ($stmt->execute()) {
-                // Return success response as JSON
-                echo json_encode(['success' => true, 'message' => 'Record updated successfully!']);
-            } else {
-                // Return failure response as JSON
-                echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
-            }
+        } catch (PDOException $e) {
+            // Log and return the database error as a JSON response
+            error_log('Database error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         }
-    } catch (PDOException $e) {
-        // Return error response as JSON
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
     }
-}
 
 
     // Fetch inventory notifications with product images
@@ -630,6 +651,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
+
     
             </div>
             </div>
@@ -669,95 +691,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-$(document).ready(function() {
-    // Handle editable fields when clicked
-    $('.editable').on('click', function() {
-        const $this = $(this);
-        const currentText = $this.text().trim(); // Trim to avoid empty input
-        
-        // Create an input field
-        const input = $('<input>', {
-            type: 'text',
-            value: currentText,
-            class: 'form-control form-control-sm'
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+    // Update Button functionality
+    document.querySelectorAll('.save-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var customerRow = this.closest('tr');
+            var customer_id = this.getAttribute('data-customer_id');
 
-        // Replace the current text with the input field
-        $this.html(input);
-        input.focus(); // Focus on the new input field
-    });
+            // Get the updated customer data from the editable cells
+            var customer_name = customerRow.querySelector('[data-field="customer_name"]').textContent.trim();
+            var customer_email = customerRow.querySelector('[data-field="customer_email"]').textContent.trim();
+            var customer_phone = customerRow.querySelector('[data-field="customer_phone"]').textContent.trim();
+            var customer_location = customerRow.querySelector('[data-field="customer_location"]').textContent.trim();
 
-    // Handle save button click to update the record
-    $('.save-btn').on('click', function() {
-        const $row = $(this).closest('tr');
-        const customerId = $(this).data('customer_id');
-        
-        // Gather customer data from the row
-        const customerName = $row.find('[data-field="customer_name"] input').val().trim() || null; // Get value from input
-        const customerEmail = $row.find('[data-field="customer_email"] input').val().trim() || null; // Get value from input
-        const customerPhone = $row.find('[data-field="customer_phone"] input').val().trim() || null; // Get value from input
-        const customerLocation = $row.find('[data-field="customer_location"] input').val().trim() || null; // Get value from input
+            // Create the payload for AJAX request
+            var formData = new FormData();
+            formData.append('action', 'update');
+            formData.append('customer_id', customer_id);
+            formData.append('customer_name', customer_name);
+            formData.append('customer_email', customer_email);
+            formData.append('customer_phone', customer_phone);
+            formData.append('customer_location', customer_location);
 
-        // Send AJAX POST request to update the customer data in the database
-        $.post('page-list-customers.php', {
-            customer_id: customerId,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone,
-            customer_location: customerLocation,
-            action: 'update'
-        }, function(response) {
-            // Assuming response is JSON
-            const res = JSON.parse(response);
-            if (res.success) {
-                alert(res.message);
-                // Update the displayed text after a successful save
-                $row.find('[data-field="customer_name"]').text(customerName);
-                $row.find('[data-field="customer_email"]').text(customerEmail);
-                $row.find('[data-field="customer_phone"]').text(customerPhone);
-                $row.find('[data-field="customer_location"]').text(customerLocation);
-            } else {
-                alert(res.message);
-            }
-        }).fail(function() {
-            // Handle failure
-            alert('Error updating customer.');
+            // Send AJAX request to PHP handler for update
+            fetch('your-php-script.php', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Customer updated successfully!');
+                    } else {
+                        // Show error message
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
         });
     });
 
-    // Handle delete button click
-    $('.delete-btn').on('click', function() {
-        if (confirm('Are you sure you want to delete this customer?')) {
-            const customerId = $(this).data('customer_id');
+    // Delete Button functionality
+    document.querySelectorAll('.delete-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!confirm('Are you sure you want to delete this customer?')) return;
 
-            // Send AJAX POST request to delete the customer
-            $.post('page-list-customers.php', {
-                customer_id: customerId,
-                action: 'delete'
-            }, function(response) {
-                // Assuming response is JSON
-                const res = JSON.parse(response);
-                // Handle success
-                if (res.success) {
-                    alert('Customer deleted successfully!');
-                    $row.remove(); // Remove the row from the DOM
-                } else {
-                    alert('Failed to delete customer.');
-                }
-            }).fail(function() {
-                // Handle failure
-                alert('Error deleting customer.');
-            });
-        }
+            var customer_id = this.getAttribute('data-customer_id');
+
+            // Create the payload for AJAX request
+            var formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('customer_id', customer_id);
+
+            // Send AJAX request to PHP handler for delete
+            fetch('your-php-script.php', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the customer row from the table
+                        this.closest('tr').remove();
+                        alert('Customer deleted successfully!');
+                    } else {
+                        // Show error message
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+        });
     });
 
-    // Handle save as PDF button click
-    $('.save-pdf-btn').on('click', function() {
-        const customerId = $(this).data('customer_id');
-        window.location.href = `page-list-customers.php?customer_id=${customerId}&action=download`;
+    // Save as PDF Button functionality
+    document.querySelectorAll('.save-pdf-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var customer_id = this.getAttribute('data-customer_id');
+
+            // Redirect to the PHP script to generate the PDF
+            window.location.href = 'generate-pdf.php?customer_id=' + customer_id;
+        });
     });
 });
-</script>
+
+    </script>
+    
 
  
 
