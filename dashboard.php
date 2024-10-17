@@ -200,7 +200,7 @@ try {
     JOIN products p ON s.product_id = p.id
     GROUP BY p.id, p.name, p.image_path
     ORDER BY total_sold DESC
-    LIMIT 4
+    LIMIT 5
     ";
     $stmt = $connection->prepare($sql);
     $stmt->execute();
@@ -599,7 +599,7 @@ $connection = null;
                         <?php endforeach; ?>
                     <?php else: ?>
                         <p class="text-center">No reports notifications available.</p>
-                    <?php endif; ?>
+                    <?php endif; ?>  
                 </div>
                 <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
                     View All

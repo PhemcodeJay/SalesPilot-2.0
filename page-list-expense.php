@@ -711,7 +711,7 @@ $(document).ready(function() {
         var amount = $row.find('[data-field="amount"]').text().trim();
         var createdBy = $row.find('[data-field="created_by"]').text().trim();
 
-        $.post('update_expense.php', {
+        $.post('page-list-expense.php', {
             id: expenseId,
             expense_date: expenseDate,
             description: description,
@@ -731,7 +731,7 @@ $(document).ready(function() {
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this expense?')) {
             var expenseId = $(this).data('expense-id');
-            $.post('update_expense.php', {
+            $.post('page-list-expense.php', {
                 id: expenseId,
                 action: 'delete'
             })
@@ -748,7 +748,7 @@ $(document).ready(function() {
     // Save an expense as PDF
     $('.save-pdf-btn').on('click', function() {
         var expenseId = $(this).data('expense-id');
-        window.location.href = 'generate_pdf.php?id=' + expenseId;
+        window.location.href = 'pdf_generate.php?id=' + expenseId;
     });
 });
 </script>

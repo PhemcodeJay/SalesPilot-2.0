@@ -561,7 +561,7 @@ try {
                         </div>
 
                    <div class="card-body">
-                     <div id="apex-basic" style="height: 400px;"></div>
+                     <div id="apex-basic" style="height: 350px;"></div>
                   </div>
                </div>
         
@@ -584,7 +584,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="apex-line-area" style="height: 400px;"></div>
+                     <div id="apex-line-area" style="height: 350px;"></div>
                   </div>
                </div> 
 
@@ -609,7 +609,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="am-3dpie-chart" style="height: 400px;"></div>
+                     <div id="am-3dpie-chart" style="height: 350px;"></div>
                   </div>
                </div>
                <div class="card">
@@ -631,7 +631,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="apex-column" style="height: 400px;"></div>
+                     <div id="apex-column" style="height: 350px;"></div>
                   </div>
                </div>
               
