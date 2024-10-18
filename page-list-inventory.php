@@ -53,98 +53,11 @@ try {
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-   // Fetch inventory data to populate the table
-   $sales_query = "SELECT product_id, last_updated, product_name, sales_qty, inventory_qty, available_stock FROM inventory";
-   $stmt = $connection->prepare($sales_query);
-   $stmt->execute();
-   $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-  // Handle form actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    $product_id = $_POST['product_id'] ?? null;
-
-    if ($action === 'delete') {
-        // Handle delete action
-        if ($product_id) {
-            $delete_query = "DELETE FROM inventory WHERE product_id = :product_id";
-            $stmt = $connection->prepare($delete_query);
-            $stmt->bindParam(':product_id', $product_id);
-            $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
-        } else {
-            echo 'No product ID provided.';
-            exit;
-        }
-    } elseif ($action === 'save_pdf') {
-        // Handle save as PDF action
-        if ($product_id) {
-            $query = "SELECT * FROM inventory WHERE product_id = :product_id";
-            $stmt = $connection->prepare($query);
-            $stmt->bindParam(':product_id', $product_id);
-            $stmt->execute();
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($product) {
-                require('fpdf/fpdf.php'); // Make sure to include FPDF library
-                $pdf = new FPDF();
-                $pdf->AddPage();
-                $pdf->SetFont('Arial', 'B', 16);
-                $pdf->Cell(40, 10, 'Product Details');
-                $pdf->Ln();
-                $pdf->SetFont('Arial', '', 12);
-                $pdf->Cell(40, 10, 'Name: ' . $product['product_name']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Sales Qty: ' . $product['sales_qty']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Inventory Qty: ' . $product['inventory_qty']);
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Available Stock: ' . $product['available_stock']);
-                $pdf->Output('D', 'product_' . $product_id . '.pdf');
-            } else {
-                echo 'Product not found.';
-            }
-            exit;
-        } else {
-            echo 'No product ID provided.';
-            exit;
-        }
-    } elseif ($action === 'update') {
-        // Handle update action
-        $last_updated = $_POST['last_updated'] ?? null;
-        $product_name = $_POST['product_name'] ?? null;
-        $sales_qty = $_POST['sales_qty'] ?? null;
-        $inventory_qty = $_POST['inventory_qty'] ?? null;
-        $available_stock = $_POST['available_stock'] ?? null;
-
-        if ($product_id && $last_updated && $product_name && $sales_qty && $inventory_qty && $available_stock) {
-            $update_query = "UPDATE inventory
-                            SET last_updated = :last_updated, product_name = :product_name, 
-                                sales_qty = :sales_qty, inventory_qty = :inventory_qty, 
-                                available_stock = :available_stock
-                            WHERE product_id = :product_id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':product_id', $product_id);
-            $stmt->bindParam(':last_updated', $last_updated);
-            $stmt->bindParam(':product_name', $product_name);
-            $stmt->bindParam(':sales_qty', $sales_qty);
-            $stmt->bindParam(':inventory_qty', $inventory_qty);
-            $stmt->bindParam(':available_stock', $available_stock);
-            $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
-        } else {
-            echo 'Incomplete form data.';
-            exit;
-        }
-    }
-}
 } catch (PDOException $e) {
+    // Handle database errors
     echo json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]);
     exit;
 }
-
 
 // Handle POST requests for updating product information
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -784,7 +697,6 @@ try {
                         <th>Sales Qty</th>
                         <th>Inventory Qty</th>
                         <th>Available Stock</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody class="light-body">
@@ -802,11 +714,6 @@ try {
                 <td contenteditable="true" class="editable" data-field="sales_qty"><?= htmlspecialchars($row['sales_qty']) ?></td>
                 <td contenteditable="true" class="editable" data-field="inventory_qty"><?= htmlspecialchars($row['inventory_qty']) ?></td>
                 <td contenteditable="true" class="editable" data-field="available_stock"><?= number_format(htmlspecialchars($row['available_stock'])) ?></td>
-                <td>
-                        <button type="button" class="btn btn-success save-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
-                        <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
-                        <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['product_id']; ?>"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
-                    </td>
             </tr>
         <?php endforeach; ?>
     <?php else: ?>
@@ -856,93 +763,7 @@ try {
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function () {
-    // Enable inline editing on click
-    $('.editable').on('click', function () {
-        var $this = $(this);
-        var currentText = $this.text().trim();
-        var input = $('<input>', {
-            type: 'text',
-            value: currentText,
-            class: 'form-control form-control-sm'
-        });
-        $this.html(input);
-        input.focus();
-
-        // Save the new value on blur
-        input.on('blur', function () {
-            var newText = $(this).val().trim();
-            $this.html(newText); // Restore the new text to the div
-        });
-
-        // Handle pressing Enter key to save
-        input.on('keypress', function (e) {
-            if (e.which === 13) { // Enter key
-                $(this).blur();
-            }
-        });
-    });
-
-    // Save updated product details
-    $('.save-btn').on('click', function () {
-        var $row = $(this).closest('tr');
-        var productId = $(this).data('product-id');
-        var lastUpdated = $row.find('[data-field="last_updated"]').text().trim();
-        var productName = $row.find('[data-field="product_name"]').text().trim();
-        var salesQty = $row.find('[data-field="sales_qty"]').text().trim();
-        var inventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
-        var availableStock = $row.find('[data-field="available_stock"]').text().trim();
-
-        if (!lastUpdated || !productName || !salesQty || !inventoryQty || !availableStock) {
-            alert('Please fill in all fields before saving.');
-            return; // Stop execution if any field is empty
-        }
-
-        $.post('page-list-inventory.php', {
-            product_id: productId,
-            last_updated: lastUpdated,
-            product_name: productName,
-            sales_qty: salesQty,
-            inventory_qty: inventoryQty,
-            available_stock: availableStock,
-            action: 'update'
-        })
-        .done(function (response) {
-            alert('Product updated successfully!');
-            location.reload();
-        })
-        .fail(function () {
-            alert('Error updating product.');
-        });
-    });
-
-    // Delete a product
-    $('.delete-btn').on('click', function () {
-        if (confirm('Are you sure you want to delete this product?')) {
-            var productId = $(this).data('product-id');
-            $.post('page-list-inventory.php', {
-                product_id: productId,
-                action: 'delete'
-            })
-            .done(function (response) {
-                alert('Product deleted successfully!');
-                location.reload();
-            })
-            .fail(function () {
-                alert('Error deleting product.');
-            });
-        }
-    });
-
-    // Save product details as PDF
-    $('.save-pdf-btn').on('click', function () {
-        var productId = $(this).data('product-id');
-        window.location.href = 'pdf_generate.php?product_id=' + productId;
-    });
-});
-
-</script>
+    
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
