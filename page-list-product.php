@@ -687,13 +687,17 @@ try {
         <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
         <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
         <td>
-            <form method="post" action="page-list-product.php">
-                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                <button type="submit" name="edit" class="btn btn-success"><i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i></button>
-                <button type="submit" name="delete" class="btn btn-warning"><i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i></button>
-                <button type="submit" name="save_pdf" class="btn btn-info"><i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i></button>
-            </form>
-        </td>
+    <button type="button" class="btn btn-success edit-btn" data-product-id="<?php echo $product['id']; ?>">
+        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+    </button>
+    <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['id']; ?>">
+        <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+    </button>
+    <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['id']; ?>">
+        <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+    </button>
+</td>
+
     </tr>
     <?php endforeach; ?>
 </tbody>
@@ -741,21 +745,25 @@ try {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Enable inline editing for editable fields
+    // Enable inline editing on click
     $('.editable').on('click', function() {
         var $this = $(this);
-        var currentText = $this.text();
+        var currentText = $this.text().trim(); // Trim any whitespace
         var input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
-        $this.html(input);
+        $this.html(input); // Replace the text with an input element
         input.focus();
+
+        // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val();
-            $this.html(newText);
+            var newText = $(this).val().trim(); // Trim the new value as well
+            $this.html(newText); // Restore text to the div
         });
+
+        // Handle pressing the enter key to save and blur
         input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 $(this).blur();
@@ -763,53 +771,35 @@ $(document).ready(function() {
         });
     });
 
-    // Save button functionality
-    $('.save-btn').on('click', function() {
-        var $row = $(this).closest('tr');
-        var productId = $row.data('id');
-        var name = $row.find('[data-field="name"]').text();
-        var description = $row.find('[data-field="description"]').text();
-        var category = $row.find('[data-field="category"]').text();
-        var price = $row.find('[data-field="price"]').text().replace('$', '');
-        var inventoryQty = $row.find('[data-field="inventory_qty"]').text();
-        var cost = $row.find('[data-field="cost"]').text().replace('$', '');
-
-        $.post('update_product.php', {
-            product_id: productId,
-            name: name,
-            description: description,
-            category: category,
-            price: price,
-            inventory_qty: inventoryQty,
-            cost: cost,
-            action: 'update'
-        }, function(response) {
-            alert('Product updated successfully!');
-        }).fail(function() {
-            alert('Error updating product.');
-        });
+    // Edit button functionality
+    $('.edit-btn').on('click', function() {
+        var productId = $(this).data('product-id'); // Use data attribute for product ID
+        // Redirect to edit page
+        window.location.href = 'page-list-product.php?id=' + productId;
     });
 
-    // Delete button functionality
+    // Delete a product
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this product?')) {
-            var productId = $(this).closest('tr').data('id');
-            $.post('update_product.php', {
+            var productId = $(this).data('product-id');
+            $.post('page-list-product.php', {
                 product_id: productId,
                 action: 'delete'
-            }, function(response) {
+            })
+            .done(function(response) {
                 alert('Product deleted successfully!');
                 location.reload(); // Refresh the page to reflect changes
-            }).fail(function() {
+            })
+            .fail(function() {
                 alert('Error deleting product.');
             });
         }
     });
 
-    // Save as PDF button functionality
+    // Save a product as PDF
     $('.save-pdf-btn').on('click', function() {
-        var productId = $(this).closest('tr').data('id');
-        window.location.href = 'generate_pdf.php?product_id=' + productId;
+        var productId = $(this).data('product-id');
+        window.location.href = 'pdf_generate.php?product_id=' + productId;
     });
 });
 </script>

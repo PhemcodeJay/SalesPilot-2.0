@@ -111,7 +111,7 @@ function handlePDFGeneration($type, $id) {
             $product = fetchData('products', 'id', $id);
             if ($product) {
                 $data = [
-                    'Product Name' => $product['product_name'],
+                    'Product Name' => $product['name'],
                     'Description' => $product['description'],
                     'Price' => '$' . number_format($product['price'], 2),
                     'Cost' => '$' . number_format($product['cost'], 2),
