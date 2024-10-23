@@ -614,45 +614,55 @@ try {
             <div class="col-lg-12">
             <div class="table-responsive rounded mb-3">
             <table class="data-tables table mb-0 tbl-server-info">
-                <thead class="bg-white text-uppercase">
-                    <tr class="ligth ligth-data">
-                        <th>
-                            <div class="checkbox d-inline-block">
-                                <input type="checkbox" class="checkbox-input" id="checkbox1">
-                                <label for="checkbox1" class="mb-0"></label>
-                            </div>
-                        </th>
-                        <th>Image</th>
-                        <th>Product Name</th>
-                        <th>Inventory Qty</th>
-                        <th>Category</th>
-                        
-                    </tr>
-                </thead>
-                <tbody class="ligth-body">
-                    <?php foreach ($products as $product): ?>
-                        <tr>
-                            <td>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox<?php echo htmlspecialchars($product['product_id']); ?>">
-                                    <label for="checkbox<?php echo htmlspecialchars($product['product_id']); ?>" class="mb-0"></label>
-                                </div>
-                            </td>
-                            <td>
-                                <img src="<?php echo htmlspecialchars($product['image_path']); ?>" class="img-fluid rounded avatar-50" alt="image">
-                            </td>
-                            <td>
-                                <?php echo htmlspecialchars($product['product_name']); ?>
-                                <p class="mb-0"><small><?php echo htmlspecialchars($product['description']); ?></small></p>
-                            </td>
-                            <td><span class="editable" data-field="customer_name"><?php echo htmlspecialchars($product['inventory_qty']); ?></span></td>
-                            <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                            
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+    <thead class="bg-white text-uppercase">
+        <tr class="ligth ligth-data">
+            <th>
+                <div class="checkbox d-inline-block">
+                    <input type="checkbox" class="checkbox-input" id="checkbox1">
+                    <label for="checkbox1" class="mb-0"></label>
+                </div>
+            </th>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Inventory Qty</th>
+            <th>Category</th>
+        </tr>
+    </thead>
+    <tbody class="ligth-body">
+        <?php 
+        // Group products by category
+        $groupedProducts = [];
+        foreach ($products as $product) {
+            $groupedProducts[$product['category_name']][] = $product;
+        }
 
+        // Loop through each category and display products
+        foreach ($groupedProducts as $categoryName => $categoryProducts): ?>
+            <tr class="bg-light">
+                <td colspan="5" class="font-weight-bold"><?php echo htmlspecialchars($categoryName); ?></td>
+            </tr>
+            <?php foreach ($categoryProducts as $product): ?>
+                <tr>
+                    <td>
+                        <div class="checkbox d-inline-block">
+                            <input type="checkbox" class="checkbox-input" id="checkbox<?php echo htmlspecialchars($product['product_id']); ?>">
+                            <label for="checkbox<?php echo htmlspecialchars($product['product_id']); ?>" class="mb-0"></label>
+                        </div>
+                    </td>
+                    <td>
+                        <img src="<?php echo htmlspecialchars($product['image_path']); ?>" class="img-fluid rounded avatar-50" alt="image">
+                    </td>
+                    <td>
+                        <?php echo htmlspecialchars($product['product_name']); ?>
+                        <p class="mb-0"><small><?php echo htmlspecialchars($product['description']); ?></small></p>
+                    </td>
+                    <td><span class="editable" data-field="inventory_qty"><?php echo htmlspecialchars($product['inventory_qty']); ?></span></td>
+                    <td><?php echo htmlspecialchars($product['category_name']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
             </div>
         </div>
