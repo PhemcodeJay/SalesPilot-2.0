@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':id', $id);
             $stmt->execute();
             $expense = $stmt->fetch(PDO::FETCH_ASSOC);
-
+ 
             if ($expense) {
                 $pdf = new FPDF();
                 $pdf->AddPage();
