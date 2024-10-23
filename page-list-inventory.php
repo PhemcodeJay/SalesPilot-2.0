@@ -709,11 +709,11 @@ try {
                         <label for="checkbox<?= htmlspecialchars($row['product_id']) ?>" class="mb-0"></label>
                     </div>
                 </td>
-                <td contenteditable="true" class="editable" data-field="sale_date"><?= date("d M Y", strtotime(htmlspecialchars($row['sale_date']))) ?></td>
-                <td contenteditable="true" class="editable" data-field="product_name"><?= htmlspecialchars($row['product_name']) ?></td>
-                <td contenteditable="true" class="editable" data-field="sales_qty"><?= htmlspecialchars($row['sales_qty']) ?></td>
-                <td contenteditable="true" class="editable" data-field="inventory_qty"><?= htmlspecialchars($row['inventory_qty']) ?></td>
-                <td contenteditable="true" class="editable" data-field="available_stock"><?= number_format(htmlspecialchars($row['available_stock'])) ?></td>
+                <td><?= date("d M Y", strtotime(htmlspecialchars($row['sale_date']))) ?></td>
+                <td><?= htmlspecialchars($row['product_name']) ?></td>
+                <td><?= htmlspecialchars($row['sales_qty']) ?></td>
+                <td><?= htmlspecialchars($row['inventory_qty']) ?></td>
+                <td><?= number_format(htmlspecialchars($row['available_stock'])) ?></td>
             </tr>
         <?php endforeach; ?>
     <?php else: ?>
