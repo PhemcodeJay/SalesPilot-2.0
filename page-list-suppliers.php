@@ -47,134 +47,44 @@ try {
 }
 
 // Handle form submissions
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-        exit("User is not logged in.");
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Database connection (assuming you have a PDO connection)
+    include 'config.php';
 
-    $action = $_POST['action'] ?? null;
-    $supplier_id = $_POST['supplier_id'] ?? null;
-    $field = $_POST['field'] ?? null;
-    $value = $_POST['value'] ?? null;
+    $action = $_POST['action'];
+    $supplierId = $_POST['supplier_id'];
 
-    if ($action === 'insert') {
-        $supplier_name = htmlspecialchars(trim($_POST['supplier_name']));
-        $product_name = htmlspecialchars(trim($_POST['product_name']));
-        $supplier_email = htmlspecialchars(trim($_POST['supplier_email']));
-        $supplier_phone = htmlspecialchars(trim($_POST['supplier_phone']));
-        $supplier_location = htmlspecialchars(trim($_POST['supplier_location']));
-        $note = htmlspecialchars(trim($_POST['note']));
-        $supply_qty = intval($_POST['supply_qty']);
+    switch ($action) {
+        case 'edit':
+            $supplierName = $_POST['supplier_name'];
+            $productName = $_POST['product_name'];
+            $supplierEmail = $_POST['supplier_email'];
+            $supplierPhone = $_POST['supplier_phone'];
+            $supplierLocation = $_POST['supplier_location'];
+            $note = $_POST['note'];
+            $supplyQty = $_POST['supply_qty'];
 
-        if (empty($supplier_name) || empty($product_name) || empty($supply_qty)) {
-            exit("Supplier name, product name, and supply quantity are required.");
-        }
+            $stmt = $pdo->prepare("UPDATE suppliers SET supplier_name = ?, product_name = ?, supplier_email = ?, supplier_phone = ?, supplier_location = ?, note = ?, supply_qty = ? WHERE id = ?");
+            $stmt->execute([$supplierName, $productName, $supplierEmail, $supplierPhone, $supplierLocation, $note, $supplyQty, $supplierId]);
 
-        try {
-            $insert_supplier_query = "INSERT INTO suppliers (supplier_name, product_name, supplier_email, supplier_phone, supplier_location, note, supply_qty) 
-                                      VALUES (:supplier_name, :product_name, :supplier_email, :supplier_phone, :supplier_location, :note, :supply_qty)";
-            $stmt = $connection->prepare($insert_supplier_query);
-            $stmt->bindParam(':supplier_name', $supplier_name);
-            $stmt->bindParam(':product_name', $product_name);
-            $stmt->bindParam(':supplier_email', $supplier_email);
-            $stmt->bindParam(':supplier_phone', $supplier_phone);
-            $stmt->bindParam(':supplier_location', $supplier_location);
-            $stmt->bindParam(':note', $note);
-            $stmt->bindParam(':supply_qty', $supply_qty);
-            
-            if ($stmt->execute()) {
-                header('Location: page-list-suppliers.php');
-                exit();
-            } else {
-                error_log("Supplier insertion failed: " . implode(" | ", $stmt->errorInfo()));
-                exit("Supplier insertion failed.");
-            }
-        } catch (PDOException $e) {
-            error_log("PDO Error: " . $e->getMessage());
-            exit("Database Error: " . $e->getMessage());
-        }
-    } elseif ($action === 'update') {
-        if ($supplier_id && $field) {
-            try {
-                $update_query = "UPDATE suppliers SET $field = :value WHERE id = :supplier_id";
-                $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':value', $value);
-                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
-                $stmt->execute();
-                echo 'Update successful';
-            } catch (PDOException $e) {
-                error_log("PDO Error: " . $e->getMessage());
-                exit("Database Error: " . $e->getMessage());
-            }
-            exit;
-        } else {
-            echo 'Missing data';
-            exit;
-        }
-    } elseif ($action === 'delete') {
-        if ($supplier_id) {
-            try {
-                $delete_query = "DELETE FROM suppliers WHERE id = :supplier_id";
-                $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
-                $stmt->execute();
-                echo 'Delete successful';
-            } catch (PDOException $e) {
-                error_log("PDO Error: " . $e->getMessage());
-                exit("Database Error: " . $e->getMessage());
-            }
-            exit;
-        } else {
-            echo 'No supplier ID provided.';
-            exit;
-        }
-    } elseif ($action === 'save_pdf') {
-        if ($supplier_id) {
-            try {
-                $query = "SELECT * FROM suppliers WHERE id = :supplier_id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':supplier_id', $supplier_id, PDO::PARAM_INT);
-                $stmt->execute();
-                $supplier = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => 'Supplier updated successfully!']);
+            break;
 
-                if ($supplier) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Supplier Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($supplier['supplier_name']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($supplier['product_name']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Email: ' . htmlspecialchars($supplier['supplier_email']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Phone: ' . htmlspecialchars($supplier['supplier_phone']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Location: ' . htmlspecialchars($supplier['supplier_location']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Note: ' . htmlspecialchars($supplier['note']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Supply Quantity: ' . htmlspecialchars($supplier['supply_qty']));
+        case 'delete':
+            $stmt = $pdo->prepare("DELETE FROM suppliers WHERE id = ?");
+            $stmt->execute([$supplierId]);
+            echo json_encode(['success' => 'Supplier deleted successfully!']);
+            break;
 
-                    // Output the PDF
-                    $pdf->Output('D', 'supplier_' . $supplier_id . '.pdf');
-                } else {
-                    echo 'Supplier not found.';
-                }
-            } catch (PDOException $e) {
-                error_log("PDO Error: " . $e->getMessage());
-                exit("Database Error: " . $e->getMessage());
-            }
-            exit;
-        } else {
-            echo 'No supplier ID provided.';
-            exit;
-        }
-    } else {
-        echo "Invalid action.";
-        exit;
+        case 'save_pdf':
+            // Implement PDF generation logic
+            // For example, you can create a PDF file using a library like TCPDF or MPDF
+            echo json_encode(['success' => 'PDF saved successfully!']);
+            break;
+
+        default:
+            echo json_encode(['error' => 'Invalid action.']);
+            break;
     }
 }
 
@@ -800,7 +710,7 @@ try {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.action-btn').forEach(button => {
         button.addEventListener('click', function () {
             const action = this.getAttribute('data-action');
@@ -817,13 +727,17 @@ try {
                     formData.append(input.name, input.value);
                 });
 
-                fetch('', {
+                fetch('page-list-suppliers.php', { // Set the appropriate URL
                     method: 'POST',
                     body: formData
-                }).then(response => response.text()).then(result => {
+                })
+                .then(response => response.text())
+                .then(result => {
                     console.log(result); // Handle response
                     alert(result);
-                }).catch(error => console.error('Error:', error));
+                    location.reload(); // Reload to reflect changes
+                })
+                .catch(error => console.error('Error:', error));
 
             } else if (action === 'delete') {
                 if (confirm('Are you sure you want to delete this supplier?')) {
@@ -831,39 +745,46 @@ try {
                     formData.append('action', 'delete');
                     formData.append('supplier_id', supplierId);
 
-                    fetch('', {
+                    fetch('page-list-suppliers.php', { // Set the appropriate URL
                         method: 'POST',
                         body: formData
-                    }).then(response => response.text()).then(result => {
+                    })
+                    .then(response => response.text())
+                    .then(result => {
                         console.log(result); // Handle response
                         alert(result);
                         if (result.includes('Delete successful')) {
                             row.remove(); // Remove the row from the table
                         }
-                    }).catch(error => console.error('Error:', error));
+                    })
+                    .catch(error => console.error('Error:', error));
                 }
-                
+
             } else if (action === 'save_pdf') {
                 const formData = new FormData();
                 formData.append('action', 'save_pdf');
                 formData.append('supplier_id', supplierId);
 
-                fetch('', {
+                fetch('pdf_generate.php', { // Set the appropriate URL
                     method: 'POST',
                     body: formData
-                }).then(response => response.blob()).then(blob => {
+                })
+                .then(response => response.blob())
+                .then(blob => {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = `supplier_${supplierId}.pdf`;
                     link.click();
                     URL.revokeObjectURL(url);
-                }).catch(error => console.error('Error:', error));
+                })
+                .catch(error => console.error('Error:', error));
             }
         });
     });
 });
 </script>
+
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

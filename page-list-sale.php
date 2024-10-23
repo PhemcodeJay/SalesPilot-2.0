@@ -48,90 +48,93 @@ $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $id = $_POST['id'] ?? null;
+    $sale_id = $_POST['sale_id'] ?? null;
 
-    switch ($action) {
-        case 'edit':
-            // Handle edit action
-            // Redirect to edit form or handle inline edit logic
-            if ($id) {
-                header("Location: edit_sales.php?id=" . urlencode($id));
-                exit;
-            }
-            break;
+    if (!$sale_id) {
+        echo json_encode(['error' => 'Sale ID is missing']);
+        exit;
+    }
 
-        case 'delete':
-            // Handle delete action
-            if ($id) {
-                $delete_query = "DELETE FROM sales WHERE id = :id";
-                $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->execute();
-                header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-                exit;
-            }
-            break;
+    // Handle delete action
+    if ($action === 'delete') {
+        $delete_query = "DELETE FROM sales WHERE id = :id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':id', $sale_id);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => 'Sale deleted']);
+        } else {
+            echo json_encode(['error' => 'Failed to delete sale']);
+        }
+        exit;
+    }
 
-        case 'save_pdf':
-            // Handle save as PDF action
-            if ($id) {
-                require('fpdf/fpdf.php'); // Include PDF library
+    // Handle save (update) action
+    if ($action === 'save') {
+        $sale_date = $_POST['sale_date'] ?? null;
+        $product_name = $_POST['product_name'] ?? null;
+        $price = $_POST['price'] ?? null;
+        $sales_qty = $_POST['sales_qty'] ?? null;
+        $sales_status = $_POST['sales_status'] ?? null;
+        $payment_status = $_POST['payment_status'] ?? null;
 
-                $query = "SELECT * FROM sales WHERE id = :id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->execute();
-                $sale = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($sale_date && $product_name && $price && $sales_qty && $sales_status && $payment_status) {
+            $update_query = "UPDATE sales 
+                             SET sale_date = :sale_date, product_name = :product_name, 
+                                 price = :price, sales_qty = :sales_qty, 
+                                 sales_status = :sales_status, payment_status = :payment_status
+                             WHERE id = :id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':sale_date', $sale_date);
+            $stmt->bindParam(':product_name', $product_name);
+            $stmt->bindParam(':price', $price);
+            $stmt->bindParam(':sales_qty', $sales_qty);
+            $stmt->bindParam(':sales_status', $sales_status);
+            $stmt->bindParam(':payment_status', $payment_status);
+            $stmt->bindParam(':id', $sale_id);
 
-                if ($sale) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Sale Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Date: ' . htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Product Name: ' . htmlspecialchars($sale['product_name']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Price: $' . htmlspecialchars(number_format($sale['price'], 2)));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Sales Status: ' . htmlspecialchars($sale['sales_status']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Sales Quantity: ' . htmlspecialchars($sale['sales_qty']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Payment Status: ' . htmlspecialchars($sale['payment_status']));
-
-                    // Output the PDF
-                    $pdf->Output('D', 'sale_' . $id . '.pdf');
-                } else {
-                    echo 'Sale not found.';
-                }
-                exit;
+            if ($stmt->execute()) {
+                echo json_encode(['success' => 'Sale updated']);
             } else {
-                echo 'No sale ID provided.';
+                echo json_encode(['error' => 'Failed to update sale']);
             }
-            break;
+        } else {
+            echo json_encode(['error' => 'Incomplete form data']);
+        }
+        exit;
+    }
 
-        case 'update':
-            // Handle update action
-            $field = $_POST['field'] ?? null;
-            $value = $_POST['value'] ?? null;
+    // Handle save as PDF action
+    if ($action === 'save_pdf') {
+        // Fetch sale data
+        $query = "SELECT * FROM sales WHERE id = :id";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':id', $sale_id);
+        $stmt->execute();
+        $sale = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($id && $field && $value !== null) {
-                $update_query = "UPDATE sales SET $field = :value WHERE id = :id";
-                $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->bindParam(':value', $value, PDO::PARAM_STR);
-                $stmt->execute();
-                echo 'Update successful.';
-                exit;
-            }
-            break;
-
-        default:
-            echo 'Invalid action.';
-            break;
+        if ($sale) {
+            // Generate PDF using FPDF (you should have FPDF installed)
+            require 'fpdf.php'; // Include FPDF library
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 16);
+            $pdf->Cell(40, 10, 'Sale Details');
+            $pdf->Ln();
+            $pdf->SetFont('Arial', '', 12);
+            $pdf->Cell(40, 10, 'Product: ' . $sale['product_name']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Price: $' . number_format($sale['price'], 2));
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Quantity: ' . $sale['sales_qty']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Sales Status: ' . $sale['sales_status']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Payment Status: ' . $sale['payment_status']);
+            $pdf->Output('D', 'sale_' . $sale_id . '.pdf');
+        } else {
+            echo json_encode(['error' => 'Sale not found']);
+        }
+        exit;
     }
 }
 
@@ -731,65 +734,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Make table cells editable
+    // Enable inline editing on click
     $('.editable').on('click', function() {
         var $this = $(this);
-        var currentText = $this.text().trim(); // Trim to avoid extra spaces
-        var $input = $('<input>', {
+        var currentText = $this.text().trim(); // Trim any whitespace
+        var input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
+        $this.html(input); // Replace the text with an input element
+        input.focus();
 
-        // Replace cell content with input field
-        $this.html($input);
-        $input.focus();
-
-        // Handle input blur
-        $input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim to avoid extra spaces
+        // Save the new value on blur
+        input.on('blur', function() {
+            var newText = $(this).val().trim(); // Trim the new value as well
             var $parentRow = $this.closest('tr');
-            var id = $parentRow.data('sale-id'); // Changed to `id`
+            var id = $parentRow.data('sale-id'); // Get the sale ID
             var field = $this.data('field');
 
             if (newText === currentText) {
-                $this.html(currentText); // No change in text, revert to original
+                $this.html(currentText); // No change, revert to original
                 return;
             }
 
-            // Save updated data
+            // Send updated value to server
             $.post('update_sales.php', {
-                id: id, // Changed to `id`
+                id: id, // Use 'id' for the sale
                 field: field,
                 value: newText,
                 action: 'update'
             })
             .done(function() {
                 console.log('Sales data updated successfully.');
+                $this.html(newText); // Update cell content
             })
             .fail(function(xhr, status, error) {
                 console.error('Error updating sales data: ', error);
                 alert('Error updating sales data.');
+                $this.html(currentText); // Revert to original text on error
             });
-
-            // Update cell content
-            $this.html(newText);
         });
 
-        // Submit on Enter key
-        $input.on('keypress', function(e) {
+        // Handle pressing the enter key to save and blur
+        input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
-                $input.blur();
+                $(this).blur();
             }
         });
     });
 
-    // Handle save button click
+    // Save updated sales data
     $('.action-btn[data-action="save"]').on('click', function() {
-        var $row = $(this).closest('tr');
-        var id = $(this).data('sale-id'); // Changed to `id`
+        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
+        var id = $(this).data('sale-id'); // Use data attribute for sale ID
         var saleData = {
-            id: id, // Changed to `id`
+            id: id, // Send 'id' to match with PHP
             action: 'save'
         };
 
@@ -803,13 +803,13 @@ $(document).ready(function() {
             });
     });
 
-    // Handle delete button click
+    // Delete a sale
     $('.action-btn[data-action="delete"]').on('click', function() {
         if (confirm('Are you sure you want to delete this sales data?')) {
-            var id = $(this).data('sale-id'); // Changed to `id`
+            var id = $(this).data('sale-id'); // Use 'id' for the sale
 
-            $.post('update_sales.php', {
-                id: id, // Changed to `id`
+            $.post('page-list-sales.php', {
+                id: id, // Send 'id' to match with PHP
                 action: 'delete'
             })
             .done(function() {
@@ -823,10 +823,10 @@ $(document).ready(function() {
         }
     });
 
-    // Handle save as PDF button click
+    // Save sales data as PDF
     $('.action-btn[data-action="save_pdf"]').on('click', function() {
-        var id = $(this).data('sale-id'); // Changed to `id`
-        window.location.href = 'generate_pdf.php?id=' + id; // Changed to `id`
+        var id = $(this).data('sale-id'); // Use 'id' for the sale
+        window.location.href = 'generate_pdf.php?id=' + id; // Pass 'id' to the PDF generator
     });
 });
 </script>

@@ -46,39 +46,36 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $product_id = $_POST['product_id'] ?? null;
+    $product_id = $_POST['id'] ?? null;
 
-    if ($action === 'edit') {
-        if ($product_id) {
-            header("Location: page-list-product.php?id=" . urlencode($product_id));
-            exit;
-        } else {
-            exit(json_encode(['success' => false, 'message' => 'Invalid product ID.']));
-        }
-    } elseif ($action === 'delete') {
+    // Sanitize the product ID
+    $product_id = filter_var($product_id, FILTER_SANITIZE_NUMBER_INT);
+
+    if ($action === 'delete') {
+        // Handle delete action
         if ($product_id) {
             try {
-                $delete_query = "DELETE FROM products WHERE id = :product_id";
+                $delete_query = "DELETE FROM products WHERE id = :id";
                 $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':product_id', $product_id);
-                if ($stmt->execute()) {
-                    echo json_encode(['success' => true, 'message' => 'Product deleted successfully!']);
-                } else {
-                    echo json_encode(['success' => false, 'message' => 'Failed to delete product.']);
-                }
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
+                $stmt->execute();
+
+                // Redirect after deletion
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
             } catch (PDOException $e) {
-                exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
+                echo "Error deleting product: " . $e->getMessage();
             }
         } else {
-            exit(json_encode(['success' => false, 'message' => 'Invalid product ID.']));
+            echo 'No product ID provided.';
         }
-        exit;
     } elseif ($action === 'save_pdf') {
+        // Handle save as PDF action
         if ($product_id) {
             try {
-                $query = "SELECT * FROM products WHERE id = :product_id";
+                $query = "SELECT * FROM products WHERE id = :id";
                 $stmt = $connection->prepare($query);
-                $stmt->bindParam(':product_id', $product_id);
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
                 $stmt->execute();
                 $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -89,58 +86,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdf->Cell(40, 10, 'Product Details');
                     $pdf->Ln();
                     $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($product['name']));
+                    $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($product['name']));
                     $pdf->Ln();
                     $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Category: ' . htmlspecialchars($product['category']));
-                    $pdf->Ln();
                     $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Inventory Qty: ' . number_format($product['inventory_qty']));
-                    $pdf->Ln();
                     $pdf->Cell(40, 10, 'Cost: $' . number_format($product['cost'], 2));
-
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
                     $pdf->Output('D', 'product_' . $product_id . '.pdf');
-                    exit; // Ensure no further code execution after PDF output
                 } else {
-                    exit(json_encode(['success' => false, 'message' => 'Product not found.']));
+                    echo 'Product not found.';
                 }
             } catch (PDOException $e) {
-                exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
+                echo "Error retrieving product: " . $e->getMessage();
             }
         } else {
-            exit(json_encode(['success' => false, 'message' => 'No product ID provided.']));
+            echo 'No product ID provided.';
         }
-    }
-}
+        exit;
+    } elseif ($action === 'update') {
+        // Handle update action
+        $name = $_POST['name'] ?? null;
+        $description = $_POST['description'] ?? null;
+        $price = $_POST['price'] ?? null;
+        $cost = $_POST['cost'] ?? null;
+        $inventory_qty = $_POST['inventory_qty'] ?? null;
 
-// Handle POST requests for updating product information
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'], $_POST['field'], $_POST['value'])) {
-    $id = intval($_POST['id']);
-    $field = htmlspecialchars($_POST['field']);
-    $value = htmlspecialchars($_POST['value']);
+        // Sanitize and validate form data
+        $name = filter_var($name, FILTER_SANITIZE_STRING);
+        $description = filter_var($description, FILTER_SANITIZE_STRING);
+        $price = filter_var($price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $cost = filter_var($cost, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $inventory_qty = filter_var($inventory_qty, FILTER_SANITIZE_NUMBER_INT);
 
-    $allowed_fields = ['name', 'description', 'category', 'price'];
-    if (!in_array($field, $allowed_fields)) {
-        exit(json_encode(['success' => false, 'message' => 'Invalid field']));
-    }
+        if ($product_id && $name && $description && $price && $cost && $inventory_qty) {
+            try {
+                $update_query = "UPDATE products 
+                                 SET name = :name, description = :description, 
+                                     price = :price, cost = :cost, 
+                                     inventory_qty = :inventory_qty
+                                 WHERE id = :id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
+                $stmt->bindParam(':name', $name);
+                $stmt->bindParam(':description', $description);
+                $stmt->bindParam(':price', $price);
+                $stmt->bindParam(':cost', $cost);
+                $stmt->bindParam(':inventory_qty', $inventory_qty);
+                $stmt->execute();
 
-    try {
-        $update_query = "UPDATE products SET $field = :value WHERE id = :id";
-        $stmt = $connection->prepare($update_query);
-        $stmt->bindParam(':value', $value);
-        $stmt->bindParam(':id', $id);
-
-        if ($stmt->execute()) {
-            exit(json_encode(['success' => true]));
+                // Redirect after update
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            } catch (PDOException $e) {
+                echo "Error updating product: " . $e->getMessage();
+            }
         } else {
-            exit(json_encode(['success' => false, 'message' => 'Update failed']));
+            echo 'Incomplete form data.';
         }
-    } catch (PDOException $e) {
-        exit(json_encode(['success' => false, 'message' => "Error: " . $e->getMessage()]));
     }
 }
+
 
 // Fetch inventory and report notifications
 try {
@@ -740,45 +748,18 @@ $(document).ready(function() {
     $('.editable').on('click', function() {
         var $this = $(this);
         var currentText = $this.text().trim(); // Trim any whitespace
-        var productId = $this.data('product-id'); // Use data attribute for product ID
-
-        // Create input element for editing
         var input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
-
-        // Replace the text with the input element
-        $this.html(input); 
+        $this.html(input); // Replace the text with an input element
         input.focus();
 
         // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim the new value
-            if (newText && newText !== currentText) { // Only update if value has changed
-                // AJAX request to update the product name
-                $.post('page-list-product.php', {
-                    action: 'update',
-                    product_id: productId,
-                    new_value: newText
-                })
-                .done(function(response) {
-                    if (response.success) {
-                        alert('Product updated successfully!');
-                        $this.html(newText); // Restore updated text
-                    } else {
-                        alert('Error updating product: ' + response.message);
-                        $this.html(currentText); // Restore original text on error
-                    }
-                })
-                .fail(function() {
-                    alert('Error updating product.');
-                    $this.html(currentText); // Restore original text on AJAX failure
-                });
-            } else {
-                $this.html(currentText); // Restore original text if unchanged
-            }
+            var newText = $(this).val().trim(); // Trim the new value as well
+            $this.html(newText); // Restore text to the div
         });
 
         // Handle pressing the enter key to save and blur
@@ -789,28 +770,52 @@ $(document).ready(function() {
         });
     });
 
-    // Edit button functionality
+    // Save updated product details
     $('.edit-btn').on('click', function() {
-        var productId = $(this).data('product-id');
-        // Redirect to edit page
-        window.location.href = 'page-list-product.php?id=' + productId;
+        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
+        var productId = $(this).data('product-id'); // Use data attribute for product ID
+        var productName = $row.find('[data-field="name"]').text().trim(); // Get the text from the editable cell
+        var productDescription = $row.find('[data-field="description"]').text().trim();
+        var productCategory = $row.find('[data-field="category"]').text().trim();
+        var productPrice = $row.find('[data-field="price"]').text().replace('$', '').trim();
+        var productInventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
+        var productCost = $row.find('[data-field="cost"]').text().replace('$', '').trim();
+
+        if (!productName || !productDescription || !productCategory || !productPrice || !productInventoryQty || !productCost) {
+            alert('Please fill in all fields before saving.');
+            return; // Stop execution if any field is empty
+        }
+
+        $.post('page-list-products.php', {
+            product_id: productId, // Send 'product_id' to match with PHP
+            name: productName,
+            description: productDescription,
+            category: productCategory,
+            price: productPrice,
+            inventory_qty: productInventoryQty,
+            cost: productCost,
+            action: 'update'
+        })
+        .done(function(response) {
+            alert('Product updated successfully!');
+            location.reload(); // Reload the page to reflect the updates
+        })
+        .fail(function() {
+            alert('Error updating product.');
+        });
     });
 
     // Delete a product
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this product?')) {
             var productId = $(this).data('product-id');
-            $.post('page-list-product.php', {
-                action: 'delete',
-                product_id: productId
+            $.post('page-list-products.php', {
+                product_id: productId, // Send 'product_id' to match with PHP
+                action: 'delete'
             })
             .done(function(response) {
-                if (response.success) {
-                    alert('Product deleted successfully!');
-                    location.reload(); // Refresh the page to reflect changes
-                } else {
-                    alert('Error deleting product: ' + response.message);
-                }
+                alert('Product deleted successfully!');
+                location.reload(); // Refresh the page to reflect changes
             })
             .fail(function() {
                 alert('Error deleting product.');
@@ -818,14 +823,15 @@ $(document).ready(function() {
         }
     });
 
-    // Save a product as PDF
+    // Save product details as PDF
     $('.save-pdf-btn').on('click', function() {
         var productId = $(this).data('product-id');
-        window.location.href = 'pdf_generate.php?product_id=' + productId;
+        window.location.href = 'pdf_generate.php?product_id=' + productId; // Pass 'product_id' to the PDF generator
     });
 });
-
 </script>
+
+
 
 
     

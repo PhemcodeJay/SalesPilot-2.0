@@ -42,63 +42,105 @@ try {
     $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
    // Handle form actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $staff_id = $_POST['staff_id'] ?? null;
+    $supplier_id = $_POST['supplier_id'] ?? null;
 
-    if ($action === 'edit') {
-        // Handle edit action
-        if ($staff_id) {
-            header("Location: edit_staff.php?staff_id=" . urlencode($staff_id));
-            exit;
+    if (!$supplier_id) {
+        echo json_encode(['error' => 'Supplier ID is missing']);
+        exit;
+    }
+
+    // Handle delete action
+    if ($action === 'delete') {
+        $delete_query = "DELETE FROM suppliers WHERE id = :supplier_id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':supplier_id', $supplier_id);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => 'Supplier deleted']);
+        } else {
+            echo json_encode(['error' => 'Failed to delete supplier']);
         }
-    } elseif ($action === 'delete') {
-        // Handle delete action
-        if ($staff_id) {
-            $delete_query = "DELETE FROM staff WHERE staff_id = :staff_id";
-            $stmt = $connection->prepare($delete_query);
-            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
-            $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-            exit;
-        }
-    } elseif ($action === 'save_pdf') {
-        // Handle save as PDF action
-        require('fpdf/fpdf.php'); // Include your PDF library
+        exit;
+    }
 
-        if ($staff_id) {
-            $query = "SELECT * FROM staff WHERE staff_id = :staff_id";
-            $stmt = $connection->prepare($query);
-            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
-            $stmt->execute();
-            $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Handle save (update) action
+    if ($action === 'save') {
+        $supplier_name = $_POST['supplier_name'] ?? null;
+        $product_name = $_POST['product_name'] ?? null;
+        $supplier_email = $_POST['supplier_email'] ?? null;
+        $supplier_phone = $_POST['supplier_phone'] ?? null;
+        $supplier_location = $_POST['supplier_location'] ?? null;
+        $note = $_POST['note'] ?? null;
+        $supply_qty = $_POST['supply_qty'] ?? null;
 
-            if ($staff) {
-                $pdf = new FPDF();
-                $pdf->AddPage();
-                $pdf->SetFont('Arial', 'B', 16);
-                $pdf->Cell(40, 10, 'Staff Details');
-                $pdf->Ln();
-                $pdf->SetFont('Arial', '', 12);
-                $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($staff['staff_name']));
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Email: ' . htmlspecialchars($staff['staff_email']));
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Phone: ' . htmlspecialchars($staff['staff_phone']));
-                $pdf->Ln();
-                $pdf->Cell(40, 10, 'Position: ' . htmlspecialchars($staff['position']));
+        if ($supplier_name && $product_name && $supplier_email && $supplier_phone && $supplier_location && $note && $supply_qty) {
+            $update_query = "UPDATE suppliers 
+                             SET supplier_name = :supplier_name, product_name = :product_name, 
+                                 supplier_email = :supplier_email, supplier_phone = :supplier_phone, 
+                                 supplier_location = :supplier_location, note = :note, 
+                                 supply_qty = :supply_qty
+                             WHERE id = :supplier_id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':supplier_name', $supplier_name);
+            $stmt->bindParam(':product_name', $product_name);
+            $stmt->bindParam(':supplier_email', $supplier_email);
+            $stmt->bindParam(':supplier_phone', $supplier_phone);
+            $stmt->bindParam(':supplier_location', $supplier_location);
+            $stmt->bindParam(':note', $note);
+            $stmt->bindParam(':supply_qty', $supply_qty);
+            $stmt->bindParam(':supplier_id', $supplier_id);
 
-                // Output the PDF
-                $pdf->Output('D', 'staff_' . $staff_id . '.pdf');
+            if ($stmt->execute()) {
+                echo json_encode(['success' => 'Supplier updated']);
             } else {
-                echo 'Staff not found.';
+                echo json_encode(['error' => 'Failed to update supplier']);
             }
         } else {
-            echo 'No staff ID provided.';
+            echo json_encode(['error' => 'Incomplete form data']);
+        }
+        exit;
+    }
+
+    // Handle save as PDF action
+    if ($action === 'save_pdf') {
+        // Fetch supplier data
+        $query = "SELECT * FROM suppliers WHERE id = :supplier_id";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':supplier_id', $supplier_id);
+        $stmt->execute();
+        $supplier = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($supplier) {
+            // Generate PDF using FPDF (make sure FPDF is installed)
+            require 'fpdf.php'; // Include FPDF library
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 16);
+            $pdf->Cell(40, 10, 'Supplier Details');
+            $pdf->Ln();
+            $pdf->SetFont('Arial', '', 12);
+            $pdf->Cell(40, 10, 'Supplier Name: ' . $supplier['supplier_name']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Product Name: ' . $supplier['product_name']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Email: ' . $supplier['supplier_email']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Phone: ' . $supplier['supplier_phone']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Location: ' . $supplier['supplier_location']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Note: ' . $supplier['note']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Supply Quantity: ' . $supplier['supply_qty']);
+            $pdf->Output('D', 'supplier_' . $supplier_id . '.pdf');
+        } else {
+            echo json_encode(['error' => 'Supplier not found']);
         }
         exit;
     }
 }
+
 
 
 } catch (PDOException $e) {
@@ -707,85 +749,91 @@ try {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Make table cells editable
+    // Enable inline editing on click
     $('.editable').on('click', function() {
         var $this = $(this);
-        var currentText = $this.text();
-        var $input = $('<input>', {
+        var currentText = $this.text().trim(); // Trim any whitespace
+        var input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
+        $this.html(input); // Replace the text with an input element
+        input.focus();
 
-        // Replace cell content with input field
-        $this.html($input);
-        $input.focus();
-
-        // Handle input blur
-        $input.on('blur', function() {
-            var newText = $(this).val();
-            var $parentRow = $this.closest('tr');
-            var staffId = $parentRow.data('staff-id');
-            var field = $this.data('field');
-
-            // Update cell content
-            $this.html(newText);
-
-            // Save updated data
-            $.post('update_staff.php', {
-                staff_id: staffId,
-                field: field,
-                value: newText,
-                action: 'update'
-            })
-            .done(function() {
-                console.log('Staff data updated successfully.');
-            })
-            .fail(function() {
-                alert('Error updating staff data.');
-            });
+        // Save the new value on blur
+        input.on('blur', function() {
+            var newText = $(this).val().trim(); // Trim the new value as well
+            $this.html(newText); // Restore text to the div
         });
 
-        // Submit on Enter key
-        $input.on('keypress', function(e) {
+        // Handle pressing the enter key to save and blur
+        input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
-                $input.blur();
+                $(this).blur();
             }
         });
     });
 
-    // Handle save PDF button click
-    $('.save-pdf-btn').on('click', function() {
-        var staffId = $(this).data('staff-id');
-        window.location.href = 'generate_pdf.php?staff_id=' + staffId;
-    });
-
-    // Handle edit button click
+    // Save updated staff details
     $('.edit-btn').on('click', function() {
-        var staffId = $(this).data('staff-id');
-        window.location.href = 'edit_staff.php?staff_id=' + staffId;
+        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
+        var staffId = $(this).data('staff-id'); // Use data attribute for staff ID
+        var staffName = $row.find('[data-field="name"]').text().trim(); // Get the text from the editable cell
+        var staffEmail = $row.find('[data-field="email"]').text().trim();
+        var staffPhone = $row.find('[data-field="phone"]').text().trim();
+        var staffPosition = $row.find('[data-field="position"]').text().trim();
+
+        if (!staffName || !staffEmail || !staffPhone || !staffPosition) {
+            alert('Please fill in all fields before saving.');
+            return; // Stop execution if any field is empty
+        }
+
+        $.post('page-list-staffs.php', {
+            staff_id: staffId, // Send 'staff_id' to match with PHP
+            staff_name: staffName,
+            staff_email: staffEmail,
+            staff_phone: staffPhone,
+            position: staffPosition,
+            action: 'update'
+        })
+        .done(function(response) {
+            var data = JSON.parse(response);
+            alert(data.success || data.error); // Alert the success or error message
+            location.reload(); // Reload the page to reflect the updates
+        })
+        .fail(function() {
+            alert('Error updating staff.');
+        });
     });
 
-    // Handle delete button click
+    // Delete a staff member
     $('.delete-btn').on('click', function() {
-        if (confirm('Are you sure you want to delete this staff data?')) {
+        if (confirm('Are you sure you want to delete this staff member?')) {
             var staffId = $(this).data('staff-id');
-
-            $.post('update_staff.php', {
-                staff_id: staffId,
+            $.post('page-list-staffs.php', {
+                staff_id: staffId, // Send 'staff_id' to match with PHP
                 action: 'delete'
             })
-            .done(function() {
-                alert('Staff data deleted successfully!');
+            .done(function(response) {
+                var data = JSON.parse(response);
+                alert(data.success || data.error); // Alert the success or error message
                 location.reload(); // Refresh the page to reflect changes
             })
             .fail(function() {
-                alert('Error deleting staff data.');
+                alert('Error deleting staff.');
             });
         }
     });
+
+    // Save staff details as PDF
+    $('.save-pdf-btn').on('click', function() {
+        var staffId = $(this).data('staff-id');
+        window.location.href = 'pdf_generate.php?staff_id=' + staffId; // Pass 'staff_id' to the PDF generator
+    });
 });
 </script>
+
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
