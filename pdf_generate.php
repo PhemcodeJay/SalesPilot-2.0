@@ -11,6 +11,16 @@ include('config.php'); // Database connection
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
+// Sanitize and validate input parameters
+function sanitizeInput($input) {
+    return htmlspecialchars(strip_tags($input));
+}
+
+function validateId($id) {
+    return filter_var($id, FILTER_VALIDATE_INT);
+}
+
+// PDF generation function
 function generatePDF($title, $data, $filename) {
     $pdf = new FPDF();
     $pdf->AddPage();
@@ -30,13 +40,18 @@ function generatePDF($title, $data, $filename) {
     $pdf->Output('D', $filename);
 }
 
+// Fetch data securely
 function fetchData($table, $idColumn, $id) {
     global $connection; // Access the PDO instance
+    if (!validateId($id)) {
+        return false; // Return false if ID is invalid
+    }
     $stmt = $connection->prepare("SELECT * FROM $table WHERE $idColumn = :id");
     $stmt->execute(['id' => $id]);
     return $stmt->fetch();
 }
 
+// Handle different PDF generations
 function handlePDFGeneration($type, $id) {
     $data = [];
     switch ($type) {
@@ -45,12 +60,13 @@ function handlePDFGeneration($type, $id) {
             if ($customer) {
                 $data = [
                     'Name' => $customer['customer_name'],
-                    'Email' => $customer['customer_email'],
-                    'Phone' => $customer['customer_phone'],
-                    'Location' => $customer['customer_location'],
+                    'Email' => $customer['customer_email'] ?: 'N/A',
+                    'Phone' => $customer['customer_phone'] ?: 'N/A',
+                    'Location' => $customer['customer_location'] ?: 'N/A',
                 ];
                 generatePDF('Customer Information', $data, 'customer_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Customer not found.";
             }
             break;
@@ -66,6 +82,7 @@ function handlePDFGeneration($type, $id) {
                 ];
                 generatePDF('Expense Information', $data, 'expense_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Expense not found.";
             }
             break;
@@ -85,6 +102,7 @@ function handlePDFGeneration($type, $id) {
                 ];
                 generatePDF('Inventory Information', $data, 'inventory_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Inventory record not found.";
             }
             break;
@@ -103,6 +121,7 @@ function handlePDFGeneration($type, $id) {
                 ];
                 generatePDF('Invoice Details', $data, 'invoice_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Invoice not found.";
             }
             break;
@@ -122,22 +141,8 @@ function handlePDFGeneration($type, $id) {
                 ];
                 generatePDF('Product Details', $data, 'product_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Product record not found.";
-            }
-            break;
-
-        case 'supplier':
-            $supplier = fetchData('suppliers', 'supplier_id', $id);
-            if ($supplier) {
-                $data = [
-                    'Supplier Name' => $supplier['supplier_name'],
-                    'Email' => $supplier['supplier_email'],
-                    'Phone' => $supplier['supplier_phone'],
-                    'Location' => $supplier['supplier_location'],
-                ];
-                generatePDF('Supplier Information', $data, 'supplier_' . $id . '.pdf');
-            } else {
-                echo "Supplier not found.";
             }
             break;
 
@@ -155,31 +160,30 @@ function handlePDFGeneration($type, $id) {
                 ];
                 generatePDF('Sales Information', $data, 'sales_' . $id . '.pdf');
             } else {
+                http_response_code(404);
                 echo "Sales record not found.";
             }
             break;
 
         default:
+            http_response_code(400);
             echo "Invalid type provided for PDF generation.";
     }
 }
 
-if (isset($_GET['customer_id'])) {
-    handlePDFGeneration('customer', $_GET['customer_id']);
-} elseif (isset($_GET['expense_id'])) {
-    handlePDFGeneration('expense', $_GET['expense_id']);
-} elseif (isset($_GET['inventory_id'])) {
-    handlePDFGeneration('inventory', $_GET['inventory_id']);
-} elseif (isset($_GET['invoice_id'])) {
-    handlePDFGeneration('invoice', $_GET['invoice_id']);
-} elseif (isset($_GET['product_id'])) {
-    handlePDFGeneration('product', $_GET['product_id']);
-} elseif (isset($_GET['supplier_id'])) {
-    handlePDFGeneration('supplier', $_GET['supplier_id']);
-} elseif (isset($_GET['sales_id'])) {
-    handlePDFGeneration('sales', $_GET['sales_id']);
+// Process GET parameters
+if ($_GET) {
+    foreach ($_GET as $key => $value) {
+        $sanitized_value = sanitizeInput($value);
+        if (strpos($key, '_id') !== false) {
+            $type = str_replace('_id', '', $key);
+            handlePDFGeneration($type, $sanitized_value);
+            exit;
+        }
+    }
 } else {
-    echo "No valid ID provided for generation.";
+    // Generate product report if no ID is provided
+    generateProductReport();
 }
 
 // Function to generate product report PDF
@@ -219,13 +223,10 @@ function generateProductReport() {
         }
 
         // Output the PDF as a download
-        $pdf->Output('D', 'pdf_generate.pdf');
+        $pdf->Output('D', 'product_report.pdf');
     } else {
+        http_response_code(404);
         echo "No products found.";
     }
-}
-
-if (!isset($_GET['product_id'])) {
-    generateProductReport();
 }
 ?>

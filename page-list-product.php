@@ -11,7 +11,6 @@ include('config.php'); // Includes database connection
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
-
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     exit(json_encode(['success' => false, 'message' => "No username found in session."]));
@@ -31,7 +30,6 @@ try {
         exit(json_encode(['success' => false, 'message' => "User not found."]));
     }
 
-    // Retrieve user email and registration date
     $email = htmlspecialchars($user_info['email']);
     $date = htmlspecialchars($user_info['date']);
 
@@ -41,40 +39,43 @@ try {
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Handle form actions
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $action = $_POST['action'] ?? null;
-        $product_id = $_POST['product_id'] ?? null;
+} catch (PDOException $e) {
+    exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
+}
 
-        if ($action === 'edit') {
-            // Handle edit action
-            if ($product_id) {
-                header("Location: edit_product.php?id=" . urlencode($product_id));
-                exit;
-            } else {
-                exit(json_encode(['success' => false, 'message' => 'Invalid product ID.']));
-            }
-        } elseif ($action === 'delete') {
-            // Handle delete action
-            if ($product_id) {
+// Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $product_id = $_POST['product_id'] ?? null;
+
+    if ($action === 'edit') {
+        if ($product_id) {
+            header("Location: page-list-product.php?id=" . urlencode($product_id));
+            exit;
+        } else {
+            exit(json_encode(['success' => false, 'message' => 'Invalid product ID.']));
+        }
+    } elseif ($action === 'delete') {
+        if ($product_id) {
+            try {
                 $delete_query = "DELETE FROM products WHERE id = :product_id";
                 $stmt = $connection->prepare($delete_query);
                 $stmt->bindParam(':product_id', $product_id);
-
                 if ($stmt->execute()) {
                     echo json_encode(['success' => true, 'message' => 'Product deleted successfully!']);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Failed to delete product.']);
                 }
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Invalid product ID.']);
+            } catch (PDOException $e) {
+                exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
             }
-            exit;
-        } elseif ($action === 'save_pdf') {
-            // Handle save as PDF action
-            require('fpdf/fpdf.php'); // Include your PDF library
-
-            if ($product_id) {
+        } else {
+            exit(json_encode(['success' => false, 'message' => 'Invalid product ID.']));
+        }
+        exit;
+    } elseif ($action === 'save_pdf') {
+        if ($product_id) {
+            try {
                 $query = "SELECT * FROM products WHERE id = :product_id";
                 $stmt = $connection->prepare($query);
                 $stmt->bindParam(':product_id', $product_id);
@@ -88,11 +89,11 @@ try {
                     $pdf->Cell(40, 10, 'Product Details');
                     $pdf->Ln();
                     $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Name: ' . $product['name']);
+                    $pdf->Cell(40, 10, 'Name: ' . htmlspecialchars($product['name']));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Description: ' . $product['description']);
+                    $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Category: ' . $product['category']);
+                    $pdf->Cell(40, 10, 'Category: ' . htmlspecialchars($product['category']));
                     $pdf->Ln();
                     $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
                     $pdf->Ln();
@@ -100,57 +101,49 @@ try {
                     $pdf->Ln();
                     $pdf->Cell(40, 10, 'Cost: $' . number_format($product['cost'], 2));
 
-                    // Output the PDF
                     $pdf->Output('D', 'product_' . $product_id . '.pdf');
                     exit; // Ensure no further code execution after PDF output
                 } else {
                     exit(json_encode(['success' => false, 'message' => 'Product not found.']));
                 }
-            } else {
-                exit(json_encode(['success' => false, 'message' => 'No product ID provided.']));
+            } catch (PDOException $e) {
+                exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
             }
+        } else {
+            exit(json_encode(['success' => false, 'message' => 'No product ID provided.']));
         }
     }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
 }
 
 // Handle POST requests for updating product information
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['id'], $_POST['field'], $_POST['value'])) {
-        $id = intval($_POST['id']);
-        $field = htmlspecialchars($_POST['field']);
-        $value = htmlspecialchars($_POST['value']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'], $_POST['field'], $_POST['value'])) {
+    $id = intval($_POST['id']);
+    $field = htmlspecialchars($_POST['field']);
+    $value = htmlspecialchars($_POST['value']);
 
-        // Validate field
-        $allowed_fields = ['name', 'description', 'category', 'price'];
-        if (!in_array($field, $allowed_fields)) {
-            exit(json_encode(['success' => false, 'message' => 'Invalid field']));
+    $allowed_fields = ['name', 'description', 'category', 'price'];
+    if (!in_array($field, $allowed_fields)) {
+        exit(json_encode(['success' => false, 'message' => 'Invalid field']));
+    }
+
+    try {
+        $update_query = "UPDATE products SET $field = :value WHERE id = :id";
+        $stmt = $connection->prepare($update_query);
+        $stmt->bindParam(':value', $value);
+        $stmt->bindParam(':id', $id);
+
+        if ($stmt->execute()) {
+            exit(json_encode(['success' => true]));
+        } else {
+            exit(json_encode(['success' => false, 'message' => 'Update failed']));
         }
-
-        // Prepare and execute the update query
-        try {
-            $update_query = "UPDATE products SET $field = :value WHERE id = :id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':value', $value);
-            $stmt->bindParam(':id', $id);
-
-            if ($stmt->execute()) {
-                exit(json_encode(['success' => true]));
-            } else {
-                exit(json_encode(['success' => false, 'message' => 'Update failed']));
-            }
-        } catch (PDOException $e) {
-            exit(json_encode(['success' => false, 'message' => "Error: " . $e->getMessage()]));
-        }
-    } else {
-        exit(json_encode(['success' => false, 'message' => 'Missing POST parameters']));
+    } catch (PDOException $e) {
+        exit(json_encode(['success' => false, 'message' => "Error: " . $e->getMessage()]));
     }
 }
 
+// Fetch inventory and report notifications
 try {
-    // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
         FROM inventory i
@@ -162,57 +155,49 @@ try {
         ':low_stock' => 10,
         ':high_stock' => 1000,
     ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch reports notifications with product images
     $reportsQuery = $connection->prepare("
         SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.total_sales')) AS revenue,
                p.image_path
         FROM reports r
         JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.total_sales')) > :high_revenue 
+           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.total_sales')) < :low_revenue
         ORDER BY r.report_date DESC
     ");
     $reportsQuery->execute([
         ':high_revenue' => 10000,
         ':low_revenue' => 1000,
     ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
+    exit(json_encode(['success' => false, 'message' => "Database error: " . $e->getMessage()]));
 }
 
+// Fetch user details for the current session user
 try {
-    // Prepare and execute the query to fetch user information from the users table
     $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
     
-    // Fetch user data
     $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user_info) {
-        // Retrieve user details and sanitize output
         $email = htmlspecialchars($user_info['email']);
         $date = date('d F, Y', strtotime($user_info['date']));
         $location = htmlspecialchars($user_info['location']);
         $user_id = htmlspecialchars($user_info['id']);
         
-        // Check if a user image exists, use default if not
         $existing_image = htmlspecialchars($user_info['user_image']);
         $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
     }
 } catch (PDOException $e) {
-    // Handle database errors
     exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
 }
 
 ?>
@@ -839,6 +824,7 @@ $(document).ready(function() {
         window.location.href = 'pdf_generate.php?product_id=' + productId;
     });
 });
+
 </script>
 
 
