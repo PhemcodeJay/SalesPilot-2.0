@@ -773,7 +773,7 @@ $connection = null;
 
                     </div>                    
                     <div class="card-body">
-                    <h4>Top Categories</h4>
+                    <h4>Top Earners</h4>
                         <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
                     </div> 
                 </div>

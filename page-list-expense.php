@@ -80,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdf->Cell(40, 10, 'Amount: $' . $expense['amount']);
                 $pdf->Ln();
                 $pdf->Cell(40, 10, 'Created by: ' . $expense['created_by']);
+                 
+                ob_clean();
 
                 // Output the PDF
                 $pdf->Output('D', 'expense_' . $id . '.pdf');
@@ -753,6 +755,7 @@ $(document).ready(function() {
         })
         .done(function(response) {
             alert('Expense updated successfully!');
+            location.reload(); // Reload to see updates
         })
         .fail(function() {
             alert('Error updating expense.');
@@ -780,10 +783,16 @@ $(document).ready(function() {
     // Save an expense as PDF
     $('.save-pdf-btn').on('click', function() {
         var expenseId = $(this).data('expense-id');
-        window.location.href = 'pdf_generate.php?id=' + expenseId;
+        if (expenseId) {
+            // Redirect to the PDF generation page
+            window.location.href = 'pdf_generate.php?id=' + expenseId;
+        } else {
+            alert('Invalid expense ID.'); // Alert if the ID is not valid
+        }
     });
 });
 </script>
+
 
 
 

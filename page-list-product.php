@@ -1,4 +1,9 @@
 <?php
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
@@ -46,7 +51,7 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $product_id = $_POST['id'] ?? null;
+    $product_id = $_POST['product_id'] ?? null; // Change to 'product_id'
 
     // Sanitize the product ID
     $product_id = filter_var($product_id, FILTER_SANITIZE_NUMBER_INT);
@@ -55,16 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle delete action
         if ($product_id) {
             try {
-                $delete_query = "DELETE FROM products WHERE id = :id";
+                $delete_query = "DELETE FROM products WHERE product_id = :id";
                 $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
                 $stmt->execute();
 
                 // Redirect after deletion
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit;
             } catch (PDOException $e) {
-                echo "Error deleting product: " . $e->getMessage();
+                echo "Error deleting product: " . htmlspecialchars($e->getMessage());
             }
         } else {
             echo 'No product ID provided.';
@@ -90,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdf->Ln();
                     $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
+                    $pdf->Cell(40, 10, 'Price: $' . number_format((float)$product['price'], 2));
                     $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Cost: $' . number_format($product['cost'], 2));
+                    $pdf->Cell(40, 10, 'Cost: $' . number_format((float)$product['cost'], 2));
                     $pdf->Ln();
                     $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
                     $pdf->Output('D', 'product_' . $product_id . '.pdf');
@@ -100,28 +105,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     echo 'Product not found.';
                 }
             } catch (PDOException $e) {
-                echo "Error retrieving product: " . $e->getMessage();
+                echo "Error retrieving product: " . htmlspecialchars($e->getMessage());
             }
+            exit;
         } else {
             echo 'No product ID provided.';
         }
-        exit;
     } elseif ($action === 'update') {
         // Handle update action
-        $name = $_POST['name'] ?? null;
-        $description = $_POST['description'] ?? null;
-        $price = $_POST['price'] ?? null;
-        $cost = $_POST['cost'] ?? null;
-        $inventory_qty = $_POST['inventory_qty'] ?? null;
+        $name = filter_var($_POST['name'] ?? null, );
+        $description = filter_var($_POST['description'] ?? null,);
+        $price = filter_var($_POST['price'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $cost = filter_var($_POST['cost'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $inventory_qty = filter_var($_POST['inventory_qty'] ?? null, FILTER_SANITIZE_NUMBER_INT);
 
-        // Sanitize and validate form data
-        $name = filter_var($name, FILTER_SANITIZE_STRING);
-        $description = filter_var($description, FILTER_SANITIZE_STRING);
-        $price = filter_var($price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $cost = filter_var($cost, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $inventory_qty = filter_var($inventory_qty, FILTER_SANITIZE_NUMBER_INT);
-
-        if ($product_id && $name && $description && $price && $cost && $inventory_qty) {
+        // Validate form data
+        if ($product_id && $name && $description && $price !== null && $cost !== null && $inventory_qty) {
             try {
                 $update_query = "UPDATE products 
                                  SET name = :name, description = :description, 
@@ -129,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                      inventory_qty = :inventory_qty
                                  WHERE id = :id";
                 $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
                 $stmt->bindParam(':name', $name);
                 $stmt->bindParam(':description', $description);
                 $stmt->bindParam(':price', $price);
@@ -141,14 +140,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit;
             } catch (PDOException $e) {
-                echo "Error updating product: " . $e->getMessage();
+                echo "Error updating product: " . htmlspecialchars($e->getMessage());
             }
         } else {
             echo 'Incomplete form data.';
         }
     }
 }
-
 
 // Fetch inventory and report notifications
 try {
@@ -781,12 +779,14 @@ $(document).ready(function() {
         var productInventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
         var productCost = $row.find('[data-field="cost"]').text().replace('$', '').trim();
 
+        // Validate fields before submitting
         if (!productName || !productDescription || !productCategory || !productPrice || !productInventoryQty || !productCost) {
             alert('Please fill in all fields before saving.');
             return; // Stop execution if any field is empty
         }
 
-        $.post('page-list-products.php', {
+        // Prepare data to send
+        var data = {
             product_id: productId, // Send 'product_id' to match with PHP
             name: productName,
             description: productDescription,
@@ -795,20 +795,24 @@ $(document).ready(function() {
             inventory_qty: productInventoryQty,
             cost: productCost,
             action: 'update'
-        })
+        };
+
+        // Send POST request to update product
+        $.post('page-list-products.php', data)
         .done(function(response) {
             alert('Product updated successfully!');
             location.reload(); // Reload the page to reflect the updates
         })
-        .fail(function() {
-            alert('Error updating product.');
+        .fail(function(xhr) {
+            console.error(xhr.responseText); // Log the error response for debugging
+            alert('Error updating product: ' + xhr.responseText); // Show error message
         });
     });
 
     // Delete a product
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this product?')) {
-            var productId = $(this).data('product-id');
+            var productId = $(this).data('product-id'); // Get product ID
             $.post('page-list-products.php', {
                 product_id: productId, // Send 'product_id' to match with PHP
                 action: 'delete'
@@ -817,8 +821,9 @@ $(document).ready(function() {
                 alert('Product deleted successfully!');
                 location.reload(); // Refresh the page to reflect changes
             })
-            .fail(function() {
-                alert('Error deleting product.');
+            .fail(function(xhr) {
+                console.error(xhr.responseText); // Log the error response for debugging
+                alert('Error deleting product: ' + xhr.responseText); // Show error message
             });
         }
     });
