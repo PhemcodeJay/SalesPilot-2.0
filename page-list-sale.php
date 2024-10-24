@@ -826,7 +826,7 @@ $(document).ready(function() {
     // Save sales data as PDF
     $('.action-btn[data-action="save_pdf"]').on('click', function() {
         var id = $(this).data('sale-id'); // Use 'id' for the sale
-        window.location.href = 'generate_pdf.php?id=' + id; // Pass 'id' to the PDF generator
+        window.location.href = 'pdf_generate.php?id=' + id; // Pass 'id' to the PDF generator
     });
 });
 </script>

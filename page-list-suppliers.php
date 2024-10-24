@@ -48,38 +48,87 @@ try {
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Database connection (assuming you have a PDO connection)
-    include 'config.php';
-
-    $action = $_POST['action'];
-    $supplierId = $_POST['supplier_id'];
+    $action = $_POST['action'] ?? null; // Use null coalescing operator for safety
+    $supplierId = $_POST['supplier_id'] ?? null; // Use null coalescing operator for safety
 
     switch ($action) {
         case 'edit':
-            $supplierName = $_POST['supplier_name'];
-            $productName = $_POST['product_name'];
-            $supplierEmail = $_POST['supplier_email'];
-            $supplierPhone = $_POST['supplier_phone'];
-            $supplierLocation = $_POST['supplier_location'];
-            $note = $_POST['note'];
-            $supplyQty = $_POST['supply_qty'];
+            // Retrieve supplier details from POST data
+            $supplierName = $_POST['supplier_name'] ?? null;
+            $productName = $_POST['product_name'] ?? null;
+            $supplierEmail = $_POST['supplier_email'] ?? null;
+            $supplierPhone = $_POST['supplier_phone'] ?? null;
+            $supplierLocation = $_POST['supplier_location'] ?? null;
+            $note = $_POST['note'] ?? null;
+            $supplyQty = $_POST['supply_qty'] ?? null;
 
-            $stmt = $pdo->prepare("UPDATE suppliers SET supplier_name = ?, product_name = ?, supplier_email = ?, supplier_phone = ?, supplier_location = ?, note = ?, supply_qty = ? WHERE id = ?");
-            $stmt->execute([$supplierName, $productName, $supplierEmail, $supplierPhone, $supplierLocation, $note, $supplyQty, $supplierId]);
+            // Validate the inputs (basic validation)
+            if ($supplierId && $supplierName && $productName) {
+                $stmt = $connection->prepare("
+                    UPDATE suppliers 
+                    SET supplier_name = ?, product_name = ?, supplier_email = ?, supplier_phone = ?, supplier_location = ?, note = ?, supply_qty = ? 
+                    WHERE id = ?
+                ");
+                $stmt->execute([$supplierName, $productName, $supplierEmail, $supplierPhone, $supplierLocation, $note, $supplyQty, $supplierId]);
 
-            echo json_encode(['success' => 'Supplier updated successfully!']);
+                echo json_encode(['success' => 'Supplier updated successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Please provide all required fields.']);
+            }
             break;
 
         case 'delete':
-            $stmt = $pdo->prepare("DELETE FROM suppliers WHERE id = ?");
-            $stmt->execute([$supplierId]);
-            echo json_encode(['success' => 'Supplier deleted successfully!']);
+            // Validate the supplier ID
+            if ($supplierId) {
+                $stmt = $connection->prepare("DELETE FROM suppliers WHERE id = ?");
+                $stmt->execute([$supplierId]);
+                echo json_encode(['success' => 'Supplier deleted successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Supplier ID is required for deletion.']);
+            }
             break;
 
         case 'save_pdf':
-            // Implement PDF generation logic
-            // For example, you can create a PDF file using a library like TCPDF or MPDF
-            echo json_encode(['success' => 'PDF saved successfully!']);
+            $productId = $_POST['product_id'] ?? null; // Get product ID from POST data
+
+            // Handle save as PDF action
+            if ($productId) {
+                try {
+                    // Prepare and execute the query
+                    $query = "SELECT * FROM products WHERE id = :id";
+                    $stmt = $connection->prepare($query);
+                    $stmt->bindParam(':id', $productId, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($product) {
+                        // Generate the PDF
+                        $pdf = new FPDF();
+                        $pdf->AddPage();
+                        $pdf->SetFont('Arial', 'B', 16);
+                        $pdf->Cell(40, 10, 'Product Details');
+                        $pdf->Ln();
+                        $pdf->SetFont('Arial', '', 12);
+                        $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($product['name']));
+                        $pdf->Ln();
+                        $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
+                        $pdf->Ln();
+                        $pdf->Cell(40, 10, 'Price: $' . number_format((float)$product['price'], 2));
+                        $pdf->Ln();
+                        $pdf->Cell(40, 10, 'Cost: $' . number_format((float)$product['cost'], 2));
+                        $pdf->Ln();
+                        $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
+                        $pdf->Output('D', 'product_' . $productId . '.pdf'); // Output PDF to download
+                        exit; // Exit after generating the PDF
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Product not found.']);
+                    }
+                } catch (PDOException $e) {
+                    echo json_encode(['success' => false, 'message' => "Error retrieving product: " . htmlspecialchars($e->getMessage())]);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No product ID provided.']);
+            }
             break;
 
         default:
@@ -87,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
     }
 }
+
 
 // Fetch supplier data from the database
 try {
