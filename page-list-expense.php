@@ -793,9 +793,6 @@ $(document).ready(function() {
 });
 </script>
 
-
-
-
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
