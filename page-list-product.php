@@ -51,18 +51,16 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $product_id = $_POST['product_id'] ?? null; // Change to 'product_id'
+    $product_id = $_POST['id'] ?? null; // Change to 'product_id'
 
-    // Sanitize the product ID
-    $product_id = filter_var($product_id, FILTER_SANITIZE_NUMBER_INT);
 
-    if ($action === 'delete') {
+    if ($action === 'delete' && $product_id) {
         // Handle delete action
         if ($product_id) {
             try {
-                $delete_query = "DELETE FROM products WHERE product_id = :id";
+                $delete_query = "DELETE FROM products WHERE id = :id";
                 $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
                 $stmt->execute();
 
                 // Redirect after deletion
@@ -74,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo 'No product ID provided.';
         }
-    } elseif ($action === 'save_pdf') {
+    } elseif ($action === 'save_pdf' && $product_id) {
         // Handle save as PDF action
         if ($product_id) {
             try {
@@ -128,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                      inventory_qty = :inventory_qty
                                  WHERE id = :id";
                 $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
                 $stmt->bindParam(':name', $name);
                 $stmt->bindParam(':description', $description);
                 $stmt->bindParam(':price', $price);
