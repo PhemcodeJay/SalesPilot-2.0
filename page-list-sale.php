@@ -38,7 +38,7 @@ $date = htmlspecialchars($user_info['date']);
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) 
 
 // Retrieve sales data from the sales table only
-$query = "SELECT id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
+$query = "SELECT sales_id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
           FROM sales
           ORDER BY sale_date DESC";
 $stmt = $connection->prepare($query);
@@ -57,9 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Handle delete action
     if ($action === 'delete') {
-        $delete_query = "DELETE FROM sales WHERE id = :id";
+        $delete_query = "DELETE FROM sales WHERE sales_id = :sales_id";
         $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':id', $sale_id);
+        $stmt->bindParam(':sales_id', $sale_id);
         if ($stmt->execute()) {
             echo json_encode(['success' => 'Sale deleted']);
         } else {
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              SET sale_date = :sale_date, product_name = :product_name, 
                                  price = :price, sales_qty = :sales_qty, 
                                  sales_status = :sales_status, payment_status = :payment_status
-                             WHERE id = :id";
+                             WHERE sales_id = :sales_id";
             $stmt = $connection->prepare($update_query);
             $stmt->bindParam(':sale_date', $sale_date);
             $stmt->bindParam(':product_name', $product_name);
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':sales_qty', $sales_qty);
             $stmt->bindParam(':sales_status', $sales_status);
             $stmt->bindParam(':payment_status', $payment_status);
-            $stmt->bindParam(':id', $sale_id);
+            $stmt->bindParam(':sales_id', $sale_id);
 
             if ($stmt->execute()) {
                 echo json_encode(['success' => 'Sale updated']);
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle save as PDF action
     if ($action === 'save_pdf') {
         // Fetch sale data
-        $query = "SELECT * FROM sales WHERE id = :id";
+        $query = "SELECT * FROM sales WHERE sales_id = :sales_id";
         $stmt = $connection->prepare($query);
         $stmt->bindParam(':id', $sale_id);
         $stmt->execute();
@@ -659,7 +659,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <tbody class="light-body">
     <?php if (!empty($sales_data)): ?>
         <?php foreach ($sales_data as $sale): ?>
-            <tr data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+            <tr data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                 <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
                 <td contenteditable="true" class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
                 <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
@@ -672,13 +672,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                         <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
                     </button>
-                    <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                    <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                         <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                     </button>
-                    <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-sale-id="<?php echo htmlspecialchars($sale['id']); ?>">
+                    <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                         <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
                     </button>
                 </td>
@@ -759,7 +759,7 @@ $(document).ready(function() {
             }
 
             // Send updated value to server
-            $.post('update_sales.php', {
+            $.post('page-list-sale.php', {
                 id: id, // Use 'id' for the sale
                 field: field,
                 value: newText,
@@ -793,7 +793,7 @@ $(document).ready(function() {
             action: 'save'
         };
 
-        $.post('update_sales.php', saleData)
+        $.post('page-list-sale.php', saleData)
             .done(function() {
                 alert('Sales data saved successfully!');
             })
@@ -808,7 +808,7 @@ $(document).ready(function() {
         if (confirm('Are you sure you want to delete this sales data?')) {
             var id = $(this).data('sale-id'); // Use 'id' for the sale
 
-            $.post('page-list-sales.php', {
+            $.post('page-list-sale.php', {
                 id: id, // Send 'id' to match with PHP
                 action: 'delete'
             })
@@ -826,7 +826,7 @@ $(document).ready(function() {
     // Save sales data as PDF
     $('.action-btn[data-action="save_pdf"]').on('click', function() {
         var id = $(this).data('sale-id'); // Use 'id' for the sale
-        window.location.href = 'pdf_generate.php?id=' + id; // Pass 'id' to the PDF generator
+        window.location.href = 'pdf_generate.php?sales_id=' + id; // Pass 'id' to the PDF generator
     });
 });
 </script>

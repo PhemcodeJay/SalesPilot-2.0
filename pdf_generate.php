@@ -72,7 +72,7 @@ function handlePDFGeneration($type, $id) {
             break;
 
         case 'expense':
-            $expense = fetchData('expenses', 'id', $id);
+            $expense = fetchData('expenses', 'expense_id', $id);
             if ($expense) {
                 $data = [
                     'Description' => $expense['description'],
@@ -145,18 +145,54 @@ function handlePDFGeneration($type, $id) {
                 echo "Product record not found.";
             }
             break;
+        
+            case 'staff':
+                $staff = fetchData('staffs', 'staff_id', $id);
+                if ($staff) {
+                    $data = [
+                        'Staff Name' => $staff['staff_name'],
+                        'Staff Email' => $staff['staff_email'],
+                        'Staff Position' => $staff['position'],
+                        'Phone' => $staff['staff_phone'],
+                        
+                    ];
+                    generatePDF('Staff Details', $data, 'staff_' . $id . '.pdf');
+                } else {
+                    http_response_code(404);
+                    echo "Staff record not found.";
+                }
+                break;
+        
+
+                case 'supplier':
+                    $supplier = fetchData('suppliers', 'supplier_id', $id);
+                    if ($supplier) {
+                        $data = [
+                            'Supplier Name' => $supplier['supplier_name'],
+                            'Supplier Email' => $supplier['supplier_email'],
+                            'Supplier Phone' => $supplier['supplier_phone'],
+                            'Location' => $supplier['supplier_location'],
+                            
+                        ];
+                        generatePDF('Supplier Details', $data, 'supplier_' . $id . '.pdf');
+                    } else {
+                        http_response_code(404);
+                        echo "Supplier record not found.";
+                    }
+                    break;
+    
 
         case 'sales':
-            $sales = fetchData('sales', 'id', $id);
+            $sales = fetchData('sales', 'sales_id', $id);
             if ($sales) {
                 $data = [
-                    'Sales ID' => $sales['id'],
-                    'Customer ID' => $sales['customer_id'],
+                    'Sales ID' => $sales['sales_id'],
+                    'Product' => $sales['name'],
+                    'Payment Status' => $sales['payment_status'],
                     'Staff ID' => $sales['staff_id'],
-                    'Product ID' => $sales['product_id'],
                     'Sales Quantity' => $sales['sales_qty'],
-                    'Sales Date' => $sales['sales_date'],
-                    'Total Amount' => '$' . number_format($sales['total_amount'], 2),
+                    'Sales Date' => $sales['sale_date'],
+                    'Total Amount' => '$' . number_format($sales['total_price'], 2),
                 ];
                 generatePDF('Sales Information', $data, 'sales_' . $id . '.pdf');
             } else {

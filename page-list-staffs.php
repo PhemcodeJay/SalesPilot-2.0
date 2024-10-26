@@ -41,106 +41,84 @@ try {
     $stmt->execute();
     $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-   // Handle form actions
-   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    $supplier_id = $_POST['supplier_id'] ?? null;
-
-    if (!$supplier_id) {
-        echo json_encode(['error' => 'Supplier ID is missing']);
-        exit;
+   // Handle delete action
+   if ($action === 'delete') {
+    $delete_query = "DELETE FROM staffs WHERE staff_id = :staff_id";
+    $stmt = $connection->prepare($delete_query);
+    $stmt->bindParam(':staff_id', $supplier_id);
+    if ($stmt->execute()) {
+        echo json_encode(['success' => 'Staff deleted']);
+    } else {
+        echo json_encode(['error' => 'Failed to delete staff']);
     }
-
-    // Handle delete action
-    if ($action === 'delete') {
-        $delete_query = "DELETE FROM suppliers WHERE id = :supplier_id";
-        $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':supplier_id', $supplier_id);
-        if ($stmt->execute()) {
-            echo json_encode(['success' => 'Supplier deleted']);
-        } else {
-            echo json_encode(['error' => 'Failed to delete supplier']);
-        }
-        exit;
-    }
-
-    // Handle save (update) action
-    if ($action === 'save') {
-        $supplier_name = $_POST['supplier_name'] ?? null;
-        $product_name = $_POST['product_name'] ?? null;
-        $supplier_email = $_POST['supplier_email'] ?? null;
-        $supplier_phone = $_POST['supplier_phone'] ?? null;
-        $supplier_location = $_POST['supplier_location'] ?? null;
-        $note = $_POST['note'] ?? null;
-        $supply_qty = $_POST['supply_qty'] ?? null;
-
-        if ($supplier_name && $product_name && $supplier_email && $supplier_phone && $supplier_location && $note && $supply_qty) {
-            $update_query = "UPDATE suppliers 
-                             SET supplier_name = :supplier_name, product_name = :product_name, 
-                                 supplier_email = :supplier_email, supplier_phone = :supplier_phone, 
-                                 supplier_location = :supplier_location, note = :note, 
-                                 supply_qty = :supply_qty
-                             WHERE id = :supplier_id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':supplier_name', $supplier_name);
-            $stmt->bindParam(':product_name', $product_name);
-            $stmt->bindParam(':supplier_email', $supplier_email);
-            $stmt->bindParam(':supplier_phone', $supplier_phone);
-            $stmt->bindParam(':supplier_location', $supplier_location);
-            $stmt->bindParam(':note', $note);
-            $stmt->bindParam(':supply_qty', $supply_qty);
-            $stmt->bindParam(':supplier_id', $supplier_id);
-
-            if ($stmt->execute()) {
-                echo json_encode(['success' => 'Supplier updated']);
-            } else {
-                echo json_encode(['error' => 'Failed to update supplier']);
-            }
-        } else {
-            echo json_encode(['error' => 'Incomplete form data']);
-        }
-        exit;
-    }
-
-    // Handle save as PDF action
-    if ($action === 'save_pdf') {
-        // Fetch supplier data
-        $query = "SELECT * FROM suppliers WHERE id = :supplier_id";
-        $stmt = $connection->prepare($query);
-        $stmt->bindParam(':supplier_id', $supplier_id);
-        $stmt->execute();
-        $supplier = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($supplier) {
-            // Generate PDF using FPDF (make sure FPDF is installed)
-            require 'fpdf.php'; // Include FPDF library
-            $pdf = new FPDF();
-            $pdf->AddPage();
-            $pdf->SetFont('Arial', 'B', 16);
-            $pdf->Cell(40, 10, 'Supplier Details');
-            $pdf->Ln();
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Cell(40, 10, 'Supplier Name: ' . $supplier['supplier_name']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Product Name: ' . $supplier['product_name']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Email: ' . $supplier['supplier_email']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Phone: ' . $supplier['supplier_phone']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Location: ' . $supplier['supplier_location']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Note: ' . $supplier['note']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Supply Quantity: ' . $supplier['supply_qty']);
-            $pdf->Output('D', 'supplier_' . $supplier_id . '.pdf');
-        } else {
-            echo json_encode(['error' => 'Supplier not found']);
-        }
-        exit;
-    }
+    exit;
 }
 
+// Handle save (update) action
+if ($action === 'update') {
+    $staff_name = $_POST['staff_name'] ?? null;
+    $product_name = $_POST['product_name'] ?? null;
+    $staff_email = $_POST['staff_email'] ?? null;
+    $staff_phone = $_POST['staff_phone'] ?? null;
+    $position = $_POST['position'] ?? null;
+    $note = $_POST['note'] ?? null;
+    $supply_qty = $_POST['supply_qty'] ?? null;
+
+    if ($staff_name && $staff_email && $staff_phone && $position) {
+        $update_query = "UPDATE staffs 
+                         SET staff_name = :staff_name,  
+                             staff_email = :staff_email, staff_phone = :staff_phone, 
+                             position = :position
+                         WHERE staff_id = :staff_id";
+        $stmt = $connection->prepare($update_query);
+        $stmt->bindParam(':staff_name', $staff_name);
+        $stmt->bindParam(':staff_email', $staff_email);
+        $stmt->bindParam(':staff_phone', $staff_phone);
+        $stmt->bindParam(':position', $position);
+
+        if ($stmt->execute()) {
+            echo json_encode(['success' => 'staff updated']);
+        } else {
+            echo json_encode(['error' => 'Failed to update staff']);
+        }
+    } else {
+        echo json_encode(['error' => 'Incomplete form data']);
+    }
+    exit;
+}
+
+// Handle save as PDF action
+if ($action === 'save_pdf') {
+    // Fetch staff data
+    $query = "SELECT * FROM staffs WHERE staff_id = :staff_id";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':staff_id', $staff_id);
+    $stmt->execute();
+    $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($staff) {
+        // Generate PDF using FPDF (make sure FPDF is installed)
+        require 'fpdf.php'; // Include FPDF library
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(40, 10, 'Stagg Details');
+        $pdf->Ln();
+        $pdf->SetFont('Arial', '', 12);
+        $pdf->Cell(40, 10, 'Staff Name: ' . $staff['staff_name']);
+        $pdf->Ln();
+        $pdf->Cell(40, 10, 'Staff Email: ' . $staff['staff_email']);
+        $pdf->Ln();
+        $pdf->Cell(40, 10, 'Staff Phone: ' . $staff['staff_phone']);
+        $pdf->Ln();
+        $pdf->Cell(40, 10, 'Position: ' . $staff['position']);
+        
+        $pdf->Output('D', 'staff_' . $staff_id . '.pdf');
+    } else {
+        echo json_encode(['error' => 'Staff not found']);
+    }
+    exit;
+}
 
 
 } catch (PDOException $e) {

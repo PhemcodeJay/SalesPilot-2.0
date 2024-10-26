@@ -757,7 +757,7 @@ try {
                     <div class="col-md-12">
                         <div class="form-group">
                             <label for="sale_note">Sale Note</label>
-                            <textarea id="sale_note" name="sale_note" class="form-control" placeholder="Additional sale notes (optional)" rows="3"></textarea>
+                            <textarea id="sale_note" name="sale_note" class="form-control" placeholder="Additional sale notes (optional)" rows="2"></textarea>
                         </div>
                     </div>
                 </div>

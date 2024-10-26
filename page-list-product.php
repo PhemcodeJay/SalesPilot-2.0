@@ -798,7 +798,7 @@ $(document).ready(function() {
         };
 
         // Send POST request to update product
-        $.post('page-list-products.php', data)
+        $.post('page-list-product.php', data)
         .done(function(response) {
             alert('Product updated successfully!');
             location.reload(); // Reload the page to reflect the updates
@@ -813,7 +813,7 @@ $(document).ready(function() {
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this product?')) {
             var productId = $(this).data('product-id'); // Get product ID
-            $.post('page-list-products.php', {
+            $.post('page-list-product.php', {
                 product_id: productId, // Send 'product_id' to match with PHP
                 action: 'delete'
             })

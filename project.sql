@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 23, 2024 at 10:20 PM
+-- Generation Time: Oct 26, 2024 at 06:20 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -83,17 +83,15 @@ CREATE TABLE `customers` (
 
 INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_location`, `created_at`) VALUES
 (46, 'kimo', 'kimolee@gmail.com', '+1 234 567 89', 'Texas', '2024-09-16 23:08:06'),
-(47, 'chris', 'chris@gmail.com', '123476589', 'London', '2024-09-16 23:58:29'),
+(47, 'chris', 'chris@gmail.com', '123567533', 'London', '2024-09-16 23:58:29'),
 (49, 'jane', 'jane@gmail.com', '101674289', 'Capetown', '2024-09-17 00:03:47'),
 (50, 'gina', 'gina@gmail.com', '235789090', 'Texas', '2024-09-17 00:05:50'),
 (51, 'paul', '', '', '', '2024-09-17 00:07:59'),
 (53, 'dave', 'dave@gmail.com', '254123456', 'Abuja', '2024-09-17 00:12:27'),
 (54, 'vera', '', '', '', '2024-09-17 00:14:43'),
 (55, 'lanre', '', '', '', '2024-09-17 00:15:59'),
-(56, 'justina', '', '', '', '2024-09-17 00:17:18'),
 (57, 'mike', '', '', '', '2024-09-17 00:20:16'),
-(59, 'kyle', '', '', '', '2024-09-17 00:39:08'),
-(60, 'olu', '', '', '', '2024-09-17 00:40:10'),
+(60, 'olu', 'olu@gmail.com', '+49 23457895', 'Berlin', '2024-09-17 00:40:10'),
 (61, 'samuel', '', '', '', '2024-09-17 00:42:22');
 
 -- --------------------------------------------------------
@@ -103,7 +101,7 @@ INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `cust
 --
 
 CREATE TABLE `expenses` (
-  `id` int(11) NOT NULL,
+  `expense_id` int(11) NOT NULL,
   `description` text NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `expense_date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -114,11 +112,11 @@ CREATE TABLE `expenses` (
 -- Dumping data for table `expenses`
 --
 
-INSERT INTO `expenses` (`id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
+INSERT INTO `expenses` (`expense_id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
 (6, 'Power and Water Bills', 5000.00, '2024-07-16 21:00:00', 'dapo'),
 (7, 'Delivery fees', 10000.00, '2024-08-16 21:00:00', 'yemi'),
 (8, 'Damages and repairs', 2000.00, '2024-06-15 21:00:00', 'yemi'),
-(9, 'Salary and Wages', 5000.00, '2024-05-13 21:00:00', 'femi'),
+(9, 'Salary and Wages', 5000.00, '2024-05-13 21:00:00', 'cray'),
 (10, 'Renovation and utility', 5000.00, '2024-10-14 21:00:00', 'yemi'),
 (11, 'Loans and debts', 10000.00, '2024-04-09 21:00:00', 'tunde');
 
@@ -129,7 +127,7 @@ INSERT INTO `expenses` (`id`, `description`, `amount`, `expense_date`, `created_
 --
 
 CREATE TABLE `inventory` (
-  `id` int(11) NOT NULL,
+  `inventory_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `sales_qty` int(11) NOT NULL,
   `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -144,7 +142,7 @@ CREATE TABLE `inventory` (
 -- Dumping data for table `inventory`
 --
 
-INSERT INTO `inventory` (`id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
+INSERT INTO `inventory` (`inventory_id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
 (8, 25, 15, '2024-09-28 18:38:00', 50, 25, 'Samsung Galaxy'),
 (9, 31, 230, '2024-09-28 18:38:00', 500, 100, 'Premium Beer'),
 (10, 29, 40, '2024-09-28 18:38:00', 80, 75, 'Apple iPhone'),
@@ -226,7 +224,7 @@ CREATE TABLE `password_resets` (
 --
 
 CREATE TABLE `payments` (
-  `id` int(11) NOT NULL,
+  `payments_id` int(11) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `method` varchar(50) NOT NULL,
   `status` varchar(50) NOT NULL,
@@ -303,7 +301,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `price`, `cost`, `category_
 --
 
 CREATE TABLE `reports` (
-  `id` int(11) NOT NULL,
+  `reports_id` int(11) NOT NULL,
   `report_date` date NOT NULL,
   `revenue` decimal(10,2) NOT NULL,
   `profit_margin` decimal(5,2) NOT NULL,
@@ -329,9 +327,10 @@ CREATE TABLE `reports` (
 -- Dumping data for table `reports`
 --
 
-INSERT INTO `reports` (`id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
+INSERT INTO `reports` (`reports_id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
 (24, '2024-10-12', 1007925.00, 28.67, '[{\"product_id\":25,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"15\",\"total_sales\":\"3750.00\",\"total_cost\":\"2250.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"0.3000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":27,\"product_name\":\"Bottled Water\",\"total_quantity\":\"500\",\"total_sales\":\"17500.00\",\"total_cost\":\"10000.00\",\"total_profit\":\"7500.00\",\"inventory_turnover_rate\":\"0.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":29,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"40\",\"total_sales\":\"60000.00\",\"total_cost\":\"40000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":30,\"product_name\":\"Floral Dress\",\"total_quantity\":\"150\",\"total_sales\":\"36750.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"6750.00\",\"inventory_turnover_rate\":\"7.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":31,\"product_name\":\"Premium Beer\",\"total_quantity\":\"230\",\"total_sales\":\"8050.00\",\"total_cost\":\"4600.00\",\"total_profit\":\"3450.00\",\"inventory_turnover_rate\":\"0.4600\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":32,\"product_name\":\"Camera\",\"total_quantity\":\"25\",\"total_sales\":\"7000.00\",\"total_cost\":\"4000.00\",\"total_profit\":\"3000.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":33,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"130000.00\",\"total_cost\":\"110000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":34,\"product_name\":\"Mary Kay\",\"total_quantity\":\"200\",\"total_sales\":\"24400.00\",\"total_cost\":\"16800.00\",\"total_profit\":\"7600.00\",\"inventory_turnover_rate\":\"0.7143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":35,\"product_name\":\"Necklace\",\"total_quantity\":\"15\",\"total_sales\":\"270000.00\",\"total_cost\":\"180000.00\",\"total_profit\":\"90000.00\",\"inventory_turnover_rate\":\"0.3750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":36,\"product_name\":\"Sony Headphones\",\"total_quantity\":\"150\",\"total_sales\":\"45000.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"1.8750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":37,\"product_name\":\"Hike Bag\",\"total_quantity\":\"400\",\"total_sales\":\"220000.00\",\"total_cost\":\"160000.00\",\"total_profit\":\"60000.00\",\"inventory_turnover_rate\":\"4.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":38,\"product_name\":\"Dior female shoes\",\"total_quantity\":\"50\",\"total_sales\":\"14250.00\",\"total_cost\":\"8000.00\",\"total_profit\":\"6250.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":39,\"product_name\":\"Lip Stick\",\"total_quantity\":\"250\",\"total_sales\":\"10000.00\",\"total_cost\":\"6250.00\",\"total_profit\":\"3750.00\",\"inventory_turnover_rate\":\"1.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":40,\"product_name\":\"Make-up Kit\",\"total_quantity\":\"100\",\"total_sales\":\"45000.00\",\"total_cost\":\"34000.00\",\"total_profit\":\"11000.00\",\"inventory_turnover_rate\":\"0.1429\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":41,\"product_name\":\"Leather Shoes\",\"total_quantity\":\"150\",\"total_sales\":\"52500.00\",\"total_cost\":\"37500.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"6.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":42,\"product_name\":\"Tea mugs\",\"total_quantity\":\"100\",\"total_sales\":\"5500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"2500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":43,\"product_name\":\"Air Jordan\",\"total_quantity\":\"55\",\"total_sales\":\"11000.00\",\"total_cost\":\"7150.00\",\"total_profit\":\"3850.00\",\"inventory_turnover_rate\":\"0.7857\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":44,\"product_name\":\"Perfume Spray\",\"total_quantity\":\"100\",\"total_sales\":\"1700.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"700.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":45,\"product_name\":\"Rayban Sunglasses\",\"total_quantity\":\"40\",\"total_sales\":\"1400.00\",\"total_cost\":\"800.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":47,\"product_name\":\"Apple Speakers\",\"total_quantity\":\"25\",\"total_sales\":\"1875.00\",\"total_cost\":\"1625.00\",\"total_profit\":\"250.00\",\"inventory_turnover_rate\":\"0.6250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":48,\"product_name\":\"Toyota corolla\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"28000.00\",\"total_profit\":\"8000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":49,\"product_name\":\"Tissot  watch\",\"total_quantity\":\"10\",\"total_sales\":\"4500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":52,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"50\",\"total_sales\":\"1750.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"750.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 288950.00, -430025.00, '2024-10-12 19:42:29', 1007925, 2659, 99, 99, -99),
-(25, '2024-10-17', 1007925.00, 28.67, '[{\"product_id\":25,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"15\",\"total_sales\":\"3750.00\",\"total_cost\":\"2250.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"0.3000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":27,\"product_name\":\"Bottled Water\",\"total_quantity\":\"500\",\"total_sales\":\"17500.00\",\"total_cost\":\"10000.00\",\"total_profit\":\"7500.00\",\"inventory_turnover_rate\":\"0.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":29,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"40\",\"total_sales\":\"60000.00\",\"total_cost\":\"40000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":30,\"product_name\":\"Floral Dress\",\"total_quantity\":\"150\",\"total_sales\":\"36750.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"6750.00\",\"inventory_turnover_rate\":\"7.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":31,\"product_name\":\"Premium Beer\",\"total_quantity\":\"230\",\"total_sales\":\"8050.00\",\"total_cost\":\"4600.00\",\"total_profit\":\"3450.00\",\"inventory_turnover_rate\":\"0.4600\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":32,\"product_name\":\"Camera\",\"total_quantity\":\"25\",\"total_sales\":\"7000.00\",\"total_cost\":\"4000.00\",\"total_profit\":\"3000.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":33,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"130000.00\",\"total_cost\":\"110000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":34,\"product_name\":\"Mary Kay\",\"total_quantity\":\"200\",\"total_sales\":\"24400.00\",\"total_cost\":\"16800.00\",\"total_profit\":\"7600.00\",\"inventory_turnover_rate\":\"0.7143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":35,\"product_name\":\"Necklace\",\"total_quantity\":\"15\",\"total_sales\":\"270000.00\",\"total_cost\":\"180000.00\",\"total_profit\":\"90000.00\",\"inventory_turnover_rate\":\"0.3750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":36,\"product_name\":\"Sony Headphones\",\"total_quantity\":\"150\",\"total_sales\":\"45000.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"1.8750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":37,\"product_name\":\"Hike Bag\",\"total_quantity\":\"400\",\"total_sales\":\"220000.00\",\"total_cost\":\"160000.00\",\"total_profit\":\"60000.00\",\"inventory_turnover_rate\":\"4.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":38,\"product_name\":\"Dior female shoes\",\"total_quantity\":\"50\",\"total_sales\":\"14250.00\",\"total_cost\":\"8000.00\",\"total_profit\":\"6250.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":39,\"product_name\":\"Lip Stick\",\"total_quantity\":\"250\",\"total_sales\":\"10000.00\",\"total_cost\":\"6250.00\",\"total_profit\":\"3750.00\",\"inventory_turnover_rate\":\"1.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":40,\"product_name\":\"Make-up Kit\",\"total_quantity\":\"100\",\"total_sales\":\"45000.00\",\"total_cost\":\"34000.00\",\"total_profit\":\"11000.00\",\"inventory_turnover_rate\":\"0.1429\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":41,\"product_name\":\"Leather Shoes\",\"total_quantity\":\"150\",\"total_sales\":\"52500.00\",\"total_cost\":\"37500.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"6.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":42,\"product_name\":\"Tea mugs\",\"total_quantity\":\"100\",\"total_sales\":\"5500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"2500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":43,\"product_name\":\"Air Jordan\",\"total_quantity\":\"55\",\"total_sales\":\"11000.00\",\"total_cost\":\"7150.00\",\"total_profit\":\"3850.00\",\"inventory_turnover_rate\":\"0.7857\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":44,\"product_name\":\"Perfume Spray\",\"total_quantity\":\"100\",\"total_sales\":\"1700.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"700.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":45,\"product_name\":\"Rayban Sunglasses\",\"total_quantity\":\"40\",\"total_sales\":\"1400.00\",\"total_cost\":\"800.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":47,\"product_name\":\"Apple Speakers\",\"total_quantity\":\"25\",\"total_sales\":\"1875.00\",\"total_cost\":\"1625.00\",\"total_profit\":\"250.00\",\"inventory_turnover_rate\":\"0.6250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":48,\"product_name\":\"Toyota corolla\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"28000.00\",\"total_profit\":\"8000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":49,\"product_name\":\"Tissot  watch\",\"total_quantity\":\"10\",\"total_sales\":\"4500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":52,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"50\",\"total_sales\":\"1750.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"750.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 288950.00, -430025.00, '2024-10-17 19:08:54', 1007925, 2659, 99, 99, -99);
+(25, '2024-10-17', 1007925.00, 28.67, '[{\"product_id\":25,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"15\",\"total_sales\":\"3750.00\",\"total_cost\":\"2250.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"0.3000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":27,\"product_name\":\"Bottled Water\",\"total_quantity\":\"500\",\"total_sales\":\"17500.00\",\"total_cost\":\"10000.00\",\"total_profit\":\"7500.00\",\"inventory_turnover_rate\":\"0.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":29,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"40\",\"total_sales\":\"60000.00\",\"total_cost\":\"40000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":30,\"product_name\":\"Floral Dress\",\"total_quantity\":\"150\",\"total_sales\":\"36750.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"6750.00\",\"inventory_turnover_rate\":\"7.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":31,\"product_name\":\"Premium Beer\",\"total_quantity\":\"230\",\"total_sales\":\"8050.00\",\"total_cost\":\"4600.00\",\"total_profit\":\"3450.00\",\"inventory_turnover_rate\":\"0.4600\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":32,\"product_name\":\"Camera\",\"total_quantity\":\"25\",\"total_sales\":\"7000.00\",\"total_cost\":\"4000.00\",\"total_profit\":\"3000.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":33,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"130000.00\",\"total_cost\":\"110000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":34,\"product_name\":\"Mary Kay\",\"total_quantity\":\"200\",\"total_sales\":\"24400.00\",\"total_cost\":\"16800.00\",\"total_profit\":\"7600.00\",\"inventory_turnover_rate\":\"0.7143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":35,\"product_name\":\"Necklace\",\"total_quantity\":\"15\",\"total_sales\":\"270000.00\",\"total_cost\":\"180000.00\",\"total_profit\":\"90000.00\",\"inventory_turnover_rate\":\"0.3750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":36,\"product_name\":\"Sony Headphones\",\"total_quantity\":\"150\",\"total_sales\":\"45000.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"1.8750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":37,\"product_name\":\"Hike Bag\",\"total_quantity\":\"400\",\"total_sales\":\"220000.00\",\"total_cost\":\"160000.00\",\"total_profit\":\"60000.00\",\"inventory_turnover_rate\":\"4.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":38,\"product_name\":\"Dior female shoes\",\"total_quantity\":\"50\",\"total_sales\":\"14250.00\",\"total_cost\":\"8000.00\",\"total_profit\":\"6250.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":39,\"product_name\":\"Lip Stick\",\"total_quantity\":\"250\",\"total_sales\":\"10000.00\",\"total_cost\":\"6250.00\",\"total_profit\":\"3750.00\",\"inventory_turnover_rate\":\"1.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":40,\"product_name\":\"Make-up Kit\",\"total_quantity\":\"100\",\"total_sales\":\"45000.00\",\"total_cost\":\"34000.00\",\"total_profit\":\"11000.00\",\"inventory_turnover_rate\":\"0.1429\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":41,\"product_name\":\"Leather Shoes\",\"total_quantity\":\"150\",\"total_sales\":\"52500.00\",\"total_cost\":\"37500.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"6.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":42,\"product_name\":\"Tea mugs\",\"total_quantity\":\"100\",\"total_sales\":\"5500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"2500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":43,\"product_name\":\"Air Jordan\",\"total_quantity\":\"55\",\"total_sales\":\"11000.00\",\"total_cost\":\"7150.00\",\"total_profit\":\"3850.00\",\"inventory_turnover_rate\":\"0.7857\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":44,\"product_name\":\"Perfume Spray\",\"total_quantity\":\"100\",\"total_sales\":\"1700.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"700.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":45,\"product_name\":\"Rayban Sunglasses\",\"total_quantity\":\"40\",\"total_sales\":\"1400.00\",\"total_cost\":\"800.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":47,\"product_name\":\"Apple Speakers\",\"total_quantity\":\"25\",\"total_sales\":\"1875.00\",\"total_cost\":\"1625.00\",\"total_profit\":\"250.00\",\"inventory_turnover_rate\":\"0.6250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":48,\"product_name\":\"Toyota corolla\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"28000.00\",\"total_profit\":\"8000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":49,\"product_name\":\"Tissot  watch\",\"total_quantity\":\"10\",\"total_sales\":\"4500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":52,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"50\",\"total_sales\":\"1750.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"750.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 288950.00, -430025.00, '2024-10-17 19:08:54', 1007925, 2659, 99, 99, -99),
+(26, '2024-10-26', 1007925.00, 28.67, '[{\"product_id\":25,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"15\",\"total_sales\":\"3750.00\",\"total_cost\":\"2250.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"0.3000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":27,\"product_name\":\"Bottled Water\",\"total_quantity\":\"500\",\"total_sales\":\"17500.00\",\"total_cost\":\"10000.00\",\"total_profit\":\"7500.00\",\"inventory_turnover_rate\":\"0.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":29,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"40\",\"total_sales\":\"60000.00\",\"total_cost\":\"40000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":30,\"product_name\":\"Floral Dress\",\"total_quantity\":\"150\",\"total_sales\":\"36750.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"6750.00\",\"inventory_turnover_rate\":\"3.7500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":31,\"product_name\":\"Premium Beer\",\"total_quantity\":\"230\",\"total_sales\":\"8050.00\",\"total_cost\":\"4600.00\",\"total_profit\":\"3450.00\",\"inventory_turnover_rate\":\"0.4600\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":32,\"product_name\":\"Camera\",\"total_quantity\":\"25\",\"total_sales\":\"7000.00\",\"total_cost\":\"4000.00\",\"total_profit\":\"3000.00\",\"inventory_turnover_rate\":\"0.4167\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":33,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"130000.00\",\"total_cost\":\"110000.00\",\"total_profit\":\"20000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":34,\"product_name\":\"Mary Kay\",\"total_quantity\":\"200\",\"total_sales\":\"24400.00\",\"total_cost\":\"16800.00\",\"total_profit\":\"7600.00\",\"inventory_turnover_rate\":\"0.7143\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":35,\"product_name\":\"Necklace\",\"total_quantity\":\"15\",\"total_sales\":\"270000.00\",\"total_cost\":\"180000.00\",\"total_profit\":\"90000.00\",\"inventory_turnover_rate\":\"0.3750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":36,\"product_name\":\"Sony Headphones\",\"total_quantity\":\"150\",\"total_sales\":\"45000.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"1.8750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":37,\"product_name\":\"Hike Bag\",\"total_quantity\":\"400\",\"total_sales\":\"220000.00\",\"total_cost\":\"160000.00\",\"total_profit\":\"60000.00\",\"inventory_turnover_rate\":\"4.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":38,\"product_name\":\"Dior female shoes\",\"total_quantity\":\"50\",\"total_sales\":\"14250.00\",\"total_cost\":\"8000.00\",\"total_profit\":\"6250.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":39,\"product_name\":\"Lip Stick\",\"total_quantity\":\"250\",\"total_sales\":\"10000.00\",\"total_cost\":\"6250.00\",\"total_profit\":\"3750.00\",\"inventory_turnover_rate\":\"1.2500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":40,\"product_name\":\"Make-up Kit\",\"total_quantity\":\"100\",\"total_sales\":\"45000.00\",\"total_cost\":\"34000.00\",\"total_profit\":\"11000.00\",\"inventory_turnover_rate\":\"0.1429\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":41,\"product_name\":\"Leather Shoes\",\"total_quantity\":\"150\",\"total_sales\":\"52500.00\",\"total_cost\":\"37500.00\",\"total_profit\":\"15000.00\",\"inventory_turnover_rate\":\"6.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":42,\"product_name\":\"Tea mugs\",\"total_quantity\":\"100\",\"total_sales\":\"5500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"2500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":43,\"product_name\":\"Air Jordan\",\"total_quantity\":\"55\",\"total_sales\":\"11000.00\",\"total_cost\":\"7150.00\",\"total_profit\":\"3850.00\",\"inventory_turnover_rate\":\"0.7857\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":44,\"product_name\":\"Perfume Spray\",\"total_quantity\":\"100\",\"total_sales\":\"1700.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"700.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":45,\"product_name\":\"Rayban Sunglasses\",\"total_quantity\":\"40\",\"total_sales\":\"1400.00\",\"total_cost\":\"800.00\",\"total_profit\":\"600.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":47,\"product_name\":\"Apple Speakers\",\"total_quantity\":\"25\",\"total_sales\":\"1875.00\",\"total_cost\":\"1625.00\",\"total_profit\":\"250.00\",\"inventory_turnover_rate\":\"0.6250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":48,\"product_name\":\"Toyota corolla\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"28000.00\",\"total_profit\":\"8000.00\",\"inventory_turnover_rate\":\"0.6667\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":49,\"product_name\":\"Tissot  watch\",\"total_quantity\":\"10\",\"total_sales\":\"4500.00\",\"total_cost\":\"3000.00\",\"total_profit\":\"1500.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":52,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"50\",\"total_sales\":\"1750.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"750.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 288950.00, -430025.00, '2024-10-26 15:34:44', 1007925, 2659, 99, 99, -99);
 
 -- --------------------------------------------------------
 
@@ -340,7 +339,7 @@ INSERT INTO `reports` (`id`, `report_date`, `revenue`, `profit_margin`, `revenue
 --
 
 CREATE TABLE `sales` (
-  `id` int(11) NOT NULL,
+  `sales_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `customer_id` int(11) NOT NULL,
@@ -360,7 +359,7 @@ CREATE TABLE `sales` (
 -- Dumping data for table `sales`
 --
 
-INSERT INTO `sales` (`id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `total_price`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `image_path`) VALUES
+INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `total_price`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `image_path`) VALUES
 (47, 25, 7, 46, 63, 15, 150.00, '2024-01-16 23:08:06', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 'uploads/productssamsung-galaxy-a10s.jpg'),
 (48, 31, 7, 47, 64, 230, 25.00, '2024-02-16 23:58:29', 'completed', 'paid', 'Premium Beer', 'Goods', 'sold', 'uploads/productsbeer.jpg'),
 (49, 29, 7, 48, 65, 40, 1500.00, '2024-03-16 23:59:49', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 'uploads/productsiphone-15-128gb.jpg'),
@@ -462,7 +461,8 @@ CREATE TABLE `sales_analytics` (
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
 (185, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-12 19:42:19', 1007925, 2659, 99, 0, 0, 0, 0),
-(186, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-17 19:08:51', 1007925, 2659, 99, 0, 0, 0, 0);
+(186, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-17 19:08:51', 1007925, 2659, 99, 0, 0, 0, 0),
+(187, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-26 15:33:20', 1007925, 2659, 99, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -498,7 +498,7 @@ INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `p
 --
 
 CREATE TABLE `suppliers` (
-  `id` int(11) NOT NULL,
+  `supplier_id` int(11) NOT NULL,
   `supplier_name` varchar(255) NOT NULL,
   `supplier_email` varchar(255) NOT NULL,
   `supplier_phone` varchar(20) NOT NULL,
@@ -513,8 +513,9 @@ CREATE TABLE `suppliers` (
 -- Dumping data for table `suppliers`
 --
 
-INSERT INTO `suppliers` (`id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
-(4, 'Gordons', 'gordons@gmail.com', '0101674356', 'Accra', '2024-09-17 00:48:46', 'Premium Beer', 100, 'delivered');
+INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
+(6, 'East Africa Distillery', 'ead@gmail.com', '0106784356', 'Nairobi', '2024-10-24 10:45:03', 'Premium Beer', 40, 'ok'),
+(7, 'Gordons', 'gordons@gmail.com', '0106784356', 'Accra', '2024-10-26 14:59:55', 'Apple Iphone', 20, '');
 
 -- --------------------------------------------------------
 
@@ -571,13 +572,13 @@ ALTER TABLE `customers`
 -- Indexes for table `expenses`
 --
 ALTER TABLE `expenses`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`expense_id`);
 
 --
 -- Indexes for table `inventory`
 --
 ALTER TABLE `inventory`
-  ADD PRIMARY KEY (`id`),
+  ADD PRIMARY KEY (`inventory_id`),
   ADD KEY `product_id` (`product_id`);
 
 --
@@ -598,7 +599,7 @@ ALTER TABLE `password_resets`
 -- Indexes for table `payments`
 --
 ALTER TABLE `payments`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`payments_id`);
 
 --
 -- Indexes for table `products`
@@ -611,13 +612,13 @@ ALTER TABLE `products`
 -- Indexes for table `reports`
 --
 ALTER TABLE `reports`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`reports_id`);
 
 --
 -- Indexes for table `sales`
 --
 ALTER TABLE `sales`
-  ADD PRIMARY KEY (`id`),
+  ADD PRIMARY KEY (`sales_id`),
   ADD KEY `product_id` (`product_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `customer_id` (`customer_id`),
@@ -639,7 +640,7 @@ ALTER TABLE `staffs`
 -- Indexes for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`supplier_id`);
 
 --
 -- Indexes for table `users`
@@ -675,13 +676,13 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -699,7 +700,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -711,19 +712,19 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `sales_analytics`
 --
 ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=187;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=188;
 
 --
 -- AUTO_INCREMENT for table `staffs`
@@ -735,7 +736,7 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`

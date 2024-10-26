@@ -87,7 +87,7 @@ $revenue_by_product = json_encode($product_metrics_data);
 
 // Check if a report for the current date already exists
 $report_date = date('Y-m-d');
-$check_report_query = "SELECT id FROM reports WHERE report_date = :report_date";
+$check_report_query = "SELECT reports_id FROM reports WHERE report_date = :report_date";
 $stmt = $connection->prepare($check_report_query);
 $stmt->execute([':report_date' => $report_date]);
 $existing_report = $stmt->fetch(PDO::FETCH_ASSOC);

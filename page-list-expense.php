@@ -35,7 +35,7 @@ try {
     $date = htmlspecialchars($user_info['date']);
 
   // Retrieve expenses from the expenses table
-$expenses_query = "SELECT id, description, amount, expense_date, created_by FROM expenses";
+$expenses_query = "SELECT expense_id, description, amount, expense_date, created_by FROM expenses";
 $stmt = $connection->prepare($expenses_query);
 $stmt->execute();
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -43,14 +43,14 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $id = $_POST['id'] ?? null;
+    $expense_id = $_POST['expense_id'] ?? null;
 
     if ($action === 'delete') {
         // Handle delete action
         if ($id) {
-            $delete_query = "DELETE FROM expenses WHERE id = :id";
+            $delete_query = "DELETE FROM expenses WHERE expense_id = :expense_id";
             $stmt = $connection->prepare($delete_query);
-            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':expense_id', $expense_id);
             $stmt->execute();
             header("Location: " . $_SERVER['PHP_SELF']); // Reload page
             exit;
@@ -59,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'save_pdf') {
         // Handle save as PDF action
-        if ($id) {
-            $query = "SELECT * FROM expenses WHERE id = :id";
+        if ($expense_id) {
+            $query = "SELECT * FROM expenses WHERE expense_id = :expense_id";
             $stmt = $connection->prepare($query);
             $stmt->bindParam(':id', $id);
             $stmt->execute();
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ob_clean();
 
                 // Output the PDF
-                $pdf->Output('D', 'expense_' . $id . '.pdf');
+                $pdf->Output('D', 'expense_' . $expense_id . '.pdf');
             } else {
                 echo 'Expense not found.';
             }
@@ -102,9 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id && $description && $amount && $expense_date && $created_by) {
             $update_query = "UPDATE expenses 
                              SET description = :description, amount = :amount, expense_date = :expense_date, created_by = :created_by
-                             WHERE id = :id";
+                             WHERE expense_id = :expense_id";
             $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':expense_id', $expense_id);
             $stmt->bindParam(':description', $description);
             $stmt->bindParam(':amount', $amount);
             $stmt->bindParam(':expense_date', $expense_date);
@@ -637,7 +637,7 @@ try {
     <tbody class="light-body">
         <?php if (!empty($expenses)): ?>
             <?php foreach ($expenses as $expense): ?>
-                <tr data-expense-id="<?php echo $expense['id']; ?>">
+                <tr data-expense-id="<?php echo $expense['expense_id']; ?>">
                     <!-- Inline editable fields -->
                     <td contenteditable="true" class="editable" data-field="expense_date"><?php echo htmlspecialchars($expense['expense_date']); ?></td>
                     <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($expense['description']); ?></td>
@@ -646,13 +646,13 @@ try {
 
                     <!-- Action buttons -->
                     <td>
-                        <button type="button" class="btn btn-success save-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                        <button type="button" class="btn btn-success save-btn" data-expense-id="<?php echo $expense['expense_id']; ?>">
                             <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
                         </button>
-                        <button type="button" class="btn btn-warning delete-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                        <button type="button" class="btn btn-warning delete-btn" data-expense-id="<?php echo $expense['expense_id']; ?>">
                             <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                         </button>
-                        <button type="button" class="btn btn-info save-pdf-btn" data-expense-id="<?php echo $expense['id']; ?>">
+                        <button type="button" class="btn btn-info save-pdf-btn" data-expense-id="<?php echo $expense['expense_id']; ?>">
                             <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
                         </button>
                     </td>
@@ -785,7 +785,7 @@ $(document).ready(function() {
         var expenseId = $(this).data('expense-id');
         if (expenseId) {
             // Redirect to the PDF generation page
-            window.location.href = 'pdf_generate.php?id=' + expenseId;
+            window.location.href = 'pdf_generate.php?expense_id=' + expenseId;
         } else {
             alert('Invalid expense ID.'); // Alert if the ID is not valid
         }

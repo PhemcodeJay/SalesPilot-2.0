@@ -601,7 +601,7 @@ $connection = null;
                         <p class="text-center">No reports notifications available.</p>
                     <?php endif; ?>  
                 </div>
-                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
+                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="page-list-inventory.php" role="button">
                     View All
                 </a>
             </div>
@@ -801,7 +801,7 @@ $connection = null;
                     </div>
                     <div class="card-body">
                     <h4>Revenue vs Profit</h4>
-                        <div id="am-columnlinr-chart" style="min-height: 360px;"></div>
+                        <div id="am-columnlinr-chart" style="min-height: 400px;"></div>
                     </div>
                 </div>
             </div>
@@ -861,7 +861,7 @@ $connection = null;
                 <h4 class="card-title mb-0">Best Item All Time</h4>
             </div>
             <div class="card-header-toolbar d-flex align-items-center">
-                <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
+                <div><a href="page-list-sale.php" class="btn btn-primary view-btn font-size-14">View All</a></div>
             </div>
         </div>
     </div>
