@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 26, 2024 at 06:20 PM
+-- Generation Time: Oct 27, 2024 at 01:25 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -113,12 +113,14 @@ CREATE TABLE `expenses` (
 --
 
 INSERT INTO `expenses` (`expense_id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
-(6, 'Power and Water Bills', 5000.00, '2024-07-16 21:00:00', 'dapo'),
-(7, 'Delivery fees', 10000.00, '2024-08-16 21:00:00', 'yemi'),
-(8, 'Damages and repairs', 2000.00, '2024-06-15 21:00:00', 'yemi'),
-(9, 'Salary and Wages', 5000.00, '2024-05-13 21:00:00', 'cray'),
-(10, 'Renovation and utility', 5000.00, '2024-10-14 21:00:00', 'yemi'),
-(11, 'Loans and debts', 10000.00, '2024-04-09 21:00:00', 'tunde');
+(6, 'Power and Water Bills', 15000.00, '2024-01-16 21:00:00', 'dapo'),
+(7, 'Loans', 35000.00, '2024-02-16 21:00:00', 'yemi'),
+(8, 'Damages and repairs', 15000.00, '2024-03-15 21:00:00', 'tope'),
+(13, 'Loans and Taxes', 13000.00, '2024-04-09 21:00:00', 'tuna'),
+(14, 'Renovation', 16000.00, '2024-05-25 21:00:00', 'james'),
+(17, 'Fumigation', 5000.00, '2024-06-10 21:00:00', 'tom'),
+(18, 'Hospitaity', 3000.00, '2024-07-24 21:00:00', 'jerry'),
+(19, 'Celebration', 6000.00, '2024-08-08 21:00:00', 'kim');
 
 -- --------------------------------------------------------
 
@@ -345,44 +347,43 @@ CREATE TABLE `sales` (
   `customer_id` int(11) NOT NULL,
   `staff_id` int(11) NOT NULL,
   `sales_qty` int(11) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
   `sale_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `sale_status` enum('completed','pending') NOT NULL DEFAULT 'pending',
   `payment_status` enum('completed','due','paid') NOT NULL DEFAULT 'due',
   `name` varchar(255) NOT NULL,
   `product_type` enum('Goods','Services','Digital') NOT NULL,
   `sale_note` varchar(255) NOT NULL,
-  `image_path` varchar(255) NOT NULL
+  `image_path` varchar(255) NOT NULL,
+  `sales_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) GENERATED ALWAYS AS (`sales_qty` * `sales_price`) VIRTUAL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sales`
 --
 
-INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `total_price`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `image_path`) VALUES
-(47, 25, 7, 46, 63, 15, 150.00, '2024-01-16 23:08:06', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 'uploads/productssamsung-galaxy-a10s.jpg'),
-(48, 31, 7, 47, 64, 230, 25.00, '2024-02-16 23:58:29', 'completed', 'paid', 'Premium Beer', 'Goods', 'sold', 'uploads/productsbeer.jpg'),
-(49, 29, 7, 48, 65, 40, 1500.00, '2024-03-16 23:59:49', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 'uploads/productsiphone-15-128gb.jpg'),
-(50, 30, 7, 46, 65, 150, 45.00, '2024-04-17 00:01:24', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 'uploads/productsfloral-pleated-weave-dress.jpg'),
-(51, 27, 7, 49, 66, 500, 15.00, '2024-05-17 00:03:47', 'completed', 'paid', 'Bottled Water', 'Goods', 'sold', 'uploads/productswater.jpg'),
-(52, 32, 7, 50, 63, 25, 100.00, '2024-06-17 00:05:50', 'completed', 'paid', 'Camera', 'Goods', 'sold', 'uploads/productscamera.jpg'),
-(53, 33, 7, 51, 65, 2, 75000.00, '2024-07-17 00:07:59', 'completed', 'paid', 'Chevrolet AWD', 'Goods', 'sold', 'uploads/productsChevrolet.jpg'),
-(54, 34, 7, 52, 67, 200, 22.00, '2024-09-17 00:09:19', 'completed', 'paid', 'Mary Kay', 'Goods', 'sold', 'uploads/productslipgloss.jpg'),
-(55, 35, 7, 53, 68, 15, 1300.00, '2024-08-17 00:12:27', 'completed', 'paid', 'Necklace', 'Goods', 'sold', 'uploads/productsgoldnecklace.jpeg'),
-(56, 36, 7, 54, 64, 150, 30.00, '2024-09-17 00:14:43', 'completed', 'paid', 'Sony Headphones', 'Goods', 'sold', 'uploads/productsheadphones.jpg'),
-(57, 37, 7, 55, 63, 400, 55.00, '2024-10-17 00:15:59', 'completed', 'paid', 'Hike Bag', 'Goods', 'sold', 'uploads/productshike-bag.jpg'),
-(58, 38, 7, 56, 65, 50, 85.00, '2024-11-17 00:17:18', 'completed', 'paid', 'Dior female shoes', 'Goods', 'sold', 'uploads/productslady-shoes.jpg'),
-(59, 39, 7, 57, 65, 250, 10.00, '2024-12-17 00:20:16', 'completed', 'paid', 'Lip Stick', 'Goods', 'sold', 'uploads/productslipstick.jpg'),
-(60, 40, 7, 58, 68, 100, 45.00, '2024-01-17 00:21:31', 'completed', 'paid', 'Make-up Kit', 'Goods', 'sold', 'uploads/productsmake-up.jpg'),
-(61, 41, 7, 48, 66, 150, 35.00, '2024-02-17 00:23:27', 'completed', 'paid', 'Leather Shoes', 'Goods', 'sold', 'uploads/productsmen clothings.jpg'),
-(62, 42, 7, 46, 66, 100, 15.00, '2024-03-17 00:24:43', 'completed', 'paid', 'Tea mugs', 'Goods', '', 'uploads/productsmugs.jpg'),
-(63, 43, 7, 57, 68, 55, 50.00, '2024-09-17 00:25:56', 'completed', 'paid', 'Air Jordan', 'Goods', 'sold', 'uploads/productsnike-sneakers.jpg'),
-(64, 44, 7, 48, 67, 100, 17.00, '2024-09-17 00:26:59', 'completed', 'paid', 'Perfume Spray', 'Goods', 'sold', 'uploads/productsperfume.jpg'),
-(65, 45, 7, 47, 65, 40, 35.00, '2024-05-17 00:31:42', 'completed', 'paid', 'Rayban Sunglasses', 'Goods', 'sold', 'uploads/productsrayban.jpg'),
-(66, 47, 7, 59, 63, 25, 75.00, '2024-06-17 00:39:08', 'completed', 'paid', 'Apple Speakers', 'Goods', 'sold', 'uploads/productsspeaker.jpg'),
-(67, 48, 7, 60, 65, 2, 18000.00, '2024-07-17 00:40:10', 'completed', 'paid', 'Toyota corolla', 'Goods', 'sold', 'uploads/productstoyota-corolla-2024.jpg'),
-(68, 49, 7, 61, 66, 10, 450.00, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg'),
-(69, 52, 7, 57, 63, 50, 35.00, '2024-08-25 04:18:46', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 'uploads/productsvitamins.jpg');
+INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `image_path`, `sales_price`) VALUES
+(47, 25, 7, 46, 63, 15, '2024-01-16 23:08:06', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 'uploads/productssamsung-galaxy-a10s.jpg', 250.00),
+(48, 31, 7, 47, 64, 230, '2024-02-16 23:58:29', 'completed', 'paid', 'Premium Beer', 'Goods', 'sold', 'uploads/productsbeer.jpg', 35.00),
+(49, 29, 7, 48, 65, 40, '2024-03-16 23:59:49', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 'uploads/productsiphone-15-128gb.jpg', 1500.00),
+(50, 30, 7, 46, 65, 150, '2024-04-17 00:01:24', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 'uploads/productsfloral-pleated-weave-dress.jpg', 245.00),
+(51, 27, 7, 49, 66, 500, '2024-05-17 00:03:47', 'completed', 'paid', 'Bottled Water', 'Goods', 'sold', 'uploads/productswater.jpg', 35.00),
+(52, 32, 7, 50, 63, 25, '2024-06-17 00:05:50', 'completed', 'paid', 'Camera', 'Goods', 'sold', 'uploads/productscamera.jpg', 280.00),
+(53, 33, 7, 51, 65, 2, '2024-07-17 00:07:59', 'completed', 'paid', 'Chevrolet AWD', 'Goods', 'sold', 'uploads/productsChevrolet.jpg', 65000.00),
+(54, 34, 7, 52, 67, 200, '2024-09-17 00:09:19', 'completed', 'paid', 'Mary Kay', 'Goods', 'sold', 'uploads/productslipgloss.jpg', 450.00),
+(55, 35, 7, 53, 68, 15, '2024-08-17 00:12:27', 'completed', 'paid', 'Necklace', 'Goods', 'sold', 'uploads/productsgoldnecklace.jpeg', 18000.00),
+(56, 36, 7, 54, 64, 150, '2024-09-17 00:14:43', 'completed', 'paid', 'Sony Headphones', 'Goods', 'sold', 'uploads/productsheadphones.jpg', 300.00),
+(57, 37, 7, 55, 63, 400, '2024-10-17 00:15:59', 'completed', 'paid', 'Hike Bag', 'Goods', 'sold', 'uploads/productshike-bag.jpg', 550.00),
+(58, 38, 7, 56, 65, 50, '2024-11-17 00:17:18', 'completed', 'paid', 'Dior female shoes', 'Goods', 'sold', 'uploads/productslady-shoes.jpg', 285.00),
+(60, 40, 7, 58, 68, 100, '2024-01-17 00:21:31', 'completed', 'paid', 'Make-up Kit', 'Goods', 'sold', 'uploads/productsmake-up.jpg', 450.00),
+(61, 41, 7, 48, 66, 150, '2024-02-17 00:23:27', 'completed', 'paid', 'Leather Shoes', 'Goods', 'sold', 'uploads/productsmen clothings.jpg', 350.00),
+(62, 42, 7, 46, 66, 100, '2024-03-17 00:24:43', 'completed', 'paid', 'Tea mugs', 'Goods', '', 'uploads/productsmugs.jpg', 55.00),
+(63, 43, 7, 57, 68, 55, '2024-09-17 00:25:56', 'completed', 'paid', 'Air Jordan', 'Goods', 'sold', '', 0.00),
+(64, 44, 7, 48, 67, 100, '2024-09-17 00:26:59', 'completed', 'paid', 'Perfume Spray', 'Goods', 'sold', 'uploads/productsperfume.jpg', 0.00),
+(65, 45, 7, 47, 65, 40, '2024-05-17 00:31:42', 'completed', 'paid', 'Rayban Sunglasses', 'Goods', 'sold', 'uploads/productsrayban.jpg', 0.00),
+(67, 48, 7, 60, 65, 2, '2024-07-17 00:40:10', 'completed', 'paid', 'Toyota corolla', 'Goods', 'sold', 'uploads/productstoyota-corolla-2024.jpg', 0.00),
+(68, 49, 7, 61, 66, 10, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg', 0.00),
+(69, 52, 7, 57, 63, 50, '2024-08-25 04:18:46', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 'uploads/productsvitamins.jpg', 0.00);
 
 --
 -- Triggers `sales`
@@ -484,12 +485,11 @@ CREATE TABLE `staffs` (
 --
 
 INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `position`, `created_at`) VALUES
-(63, 'chris', '', '', 'sales', '2024-09-16 23:08:06'),
+(63, 'chris', 'chris@gmail.com', '123456789', 'sales', '2024-09-16 23:08:06'),
 (64, 'stacey', '', '', 'sales', '2024-09-16 23:58:29'),
-(65, 'mark', '', '', 'sales', '2024-09-16 23:59:49'),
-(66, 'kim', '', '', 'sales', '2024-09-17 00:03:47'),
-(67, 'james', '', '', 'sales', '2024-09-17 00:09:19'),
-(68, 'john', '', '', 'sales', '2024-09-17 00:12:27');
+(65, 'mark', 'mark@hotmail.com', '123098654', 'manager', '2024-09-16 23:59:49'),
+(66, 'kim', 'kim@gmail.com', '65723789', 'sales', '2024-09-17 00:03:47'),
+(68, 'john', 'john@gmail.com', '23423467', 'sales', '2024-09-17 00:12:27');
 
 -- --------------------------------------------------------
 
@@ -676,7 +676,7 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `inventory`
@@ -736,7 +736,7 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
