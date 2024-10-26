@@ -31,7 +31,7 @@ Clone the repository:
 
 bash
 Copy code
-git clone https://github.com/yourusername/salespilot.git
+git clone https://github.com/PhemcodeJay/SalesPilot-2.0.git
 Navigate to the project directory:
 
 bash
