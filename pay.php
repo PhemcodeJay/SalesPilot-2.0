@@ -151,23 +151,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="payment-options">
                 <div class="payment-option">
-                    <img src="paypal-logo.png" alt="PayPal" class="payment-logo">
+                    <img src="uploads/images/paypal-logo.png" alt="PayPal" class="payment-logo">
                     <input type="radio" name="payment" value="paypal" required> PayPal
                 </div>
                 <div class="payment-option">
-                    <img src="binance-pay-logo.png" alt="Binance Pay" class="payment-logo">
+                    <img src="uploads/images/binance-pay-logo.jpg" alt="Binance Pay" class="payment-logo">
                     <input type="radio" name="payment" value="binance"> Binance Pay
                 </div>
                 <div class="payment-option">
-                    <img src="bybit-pay-logo.png" alt="Bybit Pay" class="payment-logo">
+                    <img src="uploads/images/bybit-pay-logo.png" alt="Bybit Pay" class="payment-logo">
                     <input type="radio" name="payment" value="bybit"> Bybit Pay
                 </div>
                 <div class="payment-option">
-                    <img src="okx-pay-logo.png" alt="OKX Pay" class="payment-logo">
+                    <img src="uploads/images/okx-pay-logo.png" alt="OKX Pay" class="payment-logo">
                     <input type="radio" name="payment" value="okx"> OKX Pay
                 </div>
                 <div class="payment-option">
-                    <img src="mpesa-logo.png" alt="M-Pesa" class="payment-logo">
+                    <img src="uploads/images/mpesa-logo.png" alt="M-Pesa" class="payment-logo">
                     <input type="radio" name="payment" value="mpesa"> M-Pesa
                 </div>
                 <div class="payment-option">
