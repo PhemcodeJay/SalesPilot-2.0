@@ -135,14 +135,15 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             }
 
             // SQL query for inserting into sales table
-            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-                                  VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
+                                  VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':name', $name);
             $stmt->bindParam(':staff_id', $staff_id);
             $stmt->bindParam(':customer_id', $customer_id);
             $stmt->bindParam(':total_price', $total_price);
+            $stmt->bindParam(':sales_price', $sales_price);
             $stmt->bindParam(':sales_qty', $sales_qty);
             $stmt->bindParam(':sale_note', $sale_note);
             $stmt->bindParam(':image_path', $image_path);
@@ -719,6 +720,14 @@ try {
                         <div class="form-group">
                             <label for="sales_qty">Sales Qty</label>
                             <input type="number" id="sales_qty" name="sales_qty" class="form-control" placeholder="Sales Qty" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Sales Price -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sales_price">Sales Price</label>
+                            <input type="number" id="sales_price" name="sales_price" class="form-control" placeholder="Unit Price" min="0" required>
                         </div>
                     </div>
 

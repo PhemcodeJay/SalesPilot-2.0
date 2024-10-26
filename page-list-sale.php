@@ -37,8 +37,10 @@ $date = htmlspecialchars($user_info['date']);
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) 
 
+
+
 // Retrieve sales data from the sales table only
-$query = "SELECT sales_id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status 
+$query = "SELECT sales_id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status, sales_price 
           FROM sales
           ORDER BY sale_date DESC";
 $stmt = $connection->prepare($query);
@@ -639,6 +641,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <tr class="light light-data">
             <th>Date</th>
             <th>Name</th>
+            <th>Unit</th>
             <th>Price</th>
             <th>Quantity</th>
             <th>Sales</th>
@@ -652,6 +655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <tr data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                 <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
                 <td contenteditable="true" class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
+                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['sales_price'], 2)); ?></td>
                 <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
                 <td contenteditable="true" class="editable" data-field="sales-qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
                 <td contenteditable="true" class="editable" data-field="sales_status">
