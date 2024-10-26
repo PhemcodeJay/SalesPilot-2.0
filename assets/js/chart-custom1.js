@@ -650,7 +650,7 @@ if (jQuery("#layout1-chart-5").length) {
           type: 'bar',
           height: 300
         },
-        colors: ['#37e6b0', '#ff4d6b'],
+        colors: ['#ffa500', '#87cefa'],
         plotOptions: {
           bar: {
             horizontal: false,
