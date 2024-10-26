@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_id = $_POST['id'] ?? null; // Change to 'product_id'
 
 
-    if ($action === 'delete' && $product_id) {
+    if ($action === 'delete') {
         // Handle delete action
         if ($product_id) {
             try {
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo 'No product ID provided.';
         }
-    } elseif ($action === 'save_pdf' && $product_id) {
+    } elseif ($action === 'save_pdf') {
         // Handle save as PDF action
         if ($product_id) {
             try {

@@ -159,7 +159,7 @@ function handlePDFGeneration($type, $id) {
             if ($sales) {
                 $data = [
                     'Sales ID' => $sales['sales_id'],
-                    'Product' => $sales['product_name'],
+                    'Product' => $sales['name'],
                     'Payment Status' => $sales['payment_status'],
                     'Staff ID' => $sales['staff_id'],
                     'Sales Quantity' => $sales['sales_qty'],
