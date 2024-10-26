@@ -51,8 +51,7 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $product_id = $_POST['id'] ?? null; // Change to 'product_id'
-
+    $product_id = $_POST['product_id'] ?? null; // Changed to 'product_id'
 
     if ($action === 'delete') {
         // Handle delete action
@@ -63,14 +62,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
                 $stmt->execute();
 
-                // Redirect after deletion
-                header("Location: " . $_SERVER['PHP_SELF']);
+                // Respond with success message
+                echo json_encode(['status' => 'success', 'message' => 'Product deleted successfully.']);
                 exit;
             } catch (PDOException $e) {
-                echo "Error deleting product: " . htmlspecialchars($e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => "Error deleting product: " . htmlspecialchars($e->getMessage())]);
+                exit;
             }
         } else {
-            echo 'No product ID provided.';
+            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
+            exit;
+        }
+    } elseif ($action === 'update') {
+        // Handle update action
+        $name = filter_var($_POST['name'] ?? '', FILTER_SANITIZE_STRING);
+        $description = filter_var($_POST['description'] ?? '', FILTER_SANITIZE_STRING);
+        $price = filter_var($_POST['price'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $cost = filter_var($_POST['cost'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $inventory_qty = filter_var($_POST['inventory_qty'] ?? null, FILTER_SANITIZE_NUMBER_INT);
+
+        // Validate form data
+        if ($product_id && $name && $description && $price !== null && $cost !== null && $inventory_qty !== null) {
+            try {
+                $update_query = "UPDATE products SET name = :name, description = :description, price = :price, cost = :cost, inventory_qty = :inventory_qty WHERE id = :id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':name', $name);
+                $stmt->bindParam(':description', $description);
+                $stmt->bindParam(':price', $price);
+                $stmt->bindParam(':cost', $cost);
+                $stmt->bindParam(':inventory_qty', $inventory_qty);
+                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
+                $stmt->execute();
+
+                echo json_encode(['status' => 'success', 'message' => 'Product updated successfully.']);
+                exit;
+            } catch (PDOException $e) {
+                echo json_encode(['status' => 'error', 'message' => "Error updating product: " . htmlspecialchars($e->getMessage())]);
+                exit;
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid input data.']);
+            exit;
         }
     } elseif ($action === 'save_pdf') {
         // Handle save as PDF action
@@ -100,51 +132,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
                     $pdf->Output('D', 'product_' . $product_id . '.pdf');
                 } else {
-                    echo 'Product not found.';
+                    echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
                 }
             } catch (PDOException $e) {
-                echo "Error retrieving product: " . htmlspecialchars($e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => "Error retrieving product: " . htmlspecialchars($e->getMessage())]);
             }
             exit;
         } else {
-            echo 'No product ID provided.';
-        }
-    } elseif ($action === 'update') {
-        // Handle update action
-        $name = filter_var($_POST['name'] ?? null, );
-        $description = filter_var($_POST['description'] ?? null,);
-        $price = filter_var($_POST['price'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $cost = filter_var($_POST['cost'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $inventory_qty = filter_var($_POST['inventory_qty'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-
-        // Validate form data
-        if ($product_id && $name && $description && $price !== null && $cost !== null && $inventory_qty) {
-            try {
-                $update_query = "UPDATE products 
-                                 SET name = :name, description = :description, 
-                                     price = :price, cost = :cost, 
-                                     inventory_qty = :inventory_qty
-                                 WHERE id = :id";
-                $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
-                $stmt->bindParam(':name', $name);
-                $stmt->bindParam(':description', $description);
-                $stmt->bindParam(':price', $price);
-                $stmt->bindParam(':cost', $cost);
-                $stmt->bindParam(':inventory_qty', $inventory_qty);
-                $stmt->execute();
-
-                // Redirect after update
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit;
-            } catch (PDOException $e) {
-                echo "Error updating product: " . htmlspecialchars($e->getMessage());
-            }
-        } else {
-            echo 'Incomplete form data.';
+            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
         }
     }
 }
+
 
 // Fetch inventory and report notifications
 try {
@@ -643,61 +642,60 @@ try {
   
         <div class="col-lg-12">
             <div class="table-responsive rounded mb-3">
-                <table class="data-tables table mb-0 tbl-server-info">
-                    <thead class="bg-white text-uppercase">
-                        <tr class="ligth ligth-data">
-                            <th>
-                                <div class="checkbox d-inline-block">
-                                    <input type="checkbox" class="checkbox-input" id="checkbox1">
-                                    <label for="checkbox1" class="mb-0"></label>
-                                </div>
-                            </th>
-                            <th>Product</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Sales Price</th>
-                            <th>Inventory Qty</th>
-                            <th>Cost</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="ligth-body">
-    <?php foreach ($products as $product): ?>
-    <tr data-id="<?php echo $product['id']; ?>">
-        <td>
-            <div class="checkbox d-inline-block">
-                <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $product['id']; ?>">
-                <label for="checkbox<?php echo $product['id']; ?>" class="mb-0"></label>
-            </div>
-        </td>
-        <td contenteditable="true" class="editable" data-field="name">
-            <div class="d-flex align-items-center">
-                <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
-                <div><?php echo htmlspecialchars($product['name']); ?></div>
-            </div>
-        </td>
-        <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($product['description']); ?></td>
-        <td contenteditable="true" class="editable" data-field="category"><?php echo htmlspecialchars($product['category']); ?></td>
-        <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product['price'], 2); ?></td>
-        <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
-        <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
-        <td>
-    <button type="button" class="btn btn-success edit-btn" data-product-id="<?php echo $product['id']; ?>">
-        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
-    </button>
-    <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['id']; ?>">
-        <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
-    </button>
-    <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['id']; ?>">
-        <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
-    </button>
-</td>
+            <table class="data-tables table mb-0 tbl-server-info">
+    <thead class="bg-white text-uppercase">
+        <tr class="ligth ligth-data">
+            <th>
+                <div class="checkbox d-inline-block">
+                    <input type="checkbox" class="checkbox-input" id="checkbox1">
+                    <label for="checkbox1" class="mb-0"></label>
+                </div>
+            </th>
+            <th>Product</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Sales Price</th>
+            <th>Inventory Qty</th>
+            <th>Cost</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody class="ligth-body">
+        <?php foreach ($products as $product): ?>
+        <tr data-id="<?php echo $product['id']; ?>">
+            <td>
+                <div class="checkbox d-inline-block">
+                    <input type="checkbox" class="checkbox-input" id="checkbox<?php echo $product['id']; ?>">
+                    <label for="checkbox<?php echo $product['id']; ?>" class="mb-0"></label>
+                </div>
+            </td>
+            <td contenteditable="true" class="editable" data-field="name">
+                <div class="d-flex align-items-center">
+                    <img src="<?php echo $product['image_path']; ?>" class="img-fluid rounded avatar-50 mr-3" alt="image">
+                    <div><?php echo htmlspecialchars($product['name']); ?></div>
+                </div>
+            </td>
+            <td contenteditable="true" class="editable" data-field="description"><?php echo htmlspecialchars($product['description']); ?></td>
+            <td contenteditable="true" class="editable" data-field="category"><?php echo htmlspecialchars($product['category']); ?></td>
+            <td contenteditable="true" class="editable" data-field="price">$<?php echo number_format($product['price'], 2); ?></td>
+            <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
+            <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
+            <td>
+                <button type="button" class="btn btn-success edit-btn" data-product-id="<?php echo $product['id']; ?>">
+                    <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                </button>
+                <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['id']; ?>">
+                    <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                </button>
+                <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['id']; ?>">
+                    <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                </button>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
-    </tr>
-    <?php endforeach; ?>
-</tbody>
-
-                </table>
             </div>
         </div>
     </div>
@@ -833,11 +831,7 @@ $(document).ready(function() {
     });
 });
 </script>
-
-
-
-
-    
+ 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
