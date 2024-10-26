@@ -1,15 +1,17 @@
-SalesPilot
+**SalesPilot**
 SalesPilot is a comprehensive web application designed to streamline the management of sales and inventory for businesses of all sizes. This application facilitates tracking of product expenses, sales data, customer interactions, staff performance, supplier management, and provides insightful analytics for inventory management.
 
-Table of Contents
-Features
-Technologies Used
-Installation
-Usage
-API Documentation
-Contributing
-License
-Features
+**Table of Contents**
+**Features**
+**Technologies Used**
+**Installation**
+**Usage**
+**API Documentation**
+**Contributing**
+**License**
+
+
+**Features**
 Sales Management: Easily manage and track sales data, including customer information, product details, and sales records.
 Inventory Management: Monitor stock levels, track inventory expenses, and manage suppliers efficiently.
 Customer Management: Store and manage customer information, including contact details and purchase history.
@@ -18,13 +20,14 @@ Supplier Management: Manage supplier details, including contact information and 
 Analytics Dashboard: Gain insights into sales performance, inventory turnover rates, and other key metrics through interactive dashboards.
 Reports Generation: Generate detailed reports for sales, inventory, expenses, and profit margins.
 User Authentication: Secure user authentication and role-based access to the application.
-Technologies Used
-Frontend: HTML, CSS, JavaScript (with libraries such as jQuery and Chart.js)
+
+**Technologies Used**
+Frontend: HTML, CSS, JavaScript, (with libraries such as jQuery and Chart.js)
 Backend: PHP
 Database: MySQL
-Frameworks: Laravel (if applicable)
 Version Control: Git
-Installation
+
+**Installation**
 To get started with SalesPilot, follow these steps:
 
 Clone the repository:
@@ -57,14 +60,14 @@ Copy code
 php -S localhost:8000
 Access the application at http://localhost:8000.
 
-Usage
+**Usage**
 Upon accessing the application, you will be prompted to log in.
 Once logged in, navigate through the various sections to manage sales, inventory, customers, staff, and suppliers.
 Utilize the analytics dashboard to monitor performance metrics and generate reports.
 API Documentation
 For developers looking to integrate with or extend SalesPilot, detailed API documentation is available in the docs directory. This includes endpoints for managing products, sales, customers, and analytics.
 
-Contributing
+**Contributing**
 Contributions are welcome! If you'd like to contribute to SalesPilot, please follow these steps:
 
 Fork the repository.
