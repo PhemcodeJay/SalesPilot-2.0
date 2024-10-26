@@ -674,47 +674,44 @@ try {
             <div class="col-lg-12">
             <div class="table-responsive rounded mb-3">
             <table class="data-tables table mb-0 tbl-server-info">
-                    <thead class="bg-white text-uppercase">
-                        <tr class="light light-data">
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Position</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="light-body">
-    <?php if (!empty($staff)): ?>
-        <?php foreach ($staff as $member): ?>
-            <tr data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
-                <td contenteditable="true" class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
-                <td contenteditable="true" class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
-                <td contenteditable="true" class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
-                <td contenteditable="true" class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>
-                <td>
-                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
-                        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
-                    </button>
-                    <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
-                        <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
-                    </button>
-                    <button type="button" class="btn btn-info action-btn" data-action="save_pdf" data-sale-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
-                        <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
-                    </button>
-                </td>
-
-            </tr>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <tr>
-            <td colspan="5">No staff data found.</td>
+    <thead class="bg-white text-uppercase">
+        <tr class="light light-data">
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Position</th>
+            <th>Action</th>
         </tr>
-    <?php endif; ?>
-</tbody>
+    </thead>
+    <tbody class="light-body">
+        <?php if (!empty($staff)): ?>
+            <?php foreach ($staff as $member): ?>
+                <tr data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                    <td contenteditable="true" class="editable" data-field="staff_name"><?php echo htmlspecialchars($member['staff_name']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="staff_email"><?php echo htmlspecialchars($member['staff_email']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="staff_phone"><?php echo htmlspecialchars($member['staff_phone']); ?></td>
+                    <td contenteditable="true" class="editable" data-field="position"><?php echo htmlspecialchars($member['position']); ?></td>
+                    <td>
+                        <button type="button" class="btn btn-success edit-btn" data-action="save" data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
+                        </button>
+                        <button type="button" class="btn btn-warning delete-btn" data-action="delete" data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
+                        </button>
+                        <button type="button" class="btn btn-info save-pdf-btn" data-action="save_pdf" data-staff-id="<?php echo htmlspecialchars($member['staff_id']); ?>">
+                            <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
+                        </button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5">No staff data found.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
 
-
-
-                </table>
                 </div>
             </div>
         </div>
@@ -755,61 +752,58 @@ try {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Enable inline editing on click
-    $('.editable').on('click', function() {
+    // Inline editing
+    $(document).on('click', '.editable', function() {
         let $this = $(this);
-        let currentText = $this.text().trim(); // Trim whitespace
+        let currentText = $this.text().trim();
         let input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
-        
-        $this.html(input); // Replace the text with an input element
+
+        $this.html(input);
         input.focus();
 
-        // Save the new value on blur
         input.on('blur', function() {
-            let newText = $(this).val().trim(); // Trim the new value
-            $this.text(newText); // Restore the updated text to the div
+            let newText = $(this).val().trim();
+            $this.text(newText);
         });
 
-        // Handle pressing Enter to save and blur
         input.on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
+            if (e.which === 13) {
                 $(this).blur();
             }
         });
     });
 
     // Save updated staff details
-    $('.edit-btn').on('click', function() {
-        let $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        let staffId = $(this).data('staff-id'); // Get staff ID from data attribute
-        let staffName = $row.find('[data-field="name"]').text().trim();
-        let staffEmail = $row.find('[data-field="email"]').text().trim();
-        let staffPhone = $row.find('[data-field="phone"]').text().trim();
-        let staffPosition = $row.find('[data-field="position"]').text().trim();
+    $(document).on('click', '.edit-btn', function() {
+        let $row = $(this).closest('tr');
+        let staffId = $(this).data('staff-id');
+        let staffName = $row.find('[data-field="staff_name"]').text().trim();
+        let staffEmail = $row.find('[data-field="staff_email"]').text().trim();
+        let staffPhone = $row.find('[data-field="staff_phone"]').text().trim();
+        let position = $row.find('[data-field="position"]').text().trim();
 
-        if (!staffName || !staffEmail || !staffPhone || !staffPosition) {
+        if (!staffName || !staffEmail || !staffPhone || !position) {
             alert('Please fill in all fields before saving.');
-            return; // Stop if any field is empty
+            return;
         }
 
-        // Send update request via AJAX
         $.post('page-list-staffs.php', {
             staff_id: staffId,
             staff_name: staffName,
             staff_email: staffEmail,
             staff_phone: staffPhone,
-            position: staffPosition,
+            position: position,
             action: 'update'
         })
         .done(function(response) {
             try {
                 let data = JSON.parse(response);
-                alert(data.success || data.error); // Display success or error message
-                location.reload(); // Reload to reflect updates
+                alert(data.success || data.error);
+                location.reload();
             } catch (error) {
                 alert('Error processing update response.');
             }
@@ -819,12 +813,11 @@ $(document).ready(function() {
         });
     });
 
-    // Delete a staff member
-    $('.delete-btn').on('click', function() {
+    // Delete staff member
+    $(document).on('click', '.delete-btn', function() {
         if (confirm('Are you sure you want to delete this staff member?')) {
             let staffId = $(this).data('staff-id');
 
-            // Send delete request via AJAX
             $.post('page-list-staffs.php', {
                 staff_id: staffId,
                 action: 'delete'
@@ -832,8 +825,8 @@ $(document).ready(function() {
             .done(function(response) {
                 try {
                     let data = JSON.parse(response);
-                    alert(data.success || data.error); // Display success or error message
-                    location.reload(); // Refresh page to reflect changes
+                    alert(data.success || data.error);
+                    location.reload();
                 } catch (error) {
                     alert('Error processing delete response.');
                 }
@@ -845,11 +838,12 @@ $(document).ready(function() {
     });
 
     // Save staff details as PDF
-    $('.save-pdf-btn').on('click', function() {
+    $(document).on('click', '.save-pdf-btn', function() {
         let staffId = $(this).data('staff-id');
-        window.location.href = 'pdf_generate.php?staff_id=' + staffId; // Redirect to PDF generation page with staff ID
+        window.location.href = 'pdf_generate.php?staff_id=' + staffId;
     });
 });
+
 </script>
 
 

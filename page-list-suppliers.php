@@ -12,14 +12,6 @@ require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
 
-// Ensure the database connection is properly initialized
-try {
-    $connection = new PDO($dsn, $username, $password, $options);
-} catch (PDOException $e) {
-    error_log("Database Connection Error: " . $e->getMessage());
-    exit("Database Connection Error: " . $e->getMessage());
-}
-
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     exit("No username found in session.");
@@ -773,7 +765,7 @@ $(document).ready(function() {
             $this.html(newText);
         });
 
-        // Handle enter key
+        // Handle enter key to save
         input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 $(this).blur();
@@ -782,68 +774,71 @@ $(document).ready(function() {
     });
 
     // Save updated supplier details
-    $('.save-btn').on('click', function() {
-        var $row = $(this).closest('tr');
+    $('.action-btn').on('click', function() {
+        var actionType = $(this).data('action');
         var supplierId = $(this).data('supplier-id');
-        var supplierName = $row.find('[data-field="supplier_name"]').text().trim();
-        var supplierEmail = $row.find('[data-field="supplier_email"]').text().trim();
-        var supplierPhone = $row.find('[data-field="supplier_phone"]').text().trim();
-        var supplierLocation = $row.find('[data-field="supplier_location"]').text().trim();
-
-        if (!supplierName || !supplierEmail || !supplierPhone || !supplierLocation) {
-            alert('Please fill in all fields before saving.');
-            return;
-        }
-
-        $.post('page-list-suppliers.php', {
-            supplier_id: supplierId,
-            supplier_name: supplierName,
-            supplier_email: supplierEmail,
-            supplier_phone: supplierPhone,
-            supplier_location: supplierLocation,
-            action: 'update'
-        })
-        .done(function(response) {
-            if (response.success) {
-                alert(response.message);
-                location.reload();
-            } else {
-                alert('Error: ' + response.message);
-            }
-        })
-        .fail(function() {
-            alert('Error updating supplier.');
-        });
-    });
-
-    // Delete supplier
-    $('.delete-btn').on('click', function() {
-        if (confirm('Are you sure you want to delete this supplier?')) {
-            var supplierId = $(this).data('supplier-id');
-            $.post('page-list-suppliers.php', {
+        
+        // Perform update action
+        if (actionType === 'edit') {
+            var $row = $(this).closest('tr');
+            var supplierData = {
                 supplier_id: supplierId,
-                action: 'delete'
-            })
-            .done(function(response) {
-                if (response.success) {
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            })
-            .fail(function() {
-                alert('Error deleting supplier.');
-            });
-        }
-    });
+                supplier_name: $row.find('[data-field="supplier_name"]').text().trim(),
+                supplier_email: $row.find('[data-field="supplier_email"]').text().trim(),
+                supplier_phone: $row.find('[data-field="supplier_phone"]').text().trim(),
+                supplier_location: $row.find('[data-field="supplier_location"]').text().trim(),
+                action: 'update'
+            };
 
-    // Save supplier details as PDF
-    $('.save-pdf-btn').on('click', function() {
-        var supplierId = $(this).data('supplier-id');
-        window.location.href = 'page-list-suppliers.php?supplier_id=' + supplierId;
+            // Check for completeness
+            if (!supplierData.supplier_name || !supplierData.supplier_email || 
+                !supplierData.supplier_phone || !supplierData.supplier_location) {
+                alert('Please fill in all fields before saving.');
+                return;
+            }
+
+            // AJAX call to update
+            $.post('page-list-suppliers.php', supplierData)
+                .done(function(response) {
+                    response = JSON.parse(response);
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Error updating supplier.');
+                });
+        }
+
+        // Perform delete action
+        else if (actionType === 'delete') {
+            if (confirm('Are you sure you want to delete this supplier?')) {
+                $.post('page-list-suppliers.php', { supplier_id: supplierId, action: 'delete' })
+                    .done(function(response) {
+                        response = JSON.parse(response);
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    })
+                    .fail(function() {
+                        alert('Error deleting supplier.');
+                    });
+            }
+        }
+
+        // Perform PDF generation action
+        else if (actionType === 'save_pdf') {
+            window.location.href = 'page-list-suppliers.php?supplier_id=' + supplierId;
+        }
     });
 });
+
 </script>
 
     <script>

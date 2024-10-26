@@ -774,7 +774,7 @@ $connection = null;
                     </div>                    
                     <div class="card-body">
                     <h4>Top Earners</h4>
-                        <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
+                        <div id="am-layeredcolumn-chart" style="height: 360px;"></div>
                     </div> 
                 </div>
             </div>
@@ -801,7 +801,7 @@ $connection = null;
                     </div>
                     <div class="card-body">
                     <h4>Revenue vs Profit</h4>
-                        <div id="am-columnlinr-chart" style="min-height: 400px;"></div>
+                        <div id="am-columnlinr-chart" style="min-height: 360px;"></div>
                     </div>
                 </div>
             </div>

@@ -45,6 +45,7 @@ $stmt = $connection->prepare($query);
 $stmt->execute();
 $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
@@ -59,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $delete_query = "DELETE FROM sales WHERE sales_id = :sales_id";
         $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':sales_id', $sale_id);
+        $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
         if ($stmt->execute()) {
             echo json_encode(['success' => 'Sale deleted']);
         } else {
@@ -69,28 +70,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Handle save (update) action
-    if ($action === 'save') {
-        $sale_date = $_POST['sale_date'] ?? null;
-        $product_name = $_POST['product_name'] ?? null;
-        $price = $_POST['price'] ?? null;
-        $sales_qty = $_POST['sales_qty'] ?? null;
-        $sales_status = $_POST['sales_status'] ?? null;
-        $payment_status = $_POST['payment_status'] ?? null;
+    if ($action === 'update') {
+        $field = $_POST['field'] ?? null;
+        $value = $_POST['value'] ?? null;
 
-        if ($sale_date && $product_name && $price && $sales_qty && $sales_status && $payment_status) {
-            $update_query = "UPDATE sales 
-                             SET sale_date = :sale_date, product_name = :product_name, 
-                                 price = :price, sales_qty = :sales_qty, 
-                                 sales_status = :sales_status, payment_status = :payment_status
-                             WHERE sales_id = :sales_id";
+        if ($field && $value) {
+            $update_query = "UPDATE sales SET $field = :value WHERE sales_id = :sales_id";
             $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':sale_date', $sale_date);
-            $stmt->bindParam(':product_name', $product_name);
-            $stmt->bindParam(':price', $price);
-            $stmt->bindParam(':sales_qty', $sales_qty);
-            $stmt->bindParam(':sales_status', $sales_status);
-            $stmt->bindParam(':payment_status', $payment_status);
-            $stmt->bindParam(':sales_id', $sale_id);
+            $stmt->bindParam(':value', $value);
+            $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
 
             if ($stmt->execute()) {
                 echo json_encode(['success' => 'Sale updated']);
@@ -98,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['error' => 'Failed to update sale']);
             }
         } else {
-            echo json_encode(['error' => 'Incomplete form data']);
+            echo json_encode(['error' => 'Field or value missing']);
         }
         exit;
     }
@@ -108,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Fetch sale data
         $query = "SELECT * FROM sales WHERE sales_id = :sales_id";
         $stmt = $connection->prepare($query);
-        $stmt->bindParam(':id', $sale_id);
+        $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
         $stmt->execute();
         $sale = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -137,6 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+
 
     try {
         // Fetch inventory notifications with product images
@@ -748,7 +738,7 @@ $(document).ready(function() {
 
         // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim the new value as well
+            var newText = $(this).val().trim(); // Trim the new value
             var $parentRow = $this.closest('tr');
             var id = $parentRow.data('sale-id'); // Get the sale ID
             var field = $this.data('field');
@@ -760,12 +750,12 @@ $(document).ready(function() {
 
             // Send updated value to server
             $.post('page-list-sale.php', {
-                id: id, // Use 'id' for the sale
+                sale_id: id, // Use 'sale_id' for the sale
                 field: field,
                 value: newText,
                 action: 'update'
             })
-            .done(function() {
+            .done(function(response) {
                 console.log('Sales data updated successfully.');
                 $this.html(newText); // Update cell content
             })
@@ -787,14 +777,14 @@ $(document).ready(function() {
     // Save updated sales data
     $('.action-btn[data-action="save"]').on('click', function() {
         var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var id = $(this).data('sale-id'); // Use data attribute for sale ID
+        var id = $row.data('sale-id'); // Use data attribute for sale ID
         var saleData = {
-            id: id, // Send 'id' to match with PHP
+            sale_id: id, // Send 'sale_id' to match with PHP
             action: 'save'
         };
 
         $.post('page-list-sale.php', saleData)
-            .done(function() {
+            .done(function(response) {
                 alert('Sales data saved successfully!');
             })
             .fail(function(xhr, status, error) {
@@ -806,13 +796,13 @@ $(document).ready(function() {
     // Delete a sale
     $('.action-btn[data-action="delete"]').on('click', function() {
         if (confirm('Are you sure you want to delete this sales data?')) {
-            var id = $(this).data('sale-id'); // Use 'id' for the sale
+            var id = $(this).data('sale-id'); // Use 'sale_id' for the sale
 
             $.post('page-list-sale.php', {
-                id: id, // Send 'id' to match with PHP
+                sale_id: id, // Send 'sale_id' to match with PHP
                 action: 'delete'
             })
-            .done(function() {
+            .done(function(response) {
                 alert('Sales data deleted successfully!');
                 location.reload(); // Refresh the page to reflect changes
             })
@@ -825,11 +815,12 @@ $(document).ready(function() {
 
     // Save sales data as PDF
     $('.action-btn[data-action="save_pdf"]').on('click', function() {
-        var id = $(this).data('sale-id'); // Use 'id' for the sale
-        window.location.href = 'pdf_generate.php?sales_id=' + id; // Pass 'id' to the PDF generator
+        var id = $(this).data('sale-id'); // Use 'sale_id' for the sale
+        window.location.href = 'pdf_generate.php?sales_id=' + id; // Pass 'sales_id' to the PDF generator
     });
 });
 </script>
+
 
 
     <script>
