@@ -1,7 +1,10 @@
 **SalesPilot**
+
 SalesPilot is a comprehensive web application designed to streamline the management of sales and inventory for businesses of all sizes. This application facilitates tracking of product expenses, sales data, customer interactions, staff performance, supplier management, and provides insightful analytics for inventory management.
 
 **Table of Contents**
+
+
 **Features**
 **Technologies Used**
 **Installation**
