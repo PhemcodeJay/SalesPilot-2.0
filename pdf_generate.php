@@ -7,9 +7,9 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // Database connection
+require 'config.php'; // Database connection
 require 'vendor/autoload.php';
-require('fpdf/fpdf.php');
+require 'fpdf/fpdf.php';
 
 // Sanitize and validate input parameters
 function sanitizeInput($input) {
@@ -24,34 +24,32 @@ function validateId($id) {
 function generatePDF($title, $data, $filename) {
     $pdf = new FPDF();
     $pdf->AddPage();
-
-    // Set title font
+    
+    // Title
     $pdf->SetFont('Arial', 'B', 16);
     $pdf->Cell(0, 10, $title, 0, 1, 'C');
-
-    // Set data font
+    
+    // Data
     $pdf->SetFont('Arial', '', 12);
     foreach ($data as $label => $value) {
-        $pdf->Cell(40, 10, $label . ':', 0, 0);
+        $pdf->Cell(40, 10, "$label:", 0, 0);
         $pdf->Cell(0, 10, $value, 0, 1);
     }
-
-    // Output the PDF as a download
+    
     $pdf->Output('D', $filename);
 }
 
-// Fetch data securely
+// Fetch data from specified table
 function fetchData($table, $idColumn, $id) {
-    global $connection; // Access the PDO instance
-    if (!validateId($id)) {
-        return false; // Return false if ID is invalid
-    }
+    global $connection;
+    if (!validateId($id)) return false;
+    
     $stmt = $connection->prepare("SELECT * FROM $table WHERE $idColumn = :id");
     $stmt->execute(['id' => $id]);
     return $stmt->fetch();
 }
 
-// Handle different PDF generations
+// Handle PDF generation based on type
 function handlePDFGeneration($type, $id) {
     $data = [];
     switch ($type) {
@@ -60,14 +58,13 @@ function handlePDFGeneration($type, $id) {
             if ($customer) {
                 $data = [
                     'Name' => $customer['customer_name'],
-                    'Email' => $customer['customer_email'] ?: 'N/A',
-                    'Phone' => $customer['customer_phone'] ?: 'N/A',
-                    'Location' => $customer['customer_location'] ?: 'N/A',
+                    'Email' => $customer['customer_email'] ?? 'N/A',
+                    'Phone' => $customer['customer_phone'] ?? 'N/A',
+                    'Location' => $customer['customer_location'] ?? 'N/A',
                 ];
-                generatePDF('Customer Information', $data, 'customer_' . $id . '.pdf');
+                generatePDF('Customer Information', $data, "customer_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Customer not found.";
+                displayError('Customer not found.');
             }
             break;
 
@@ -80,10 +77,9 @@ function handlePDFGeneration($type, $id) {
                     'Date' => $expense['expense_date'],
                     'Created by' => $expense['created_by'],
                 ];
-                generatePDF('Expense Information', $data, 'expense_' . $id . '.pdf');
+                generatePDF('Expense Information', $data, "expense_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Expense not found.";
+                displayError('Expense not found.');
             }
             break;
 
@@ -100,10 +96,9 @@ function handlePDFGeneration($type, $id) {
                     'Inventory Quantity' => $inventory['inventory_qty'],
                     'Last Updated' => $inventory['last_updated'],
                 ];
-                generatePDF('Inventory Information', $data, 'inventory_' . $id . '.pdf');
+                generatePDF('Inventory Information', $data, "inventory_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Inventory record not found.";
+                displayError('Inventory record not found.');
             }
             break;
 
@@ -119,10 +114,9 @@ function handlePDFGeneration($type, $id) {
                     'Discount' => '$' . number_format($invoice['discount'], 2),
                     'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
                 ];
-                generatePDF('Invoice Details', $data, 'invoice_' . $id . '.pdf');
+                generatePDF('Invoice Details', $data, "invoice_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Invoice not found.";
+                displayError('Invoice not found.');
             }
             break;
 
@@ -139,90 +133,89 @@ function handlePDFGeneration($type, $id) {
                     'Inventory Quantity' => $product['inventory_qty'],
                     'Profit' => '$' . number_format($product['profit'], 2),
                 ];
-                generatePDF('Product Details', $data, 'product_' . $id . '.pdf');
+                generatePDF('Product Details', $data, "product_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Product record not found.";
+                displayError('Product not found.');
             }
             break;
-        
-            case 'staff':
-                $staff = fetchData('staffs', 'staff_id', $id);
-                if ($staff) {
-                    $data = [
-                        'Staff Name' => $staff['staff_name'],
-                        'Staff Email' => $staff['staff_email'],
-                        'Staff Position' => $staff['position'],
-                        'Phone' => $staff['staff_phone'],
-                        
-                    ];
-                    generatePDF('Staff Details', $data, 'staff_' . $id . '.pdf');
-                } else {
-                    http_response_code(404);
-                    echo "Staff record not found.";
-                }
-                break;
-        
 
-                case 'supplier':
-                    $supplier = fetchData('suppliers', 'supplier_id', $id);
-                    if ($supplier) {
-                        $data = [
-                            'Supplier Name' => $supplier['supplier_name'],
-                            'Supplier Email' => $supplier['supplier_email'],
-                            'Supplier Phone' => $supplier['supplier_phone'],
-                            'Location' => $supplier['supplier_location'],
-                            
-                        ];
-                        generatePDF('Supplier Details', $data, 'supplier_' . $id . '.pdf');
-                    } else {
-                        http_response_code(404);
-                        echo "Supplier record not found.";
-                    }
-                    break;
-    
+        case 'staff':
+            $staff = fetchData('staffs', 'staff_id', $id);
+            if ($staff) {
+                $data = [
+                    'Staff Name' => $staff['staff_name'],
+                    'Staff Email' => $staff['staff_email'] ?? 'N/A',
+                    'Position' => $staff['position'] ?? 'N/A',
+                    'Phone' => $staff['staff_phone'] ?? 'N/A',
+                ];
+                generatePDF('Staff Details', $data, "staff_$id.pdf");
+            } else {
+                displayError('Staff record not found.');
+            }
+            break;
 
         case 'sales':
-            $sales = fetchData('sales', 'sales_id', $id);
+            $sales = fetchData('sales', 'id', $id);
             if ($sales) {
                 $data = [
-                    'Sales ID' => $sales['sales_id'],
-                    'Product' => $sales['name'],
+                    'Sales ID' => $sales['id'],
+                    'Product' => $sales['product_name'],
                     'Payment Status' => $sales['payment_status'],
                     'Staff ID' => $sales['staff_id'],
                     'Sales Quantity' => $sales['sales_qty'],
                     'Sales Date' => $sales['sale_date'],
                     'Total Amount' => '$' . number_format($sales['total_price'], 2),
                 ];
-                generatePDF('Sales Information', $data, 'sales_' . $id . '.pdf');
+                generatePDF('Sales Information', $data, "sales_$id.pdf");
             } else {
-                http_response_code(404);
-                echo "Sales record not found.";
+                displayError('Sales record not found.');
+            }
+            break;
+
+        case 'supplier':
+            $supplier = fetchData('suppliers', 'supplier_id', $id);
+            if ($supplier) {
+                $data = [
+                    'Supplier Name' => $supplier['supplier_name'],
+                    'Supplier Email' => $supplier['supplier_email'] ?? 'N/A',
+                    'Phone' => $supplier['supplier_phone'] ?? 'N/A',
+                    'Address' => $supplier['supplier_address'] ?? 'N/A',
+                    'Contact Person' => $supplier['contact_person'] ?? 'N/A',
+                ];
+                generatePDF('Supplier Information', $data, "supplier_$id.pdf");
+            } else {
+                displayError('Supplier record not found.');
             }
             break;
 
         default:
             http_response_code(400);
-            echo "Invalid type provided for PDF generation.";
+            echo "Invalid type for PDF generation.";
     }
 }
 
-// Process GET parameters
+// Error display function
+function displayError($message) {
+    http_response_code(404);
+    echo $message;
+    exit;
+}
+
+// Process GET request
 if ($_GET) {
     foreach ($_GET as $key => $value) {
-        $sanitized_value = sanitizeInput($value);
+        $sanitizedValue = sanitizeInput($value);
         if (strpos($key, '_id') !== false) {
             $type = str_replace('_id', '', $key);
-            handlePDFGeneration($type, $sanitized_value);
+            handlePDFGeneration($type, $sanitizedValue);
             exit;
         }
     }
 } else {
-    // Generate product report if no ID is provided
-    generateProductReport();
+    generateProductReport(); // Default action if no ID provided
 }
 
-// Function to generate product report PDF
+// Generate product report PDF
 function generateProductReport() {
     global $connection;
 
@@ -231,24 +224,23 @@ function generateProductReport() {
         $pdf = new FPDF();
         $pdf->AddPage();
 
-        // Set title
+        // Title
         $pdf->SetFont('Arial', 'B', 16);
         $pdf->Cell(0, 10, 'Product Report', 0, 1, 'C');
         $pdf->Ln(10);
 
-        // Set table header
+        // Table Header
         $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(30, 10, 'ID', 1);
-        $pdf->Cell(60, 10, 'Product Name', 1);
-        $pdf->Cell(30, 10, 'Price', 1);
-        $pdf->Cell(30, 10, 'Cost', 1);
-        $pdf->Cell(30, 10, 'Stock Qty', 1);
+        $header = ['ID', 'Product Name', 'Price', 'Cost', 'Stock Qty'];
+        $widths = [30, 60, 30, 30, 30];
+        
+        foreach ($header as $i => $col) {
+            $pdf->Cell($widths[$i], 10, $col, 1);
+        }
         $pdf->Ln();
 
-        // Set font for table content
+        // Table Content
         $pdf->SetFont('Arial', '', 12);
-
-        // Loop through each product record and add to the PDF
         while ($product = $stmt->fetch()) {
             $pdf->Cell(30, 10, $product['id'], 1);
             $pdf->Cell(60, 10, $product['name'], 1);
@@ -258,11 +250,9 @@ function generateProductReport() {
             $pdf->Ln();
         }
 
-        // Output the PDF as a download
         $pdf->Output('D', 'product_report.pdf');
     } else {
-        http_response_code(404);
-        echo "No products found.";
+        displayError('No product data found.');
     }
 }
 ?>
