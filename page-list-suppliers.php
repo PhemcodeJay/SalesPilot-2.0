@@ -11,7 +11,6 @@ include('config.php'); // Includes database connection
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
-header('Content-Type: application/json'); // Set header for JSON response
 
 // Ensure the database connection is properly initialized
 try {
@@ -845,7 +844,6 @@ $(document).ready(function() {
         window.location.href = 'page-list-suppliers.php?supplier_id=' + supplierId;
     });
 });
-
 </script>
 
     <script>
