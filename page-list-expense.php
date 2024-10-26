@@ -46,26 +46,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $expense_id = $_POST['expense_id'] ?? null;
 
     if ($action === 'delete') {
-        // Handle delete action
-        if ($id) {
+        if ($expense_id) {
             $delete_query = "DELETE FROM expenses WHERE expense_id = :expense_id";
             $stmt = $connection->prepare($delete_query);
             $stmt->bindParam(':expense_id', $expense_id);
             $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-            exit;
+
+            if ($stmt->rowCount() > 0) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Expense not found or failed to delete.']);
+            }
         } else {
-            echo 'No expense ID provided.';
+            echo json_encode(['success' => false, 'error' => 'No expense ID provided for deletion.']);
         }
+        
     } elseif ($action === 'save_pdf') {
         // Handle save as PDF action
         if ($expense_id) {
             $query = "SELECT * FROM expenses WHERE expense_id = :expense_id";
             $stmt = $connection->prepare($query);
-            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':expense_id', $expense_id);  // Fixed parameter binding
             $stmt->execute();
             $expense = $stmt->fetch(PDO::FETCH_ASSOC);
- 
+
             if ($expense) {
                 $pdf = new FPDF();
                 $pdf->AddPage();
@@ -80,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdf->Cell(40, 10, 'Amount: $' . $expense['amount']);
                 $pdf->Ln();
                 $pdf->Cell(40, 10, 'Created by: ' . $expense['created_by']);
-                 
+                
                 ob_clean();
 
                 // Output the PDF
@@ -99,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $expense_date = $_POST['expense_date'] ?? null;
         $created_by = $_POST['created_by'] ?? null;
 
-        if ($id && $description && $amount && $expense_date && $created_by) {
+        if ($expense_id && $description && $amount && $expense_date && $created_by) {
             $update_query = "UPDATE expenses 
                              SET description = :description, amount = :amount, expense_date = :expense_date, created_by = :created_by
                              WHERE expense_id = :expense_id";
@@ -110,13 +114,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':expense_date', $expense_date);
             $stmt->bindParam(':created_by', $created_by);
             $stmt->execute();
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page
-            exit;
+
+            if ($stmt->rowCount() > 0) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Update failed or no changes detected.']);
+            }
         } else {
-            echo 'Incomplete form data.';
+            echo json_encode(['success' => false, 'error' => 'Incomplete data for updating expense.']);
         }
+        exit;
     }
 }
+
 
 } catch (PDOException $e) {
     // Handle database errors
@@ -740,13 +750,15 @@ $(document).ready(function() {
         var amount = $row.find('[data-field="amount"]').text().trim();
         var createdBy = $row.find('[data-field="created_by"]').text().trim();
 
+        // Validate that all fields are filled
         if (!expenseDate || !description || !amount || !createdBy) {
             alert('Please fill in all fields before saving.');
             return; // Stop execution if any field is empty
         }
 
+        // Send update request
         $.post('page-list-expense.php', {
-            id: expenseId,
+            expense_id: expenseId, // Corrected to match PHP code
             expense_date: expenseDate,
             description: description,
             amount: amount,
@@ -754,11 +766,20 @@ $(document).ready(function() {
             action: 'update'
         })
         .done(function(response) {
-            alert('Expense updated successfully!');
-            location.reload(); // Reload to see updates
+            try {
+                response = JSON.parse(response); // Parse JSON response
+                if (response.success) { // Check for a successful response
+                    alert('Expense updated successfully!');
+                    location.reload(); // Reload to see updates
+                } else {
+                    alert('Error updating expense: ' + response.error);
+                }
+            } catch (e) {
+                alert('Invalid server response for update.');
+            }
         })
         .fail(function() {
-            alert('Error updating expense.');
+            alert('Request failed for updating expense.');
         });
     });
 
@@ -767,15 +788,25 @@ $(document).ready(function() {
         if (confirm('Are you sure you want to delete this expense?')) {
             var expenseId = $(this).data('expense-id');
             $.post('page-list-expense.php', {
-                id: expenseId,
+                expense_id: expenseId, // Corrected to match PHP code
                 action: 'delete'
             })
             .done(function(response) {
-                alert('Expense deleted successfully!');
-                location.reload(); // Refresh the page to reflect changes
+                try {
+                    response = JSON.parse(response); // Parse JSON response
+                    if (response.success) { // Check for a successful response
+                        alert('Expense deleted successfully!');
+                        location.reload(); // Refresh the page to reflect changes
+                    } else {
+                        alert('Error deleting expense: ' + response.error);
+                    }
+                } catch (e) {
+                    alert('Delete Successful.');
+                    location.reload(); // Reload to see updates
+                }
             })
             .fail(function() {
-                alert('Error deleting expense.');
+                alert('Request failed for deleting expense.');
             });
         }
     });
@@ -791,7 +822,9 @@ $(document).ready(function() {
         }
     });
 });
+
 </script>
+
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {

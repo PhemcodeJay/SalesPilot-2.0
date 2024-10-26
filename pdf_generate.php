@@ -84,7 +84,7 @@ function handlePDFGeneration($type, $id) {
             break;
 
         case 'inventory':
-            $inventory = fetchData('inventory', 'id', $id);
+            $inventory = fetchData('inventory', 'inventory_id', $id);
             if ($inventory) {
                 $data = [
                     'Product Name' => $inventory['product_name'],
@@ -103,7 +103,7 @@ function handlePDFGeneration($type, $id) {
             break;
 
         case 'invoice':
-            $invoice = fetchData('invoices', 'id', $id);
+            $invoice = fetchData('invoices', 'invoice_id', $id);
             if ($invoice) {
                 $data = [
                     'Invoice Number' => $invoice['invoice_number'],
@@ -155,10 +155,10 @@ function handlePDFGeneration($type, $id) {
             break;
 
         case 'sales':
-            $sales = fetchData('sales', 'id', $id);
+            $sales = fetchData('sales', 'sales_id', $id);
             if ($sales) {
                 $data = [
-                    'Sales ID' => $sales['id'],
+                    'Sales ID' => $sales['sales_id'],
                     'Product' => $sales['product_name'],
                     'Payment Status' => $sales['payment_status'],
                     'Staff ID' => $sales['staff_id'],
@@ -179,8 +179,7 @@ function handlePDFGeneration($type, $id) {
                     'Supplier Name' => $supplier['supplier_name'],
                     'Supplier Email' => $supplier['supplier_email'] ?? 'N/A',
                     'Phone' => $supplier['supplier_phone'] ?? 'N/A',
-                    'Address' => $supplier['supplier_address'] ?? 'N/A',
-                    'Contact Person' => $supplier['contact_person'] ?? 'N/A',
+                    'Address' => $supplier['supplier_location'] ?? 'N/A',
                 ];
                 generatePDF('Supplier Information', $data, "supplier_$id.pdf");
             } else {

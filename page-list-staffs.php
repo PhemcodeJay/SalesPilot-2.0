@@ -41,83 +41,112 @@ try {
     $stmt->execute();
     $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-   // Handle delete action
-   if ($action === 'delete') {
-    $delete_query = "DELETE FROM staffs WHERE staff_id = :staff_id";
-    $stmt = $connection->prepare($delete_query);
-    $stmt->bindParam(':staff_id', $supplier_id);
-    if ($stmt->execute()) {
-        echo json_encode(['success' => 'Staff deleted']);
-    } else {
-        echo json_encode(['error' => 'Failed to delete staff']);
-    }
-    exit;
-}
+// Handle form actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $staff_id = $_POST['staff_id'] ?? null;
 
-// Handle save (update) action
-if ($action === 'update') {
-    $staff_name = $_POST['staff_name'] ?? null;
-    $product_name = $_POST['product_name'] ?? null;
-    $staff_email = $_POST['staff_email'] ?? null;
-    $staff_phone = $_POST['staff_phone'] ?? null;
-    $position = $_POST['position'] ?? null;
-    $note = $_POST['note'] ?? null;
-    $supply_qty = $_POST['supply_qty'] ?? null;
-
-    if ($staff_name && $staff_email && $staff_phone && $position) {
-        $update_query = "UPDATE staffs 
-                         SET staff_name = :staff_name,  
-                             staff_email = :staff_email, staff_phone = :staff_phone, 
-                             position = :position
-                         WHERE staff_id = :staff_id";
-        $stmt = $connection->prepare($update_query);
-        $stmt->bindParam(':staff_name', $staff_name);
-        $stmt->bindParam(':staff_email', $staff_email);
-        $stmt->bindParam(':staff_phone', $staff_phone);
-        $stmt->bindParam(':position', $position);
-
-        if ($stmt->execute()) {
-            echo json_encode(['success' => 'staff updated']);
-        } else {
-            echo json_encode(['error' => 'Failed to update staff']);
+    try {
+        // Ensure $connection is available
+        if (!isset($connection)) {
+            throw new Exception("Database connection not established.");
         }
-    } else {
-        echo json_encode(['error' => 'Incomplete form data']);
-    }
-    exit;
-}
 
-// Handle save as PDF action
-if ($action === 'save_pdf') {
-    // Fetch staff data
-    $query = "SELECT * FROM staffs WHERE staff_id = :staff_id";
-    $stmt = $connection->prepare($query);
-    $stmt->bindParam(':staff_id', $staff_id);
-    $stmt->execute();
-    $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Handle delete action
+        if ($action === 'delete') {
+            if (!$staff_id) {
+                throw new Exception("Staff ID is required for deletion.");
+            }
 
-    if ($staff) {
-        // Generate PDF using FPDF (make sure FPDF is installed)
-        require 'fpdf.php'; // Include FPDF library
-        $pdf = new FPDF();
-        $pdf->AddPage();
-        $pdf->SetFont('Arial', 'B', 16);
-        $pdf->Cell(40, 10, 'Stagg Details');
-        $pdf->Ln();
-        $pdf->SetFont('Arial', '', 12);
-        $pdf->Cell(40, 10, 'Staff Name: ' . $staff['staff_name']);
-        $pdf->Ln();
-        $pdf->Cell(40, 10, 'Staff Email: ' . $staff['staff_email']);
-        $pdf->Ln();
-        $pdf->Cell(40, 10, 'Staff Phone: ' . $staff['staff_phone']);
-        $pdf->Ln();
-        $pdf->Cell(40, 10, 'Position: ' . $staff['position']);
-        
-        $pdf->Output('D', 'staff_' . $staff_id . '.pdf');
-    } else {
-        echo json_encode(['error' => 'Staff not found']);
+            $delete_query = "DELETE FROM staffs WHERE staff_id = :staff_id";
+            $stmt = $connection->prepare($delete_query);
+            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                echo json_encode(['success' => 'Staff deleted']);
+            } else {
+                echo json_encode(['error' => 'Failed to delete staff']);
+            }
+            exit;
+        }
+
+        // Handle update action
+        if ($action === 'update') {
+            $staff_name = $_POST['staff_name'] ?? null;
+            $staff_email = $_POST['staff_email'] ?? null;
+            $staff_phone = $_POST['staff_phone'] ?? null;
+            $position = $_POST['position'] ?? null;
+
+            if ($staff_id && $staff_name && $staff_email && $staff_phone && $position) {
+                $update_query = "UPDATE staffs 
+                                 SET staff_name = :staff_name,  
+                                     staff_email = :staff_email, 
+                                     staff_phone = :staff_phone, 
+                                     position = :position
+                                 WHERE staff_id = :staff_id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':staff_name', $staff_name);
+                $stmt->bindParam(':staff_email', $staff_email);
+                $stmt->bindParam(':staff_phone', $staff_phone);
+                $stmt->bindParam(':position', $position);
+                $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    echo json_encode(['success' => 'Staff updated']);
+                } else {
+                    echo json_encode(['error' => 'Failed to update staff']);
+                }
+            } else {
+                echo json_encode(['error' => 'Incomplete form data']);
+            }
+            exit;
+        }
+
+        // Handle save as PDF action
+        if ($action === 'save_pdf') {
+            if (!$staff_id) {
+                throw new Exception("Staff ID is required for generating PDF.");
+            }
+
+            // Fetch staff data
+            $query = "SELECT * FROM staffs WHERE staff_id = :staff_id";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':staff_id', $staff_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($staff) {
+                // Generate PDF using FPDF
+                require 'fpdf.php';
+                $pdf = new FPDF();
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 16);
+                $pdf->Cell(40, 10, 'Staff Details');
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 12);
+                $pdf->Cell(40, 10, 'Staff Name: ' . $staff['staff_name']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Staff Email: ' . $staff['staff_email']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Staff Phone: ' . $staff['staff_phone']);
+                $pdf->Ln();
+                $pdf->Cell(40, 10, 'Position: ' . $staff['position']);
+
+                $pdf->Output('D', 'staff_' . $staff_id . '.pdf');
+            } else {
+                echo json_encode(['error' => 'Staff not found']);
+            }
+            exit;
+        }
+    } catch (PDOException $e) {
+        // Handle database errors
+        error_log("PDO Error: " . $e->getMessage());
+        echo json_encode(['error' => "Database error: " . $e->getMessage()]);
+    } catch (Exception $e) {
+        // Handle other exceptions
+        error_log("Error: " . $e->getMessage());
+        echo json_encode(['error' => "Error: " . $e->getMessage()]);
     }
-    exit;
 }
 
 
@@ -729,23 +758,24 @@ try {
 $(document).ready(function() {
     // Enable inline editing on click
     $('.editable').on('click', function() {
-        var $this = $(this);
-        var currentText = $this.text().trim(); // Trim any whitespace
-        var input = $('<input>', {
+        let $this = $(this);
+        let currentText = $this.text().trim(); // Trim whitespace
+        let input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
+        
         $this.html(input); // Replace the text with an input element
         input.focus();
 
         // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim the new value as well
-            $this.html(newText); // Restore text to the div
+            let newText = $(this).val().trim(); // Trim the new value
+            $this.text(newText); // Restore the updated text to the div
         });
 
-        // Handle pressing the enter key to save and blur
+        // Handle pressing Enter to save and blur
         input.on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 $(this).blur();
@@ -755,20 +785,21 @@ $(document).ready(function() {
 
     // Save updated staff details
     $('.edit-btn').on('click', function() {
-        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var staffId = $(this).data('staff-id'); // Use data attribute for staff ID
-        var staffName = $row.find('[data-field="name"]').text().trim(); // Get the text from the editable cell
-        var staffEmail = $row.find('[data-field="email"]').text().trim();
-        var staffPhone = $row.find('[data-field="phone"]').text().trim();
-        var staffPosition = $row.find('[data-field="position"]').text().trim();
+        let $row = $(this).closest('tr'); // Get the closest table row for the clicked button
+        let staffId = $(this).data('staff-id'); // Get staff ID from data attribute
+        let staffName = $row.find('[data-field="name"]').text().trim();
+        let staffEmail = $row.find('[data-field="email"]').text().trim();
+        let staffPhone = $row.find('[data-field="phone"]').text().trim();
+        let staffPosition = $row.find('[data-field="position"]').text().trim();
 
         if (!staffName || !staffEmail || !staffPhone || !staffPosition) {
             alert('Please fill in all fields before saving.');
-            return; // Stop execution if any field is empty
+            return; // Stop if any field is empty
         }
 
+        // Send update request via AJAX
         $.post('page-list-staffs.php', {
-            staff_id: staffId, // Send 'staff_id' to match with PHP
+            staff_id: staffId,
             staff_name: staffName,
             staff_email: staffEmail,
             staff_phone: staffPhone,
@@ -776,9 +807,13 @@ $(document).ready(function() {
             action: 'update'
         })
         .done(function(response) {
-            var data = JSON.parse(response);
-            alert(data.success || data.error); // Alert the success or error message
-            location.reload(); // Reload the page to reflect the updates
+            try {
+                let data = JSON.parse(response);
+                alert(data.success || data.error); // Display success or error message
+                location.reload(); // Reload to reflect updates
+            } catch (error) {
+                alert('Error processing update response.');
+            }
         })
         .fail(function() {
             alert('Error updating staff.');
@@ -788,15 +823,21 @@ $(document).ready(function() {
     // Delete a staff member
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this staff member?')) {
-            var staffId = $(this).data('staff-id');
+            let staffId = $(this).data('staff-id');
+
+            // Send delete request via AJAX
             $.post('page-list-staffs.php', {
-                staff_id: staffId, // Send 'staff_id' to match with PHP
+                staff_id: staffId,
                 action: 'delete'
             })
             .done(function(response) {
-                var data = JSON.parse(response);
-                alert(data.success || data.error); // Alert the success or error message
-                location.reload(); // Refresh the page to reflect changes
+                try {
+                    let data = JSON.parse(response);
+                    alert(data.success || data.error); // Display success or error message
+                    location.reload(); // Refresh page to reflect changes
+                } catch (error) {
+                    alert('Error processing delete response.');
+                }
             })
             .fail(function() {
                 alert('Error deleting staff.');
@@ -806,11 +847,12 @@ $(document).ready(function() {
 
     // Save staff details as PDF
     $('.save-pdf-btn').on('click', function() {
-        var staffId = $(this).data('staff-id');
-        window.location.href = 'pdf_generate.php?staff_id=' + staffId; // Pass 'staff_id' to the PDF generator
+        let staffId = $(this).data('staff-id');
+        window.location.href = 'pdf_generate.php?staff_id=' + staffId; // Redirect to PDF generation page with staff ID
     });
 });
 </script>
+
 
 
     <script>
