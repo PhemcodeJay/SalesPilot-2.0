@@ -51,78 +51,96 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $id = $_POST['id'] ?? null; // Product ID is now referenced as `id`
+    $id = $_POST['id'] ?? null; // Changed to 'product_id'
 
-    if (!$id) {
-        echo json_encode(['error' => 'Product ID is missing']);
-        exit;
-    }
-
-    // Handle delete action
     if ($action === 'delete') {
-        $delete_query = "DELETE FROM products WHERE id = :id";
-        $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        if ($stmt->execute()) {
-            echo json_encode(['success' => 'Product deleted']);
-        } else {
-            echo json_encode(['error' => 'Failed to delete product']);
-        }
-        exit;
-    }
+        // Handle delete action
+        if ($id) {
+            try {
+                $delete_query = "DELETE FROM products WHERE id = :id";
+                $stmt = $connection->prepare($delete_query);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
 
-    // Handle save (update) action
-    if ($action === 'update') {
-        $field = $_POST['field'] ?? null;
-        $value = $_POST['value'] ?? null;
-
-        if ($field && $value) {
-            $update_query = "UPDATE products SET $field = :value WHERE id = :id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':value', $value);
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
-            if ($stmt->execute()) {
-                echo json_encode(['success' => 'Product updated']);
-            } else {
-                echo json_encode(['error' => 'Failed to update product']);
+                // Respond with success message
+                echo json_encode(['status' => 'success', 'message' => 'Product deleted successfully.']);
+                exit;
+            } catch (PDOException $e) {
+                echo json_encode(['status' => 'error', 'message' => "Error deleting product: " . htmlspecialchars($e->getMessage())]);
+                exit;
             }
         } else {
-            echo json_encode(['error' => 'Field or value missing']);
+            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
+            exit;
         }
-        exit;
-    }
+    } elseif ($action === 'update') {
+        // Handle update action
+        $name = filter_var($_POST['name'] ?? '', FILTER_SANITIZE_STRING);
+        $description = filter_var($_POST['description'] ?? '', FILTER_SANITIZE_STRING);
+        $price = filter_var($_POST['price'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $cost = filter_var($_POST['cost'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $inventory_qty = filter_var($_POST['inventory_qty'] ?? null, FILTER_SANITIZE_NUMBER_INT);
 
-    // Handle save as PDF action
-    if ($action === 'save_pdf') {
-        // Fetch product data
-        $query = "SELECT * FROM products WHERE id = :id";
-        $stmt = $connection->prepare($query);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Validate form data
+        if ($id && $name && $description && $price !== null && $cost !== null && $inventory_qty !== null) {
+            try {
+                $update_query = "UPDATE products SET name = :name, description = :description, price = :price, cost = :cost, inventory_qty = :inventory_qty WHERE id = :id";
+                $stmt = $connection->prepare($update_query);
+                $stmt->bindParam(':name', $name);
+                $stmt->bindParam(':description', $description);
+                $stmt->bindParam(':price', $price);
+                $stmt->bindParam(':cost', $cost);
+                $stmt->bindParam(':inventory_qty', $inventory_qty);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
 
-        if ($product) {
-            // Generate PDF using FPDF (you should have FPDF installed)
-            require 'fpdf.php';
-            $pdf = new FPDF();
-            $pdf->AddPage();
-            $pdf->SetFont('Arial', 'B', 16);
-            $pdf->Cell(40, 10, 'Product Details');
-            $pdf->Ln();
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Cell(40, 10, 'Product Name: ' . $product['product_name']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Category: ' . $product['category']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Stock: ' . $product['stock_qty']);
-            $pdf->Output('D', 'product_' . $id . '.pdf');
+                echo json_encode(['status' => 'success', 'message' => 'Product updated successfully.']);
+                exit;
+            } catch (PDOException $e) {
+                echo json_encode(['status' => 'error', 'message' => "Error updating product: " . htmlspecialchars($e->getMessage())]);
+                exit;
+            }
         } else {
-            echo json_encode(['error' => 'Product not found']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid input data.']);
+            exit;
         }
-        exit;
+    } elseif ($action === 'save_pdf') {
+        // Handle save as PDF action
+        if ($id) {
+            try {
+                $query = "SELECT * FROM products WHERE id = :id";
+                $stmt = $connection->prepare($query);
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($product) {
+                    $pdf = new FPDF();
+                    $pdf->AddPage();
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->Cell(40, 10, 'Product Details');
+                    $pdf->Ln();
+                    $pdf->SetFont('Arial', '', 12);
+                    $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($product['name']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Price: $' . number_format((float)$product['price'], 2));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Cost: $' . number_format((float)$product['cost'], 2));
+                    $pdf->Ln();
+                    $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
+                    $pdf->Output('D', 'product_' . $id . '.pdf');
+                } else {
+                    echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
+                }
+            } catch (PDOException $e) {
+                echo json_encode(['status' => 'error', 'message' => "Error retrieving product: " . htmlspecialchars($e->getMessage())]);
+            }
+            exit;
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
+        }
     }
 }
 
@@ -663,13 +681,13 @@ try {
             <td contenteditable="true" class="editable" data-field="inventory_qty"><?php echo number_format($product['inventory_qty']); ?></td>
             <td contenteditable="true" class="editable" data-field="cost">$<?php echo number_format($product['cost'], 2); ?></td>
             <td>
-                <button type="button" class="btn btn-success edit-btn" data-product-id="<?php echo $product['id']; ?>">
+                <button type="button" class="btn btn-success edit-btn" data-id="<?php echo $product['id']; ?>">
                     <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
                 </button>
-                <button type="button" class="btn btn-warning delete-btn" data-product-id="<?php echo $product['id']; ?>">
+                <button type="button" class="btn btn-warning delete-btn" data-id="<?php echo $product['id']; ?>">
                     <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                 </button>
-                <button type="button" class="btn btn-info save-pdf-btn" data-product-id="<?php echo $product['id']; ?>">
+                <button type="button" class="btn btn-info save-pdf-btn" data-id="<?php echo $product['id']; ?>">
                     <i data-toggle="tooltip" data-placement="top" title="Save as PDF" class="ri-save-line mr-0"></i>
                 </button>
             </td>
@@ -749,7 +767,7 @@ $(document).ready(function() {
     // Save updated product details
     $('.edit-btn').on('click', function() {
         var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var productId = $(this).data('product-id'); // Use data attribute for product ID
+        var productId = $(this).data('id'); // Use data attribute for product ID
         var productName = $row.find('[data-field="name"]').text().trim(); // Get the text from the editable cell
         var productDescription = $row.find('[data-field="description"]').text().trim();
         var productCategory = $row.find('[data-field="category"]').text().trim();
@@ -765,7 +783,7 @@ $(document).ready(function() {
 
         // Prepare data to send
         var data = {
-            product_id: productId, // Send 'product_id' to match with PHP
+            id: productId, // Send 'id' to match with PHP
             name: productName,
             description: productDescription,
             category: productCategory,
@@ -792,7 +810,7 @@ $(document).ready(function() {
         if (confirm('Are you sure you want to delete this product?')) {
             var productId = $(this).data('product-id'); // Get product ID
             $.post('page-list-product.php', {
-                product_id: productId, // Send 'product_id' to match with PHP
+                id: productId, // Send 'product_id' to match with PHP
                 action: 'delete'
             })
             .done(function(response) {
@@ -808,8 +826,8 @@ $(document).ready(function() {
 
     // Save product details as PDF
     $('.save-pdf-btn').on('click', function() {
-        var productId = $(this).data('product-id');
-        window.location.href = 'pdf_generate.php?product_id=' + productId; // Pass 'product_id' to the PDF generator
+        var productId = $(this).data('id');
+        window.location.href = 'pdf_generate.php?id=' + productId; // Pass 'product_id' to the PDF generator
     });
 });
 </script>
