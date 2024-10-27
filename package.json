@@ -1,0 +1,25 @@
+{
+  "name": "salespilot",
+  "version": "2.0.0",
+  "description": "Sales Analytics and Inventory Management",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PhemcodeJay/SalesPilot-2.0.git"
+  },
+  "keywords": [
+    "Sales",
+    "Analytics",
+    "Inventory",
+    "Management"
+  ],
+  "author": "Oluwafemi Jegede",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PhemcodeJay/SalesPilot-2.0/issues"
+  },
+  "homepage": "https://github.com/PhemcodeJay/SalesPilot-2.0#readme"
+}
