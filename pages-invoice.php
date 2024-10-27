@@ -11,7 +11,6 @@ require 'config.php'; // Include your database connection script
 require 'vendor/autoload.php';
 require('fpdf/fpdf.php');
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
     $invoice_id = $_POST['invoice_id'] ?? null;
@@ -34,8 +33,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo json_encode(['success' => false]);
         }
+    } elseif ($action === 'update' && $invoice_id) {
+        $updated_text = $_POST['updated_text'] ?? '';
+        
+        // Update the invoice with the new text here (assuming you are updating a specific field)
+        $update_query = "UPDATE invoices SET field_name = :updated_text WHERE invoice_id = :invoice_id"; // Change 'field_name' to the actual field you are updating
+        $stmt = $connection->prepare($update_query);
+        $stmt->bindParam(':updated_text', $updated_text);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        
+        if ($stmt->execute()) {
+            echo json_encode(['message' => 'Invoice updated successfully!']);
+        } else {
+            echo json_encode(['message' => 'Failed to update invoice.']);
+        }
+    } elseif ($action === 'delete' && $invoice_id) {
+        $delete_query = "DELETE FROM invoices WHERE invoice_id = :invoice_id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+
+        if ($stmt->execute()) {
+            echo json_encode(['message' => 'Invoice deleted successfully!']);
+        } else {
+            echo json_encode(['message' => 'Failed to delete invoice.']);
+        }
     }
 }
+
+// Fetch user information and invoices
+try {
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Check if invoice_id is set
+    if (isset($_GET['invoice_id'])) {
+        $invoice_id = intval($_GET['invoice_id']);
+
+        // Fetch invoice details
+        $invoice_query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+        $stmt = $connection->prepare($invoice_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$invoice) {
+            throw new Exception("Invoice not found.");
+        }
+
+        // Fetch invoice items
+        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id"; // Change the table name if necessary
+        $stmt = $connection->prepare($items_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // Retrieve invoices if no invoice_id is provided
+        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices";
+        $stmt = $connection->prepare($invoices_query);
+        $stmt->execute();
+        $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+} catch (Exception $e) {
+    echo 'Error: ' . $e->getMessage();
+    exit;
+}
+
 
 try {
     // Check if username is set in session
@@ -886,6 +963,18 @@ $(document).ready(function() {
             if (e.type === 'blur' || e.which === 13) { // Enter key
                 var newText = $(this).val();
                 $this.html(newText);
+                
+                // Save the updated text via AJAX
+                var invoiceId = $this.data('invoice-id');
+                $.post('pages-invoice.php', {
+                    action: 'update',
+                    invoice_id: invoiceId,
+                    updated_text: newText
+                }, function(response) {
+                    alert(response.message);
+                }, 'json').fail(function() {
+                    alert('Error updating invoice.');
+                });
             }
         });
     });
@@ -900,7 +989,6 @@ $(document).ready(function() {
             invoice_id: invoiceId
         }, function(data) {
             if (data.success) {
-                // Assuming you have a modal with id 'invoiceModal'
                 $('#invoiceModalContent').html(`
                     <h3>Invoice Details</h3>
                     <p><strong>Invoice Number:</strong> ${data.invoice_number}</p>
@@ -931,15 +1019,16 @@ $(document).ready(function() {
                 action: 'delete',
                 invoice_id: invoiceId
             }, function(response) {
-                alert('Invoice deleted successfully!');
+                alert(response.message);
                 location.reload(); // Refresh the page to reflect changes
-            }).fail(function() {
+            }, 'json').fail(function() {
                 alert('Error deleting invoice.');
             });
         }
     });
 });
 </script>
+
 
   </body>
 </html>
