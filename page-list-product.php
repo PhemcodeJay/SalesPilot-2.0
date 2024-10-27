@@ -51,96 +51,78 @@ try {
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $product_id = $_POST['product_id'] ?? null; // Changed to 'product_id'
+    $id = $_POST['id'] ?? null; // Product ID is now referenced as `id`
 
+    if (!$id) {
+        echo json_encode(['error' => 'Product ID is missing']);
+        exit;
+    }
+
+    // Handle delete action
     if ($action === 'delete') {
-        // Handle delete action
-        if ($product_id) {
-            try {
-                $delete_query = "DELETE FROM products WHERE id = :id";
-                $stmt = $connection->prepare($delete_query);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
-                $stmt->execute();
+        $delete_query = "DELETE FROM products WHERE id = :id";
+        $stmt = $connection->prepare($delete_query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => 'Product deleted']);
+        } else {
+            echo json_encode(['error' => 'Failed to delete product']);
+        }
+        exit;
+    }
 
-                // Respond with success message
-                echo json_encode(['status' => 'success', 'message' => 'Product deleted successfully.']);
-                exit;
-            } catch (PDOException $e) {
-                echo json_encode(['status' => 'error', 'message' => "Error deleting product: " . htmlspecialchars($e->getMessage())]);
-                exit;
+    // Handle save (update) action
+    if ($action === 'update') {
+        $field = $_POST['field'] ?? null;
+        $value = $_POST['value'] ?? null;
+
+        if ($field && $value) {
+            $update_query = "UPDATE products SET $field = :value WHERE id = :id";
+            $stmt = $connection->prepare($update_query);
+            $stmt->bindParam(':value', $value);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                echo json_encode(['success' => 'Product updated']);
+            } else {
+                echo json_encode(['error' => 'Failed to update product']);
             }
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
-            exit;
+            echo json_encode(['error' => 'Field or value missing']);
         }
-    } elseif ($action === 'update') {
-        // Handle update action
-        $name = filter_var($_POST['name'] ?? '', FILTER_SANITIZE_STRING);
-        $description = filter_var($_POST['description'] ?? '', FILTER_SANITIZE_STRING);
-        $price = filter_var($_POST['price'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $cost = filter_var($_POST['cost'] ?? null, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $inventory_qty = filter_var($_POST['inventory_qty'] ?? null, FILTER_SANITIZE_NUMBER_INT);
+        exit;
+    }
 
-        // Validate form data
-        if ($product_id && $name && $description && $price !== null && $cost !== null && $inventory_qty !== null) {
-            try {
-                $update_query = "UPDATE products SET name = :name, description = :description, price = :price, cost = :cost, inventory_qty = :inventory_qty WHERE id = :id";
-                $stmt = $connection->prepare($update_query);
-                $stmt->bindParam(':name', $name);
-                $stmt->bindParam(':description', $description);
-                $stmt->bindParam(':price', $price);
-                $stmt->bindParam(':cost', $cost);
-                $stmt->bindParam(':inventory_qty', $inventory_qty);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
-                $stmt->execute();
+    // Handle save as PDF action
+    if ($action === 'save_pdf') {
+        // Fetch product data
+        $query = "SELECT * FROM products WHERE id = :id";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                echo json_encode(['status' => 'success', 'message' => 'Product updated successfully.']);
-                exit;
-            } catch (PDOException $e) {
-                echo json_encode(['status' => 'error', 'message' => "Error updating product: " . htmlspecialchars($e->getMessage())]);
-                exit;
-            }
+        if ($product) {
+            // Generate PDF using FPDF (you should have FPDF installed)
+            require 'fpdf.php';
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 16);
+            $pdf->Cell(40, 10, 'Product Details');
+            $pdf->Ln();
+            $pdf->SetFont('Arial', '', 12);
+            $pdf->Cell(40, 10, 'Product Name: ' . $product['product_name']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Price: $' . number_format($product['price'], 2));
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Category: ' . $product['category']);
+            $pdf->Ln();
+            $pdf->Cell(40, 10, 'Stock: ' . $product['stock_qty']);
+            $pdf->Output('D', 'product_' . $id . '.pdf');
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid input data.']);
-            exit;
+            echo json_encode(['error' => 'Product not found']);
         }
-    } elseif ($action === 'save_pdf') {
-        // Handle save as PDF action
-        if ($product_id) {
-            try {
-                $query = "SELECT * FROM products WHERE id = :id";
-                $stmt = $connection->prepare($query);
-                $stmt->bindParam(':id', $product_id, PDO::PARAM_INT);
-                $stmt->execute();
-                $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($product) {
-                    $pdf = new FPDF();
-                    $pdf->AddPage();
-                    $pdf->SetFont('Arial', 'B', 16);
-                    $pdf->Cell(40, 10, 'Product Details');
-                    $pdf->Ln();
-                    $pdf->SetFont('Arial', '', 12);
-                    $pdf->Cell(40, 10, 'Product: ' . htmlspecialchars($product['name']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Description: ' . htmlspecialchars($product['description']));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Price: $' . number_format((float)$product['price'], 2));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Cost: $' . number_format((float)$product['cost'], 2));
-                    $pdf->Ln();
-                    $pdf->Cell(40, 10, 'Inventory Qty: ' . htmlspecialchars($product['inventory_qty']));
-                    $pdf->Output('D', 'product_' . $product_id . '.pdf');
-                } else {
-                    echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
-                }
-            } catch (PDOException $e) {
-                echo json_encode(['status' => 'error', 'message' => "Error retrieving product: " . htmlspecialchars($e->getMessage())]);
-            }
-            exit;
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'No product ID provided.']);
-        }
+        exit;
     }
 }
 
