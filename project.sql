@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 27, 2024 at 01:25 AM
+-- Generation Time: Oct 27, 2024 at 02:07 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -203,7 +203,9 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
-(15, '123456', 'Koko stores', 'Delivery Invoice', '2024-10-23', 'paid', '1234', '112 freeway Blvd Bklyn NY', 'same as above', 'MasterCard', '123334567678', '2020-08-13', 250.00, 5.00, 245.00, 'Products in good condition', NULL, NULL, NULL, NULL);
+(15, '123456', 'Koko stores', 'Delivery Invoice', '2024-10-23', 'paid', '1234', '112 freeway Blvd Bklyn NY', 'same as above', 'MasterCard', '123334567678', '2020-08-13', 250.00, 5.00, 245.00, 'Products in good condition', 'Laptops ', 2, 200.00, 400.00),
+(16, '344656', 'Larry gaga', 'Product or Services Details', '2016-01-17', 'unpaid', '342', '111 freeway nairobi', '111 freeway mairobi', 'MasterCard', '12333456789', '2020-08-12', 480.00, 10.00, 450.00, 'Invoice Details', NULL, NULL, NULL, NULL),
+(19, '003', 'kyle', 'delivery invoice ', '2024-10-07', 'paid', '123445', '345 highway ohio', '345 highway ohio', ' visa', '34567890', '2024-10-16', 430.00, 2.00, 0.00, '', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -688,7 +690,7 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
