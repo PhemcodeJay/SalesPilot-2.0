@@ -51,7 +51,7 @@ $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
-    $sale_id = $_POST['sales_id'] ?? null;
+    $sale_id = $_POST['sale_id'] ?? null;
 
     if (!$sale_id) {
         echo json_encode(['error' => 'Sale ID is missing']);

@@ -45,14 +45,13 @@ try {
         $items = $_POST['item_name'] ?? [];
         $quantities = $_POST['quantity'] ?? [];
         $prices = $_POST['price'] ?? [];
-        $totals = $_POST['total'] ?? [];
         $notes = $_POST['notes'] ?? '';
         $bank = $_POST['bank'] ?? '';
         $account_no = $_POST['account_no'] ?? '';
         $due_date = $_POST['due_date'] ?? '';
-        $subtotal = $_POST['subtotal'] ?? '';
-        $discount = $_POST['discount'] ?? '';
-        $total_amount = $_POST['total_amount'] ?? '';
+        $subtotal = $_POST['subtotal'] ?? 0;
+        $discount = $_POST['discount'] ?? 0;
+        $total_amount = $_POST['total_amount'] ?? 0;
 
         try {
             // Insert invoice data
@@ -89,36 +88,33 @@ try {
             // Get the last inserted invoice ID
             $invoice_id = $connection->lastInsertId();
 
-            // Insert invoice items into the same invoices table
+            // Insert invoice items into a separate items table
             foreach ($items as $index => $item_name) {
-                $item_query = "
-                    UPDATE invoices
-                    SET item_name = :item_name, qty = :quantity, price = :price, total = :total
-                    WHERE id = :invoice_id
-                ";
+                if (!empty($item_name) && isset($quantities[$index]) && isset($prices[$index])) {
+                    $item_query = "
+                        INSERT INTO invoice_items (invoice_id, item_name, qty, price, total)
+                        VALUES (:invoice_id, :item_name, :quantity, :price, :total)
+                    ";
 
-                $stmt = $connection->prepare($item_query);
-                $stmt->execute([
-                    ':invoice_id' => $invoice_id,
-                    ':item_name' => $item_name,
-                    ':quantity' => $quantities[$index] ?? 0,
-                    ':price' => $prices[$index] ?? 0.00,
-                    ':total' => $totals[$index] ?? 0.00,
-                ]);
+                    $stmt = $connection->prepare($item_query);
+                    $stmt->execute([
+                        ':invoice_id' => $invoice_id,
+                        ':item_name' => $item_name,
+                        ':quantity' => $quantities[$index] ?? 0,
+                        ':price' => $prices[$index] ?? 0.00,
+                        ':total' => ($quantities[$index] ?? 0) * ($prices[$index] ?? 0.00),
+                    ]);
+                }
             }
 
             // Redirect to pages-invoice.php with a success message
             header('Location: pages-invoice.php?status=success');
             exit;
         } catch (PDOException $e) {
-            echo 'Error: ' . $e->getMessage();
+            echo 'Database error: ' . $e->getMessage();
         }
     }
-} catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage();
-}
 
-try {
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
@@ -149,18 +145,12 @@ try {
         ':low_revenue' => 1000,
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
 
-try {
     // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
-    
+
     // Fetch user data
     $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -174,7 +164,6 @@ try {
         // Check if a user image exists, use default if not
         $existing_image = htmlspecialchars($user_info['user_image']);
         $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
     }
 } catch (PDOException $e) {
     // Handle database errors
@@ -183,7 +172,6 @@ try {
     // Handle user not found or other exceptions
     exit("Error: " . $e->getMessage());
 }
-
 ?>
 
 

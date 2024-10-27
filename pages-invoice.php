@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $invoice_id = $_POST['invoice_id'] ?? null;
 
     if ($action === 'view' && $invoice_id) {
-        $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+        $query = "SELECT * FROM invoices WHERE id = :invoice_id"; // Use 'id' instead of 'invoice_id'
         $stmt = $connection->prepare($query);
         $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updated_text = $_POST['updated_text'] ?? '';
         
         // Update the invoice with the new text here (assuming you are updating a specific field)
-        $update_query = "UPDATE invoices SET field_name = :updated_text WHERE invoice_id = :invoice_id"; // Change 'field_name' to the actual field you are updating
+        $update_query = "UPDATE invoices SET field_name = :updated_text WHERE id = :invoice_id"; // Change 'field_name' to the actual field you are updating
         $stmt = $connection->prepare($update_query);
         $stmt->bindParam(':updated_text', $updated_text);
         $stmt->bindParam(':invoice_id', $invoice_id);
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['message' => 'Failed to update invoice.']);
         }
     } elseif ($action === 'delete' && $invoice_id) {
-        $delete_query = "DELETE FROM invoices WHERE invoice_id = :invoice_id";
+        $delete_query = "DELETE FROM invoices WHERE id = :invoice_id"; // Use 'id' instead of 'invoice_id'
         $stmt = $connection->prepare($delete_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
 
@@ -79,6 +79,9 @@ try {
         throw new Exception("User not found.");
     }
 
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+
     // Check if invoice_id is set
     if (isset($_GET['invoice_id'])) {
         $invoice_id = intval($_GET['invoice_id']);
@@ -94,15 +97,16 @@ try {
             throw new Exception("Invoice not found.");
         }
 
-        // Fetch invoice items
-        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id"; // Change the table name if necessary
+        // Fetch invoice items from the correct table
+        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id"; // Assuming you have an 'invoice_items' table
         $stmt = $connection->prepare($items_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
         $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     } else {
         // Retrieve invoices if no invoice_id is provided
-        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices";
+        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices"; // Use 'id' instead of 'invoice_id'
         $stmt = $connection->prepare($invoices_query);
         $stmt->execute();
         $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -113,66 +117,8 @@ try {
     exit;
 }
 
-
+// Fetch inventory notifications with product images
 try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-
-    // Check if invoice_id is set
-    if (isset($_GET['invoice_id'])) {
-        $invoice_id = intval($_GET['invoice_id']);
-
-        // Fetch invoice details
-        $invoice_query = "SELECT * FROM invoices WHERE id = :invoice_id";
-        $stmt = $connection->prepare($invoice_query);
-        $stmt->bindParam(':invoice_id', $invoice_id);
-        $stmt->execute();
-        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$invoice) {
-            throw new Exception("Invoice not found.");
-        }
-
-        // Fetch invoice items
-        $items_query = "SELECT item_name, quantity, price, total FROM invoices WHERE id = :invoice_id";
-        $stmt = $connection->prepare($items_query);
-        $stmt->bindParam(':invoice_id', $invoice_id);
-        $stmt->execute();
-        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    } else {
-        // Retrieve invoices if no invoice_id is provided
-        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices";
-        $stmt = $connection->prepare($invoices_query);
-        $stmt->execute();
-        $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-} catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage();
-    exit;
-}
-
-try {
-    // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
         FROM inventory i
@@ -207,8 +153,8 @@ try {
     echo "Error: " . $e->getMessage();
 }
 
+// Prepare and execute the query to fetch user information from the users table
 try {
-    // Prepare and execute the query to fetch user information from the users table
     $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -236,7 +182,6 @@ try {
     // Handle user not found or other exceptions
     exit("Error: " . $e->getMessage());
 }
-
 ?>
 
 
@@ -685,7 +630,7 @@ try {
                                 </div>
                                 <div class="invoice-btn">
                                     <button type="button" class="btn btn-primary-dark">
-                                        <a href="generate_pdf.php?invoice_id=<?php echo urlencode($invoice_id); ?>" class="text-white">
+                                        <a href="pdf_generate.php?invoice_id=<?php echo urlencode($invoice_id); ?>" class="text-white">
                                             <i class="las la-file-download"></i> PDF
                                         </a>
                                     </button>
@@ -704,30 +649,44 @@ try {
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="table-responsive-sm">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Order Date</th>
-                                                <th scope="col">Order Status</th>
-                                                <th scope="col">Order ID</th>
-                                                <th scope="col">Billing Address</th>
-                                                <th scope="col">Shipping Address</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
-                                                <td><span class="badge badge-danger"><?php echo htmlspecialchars($invoice['order_status']); ?></span></td>
-                                                <td><?php echo htmlspecialchars($invoice['order_id']); ?></td>
-                                                <td>
-                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice['billing_address'])); ?></p>
-                                                </td>
-                                                <td>
-                                                    <p class="mb-0"><?php echo nl2br(htmlspecialchars($invoice['shipping_address'])); ?></p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Invoice Number</th>
+            <th>Customer Name</th>
+            <th>Order Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($invoices as $invoice): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
+            <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
+            <td class="editable" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>"><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+            <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
+            <td>
+                <div class="d-flex align-items-center list-action">
+                    <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View">
+                        <i class="ri-eye-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
+                        <i class="ri-download-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Edit">
+                        <i class="ri-pencil-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-warning mr-2" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');">
+                        <i class="ri-delete-bin-line mr-0"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+
                                 </div>
                             </div>
                         </div>
@@ -735,55 +694,62 @@ try {
                             <div class="col-sm-12">
                                 <h5 class="mb-3">Order Summary</h5>
                                 <div class="table-responsive-sm">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center" scope="col">#</th>
-                                                <th scope="col">Item</th>
-                                                <th class="text-center" scope="col">Quantity</th>
-                                                <th class="text-center" scope="col">Price</th>
-                                                <th class="text-center" scope="col">Totals</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php $index = 1; ?>
-                                           <?php
-// Initialize $items as an empty array to avoid undefined variable warning
-$items = [];
+                                <table class="table">
+    <thead>
+        <tr>
+            <th class="text-center" scope="col">#</th>
+            <th scope="col">Item</th>
+            <th class="text-center" scope="col">Quantity</th>
+            <th class="text-center" scope="col">Price</th>
+            <th class="text-center" scope="col">Totals</th>
+            <th class="text-center" scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php 
+        $index = 1; 
+        // Initialize $items as an empty array to avoid undefined variable warning
+        $items = [];
 
-// Check if invoice_id is set, and fetch items from the database
-if (isset($invoice_id)) {
-    try {
-        // Prepare and execute the query to fetch invoice items
-        $items_query = "SELECT item_name, quantity, price, total FROM invoices WHERE invoice_id = :invoice_id"; // Change the table name if necessary
-        $stmt = $connection->prepare($items_query);
-        $stmt->bindParam(':invoice_id', $invoice_id);
-        $stmt->execute();
+        // Check if invoice_id is set, and fetch items from the database
+        if (isset($invoice_id)) {
+            try {
+                // Prepare and execute the query to fetch invoice items
+                $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id"; // Change the table name if necessary
+                $stmt = $connection->prepare($items_query);
+                $stmt->bindParam(':invoice_id', $invoice_id);
+                $stmt->execute();
 
-        // Fetch all items related to the invoice
-        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        echo "Error fetching items: " . $e->getMessage();
-    }
-}
+                // Fetch all items related to the invoice
+                $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                echo "Error fetching items: " . $e->getMessage();
+            }
+        }
 
-// Now we can safely use the foreach loop without warnings
-$index = 1; // Initialize index for row numbering
-foreach ($items as $item): ?>
-    <tr>
-        <th class="text-center" scope="row"><?php echo $index++; ?></th>
-        <td>
-            <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
-        </td>
-        <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
-        <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
-        <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
-    </tr>
-<?php endforeach; ?>
+        // Now we can safely use the foreach loop without warnings
+        foreach ($items as $item): ?>
+            <tr>
+                <th class="text-center" scope="row"><?php echo $index++; ?></th>
+                <td>
+                    <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
+                </td>
+                <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
+                <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
+                <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
+                <td class="text-center">
+                    <button class="action-btn badge badge-info mr-2" data-action="edit" data-item-name="<?php echo htmlspecialchars($item['item_name']); ?>" title="Edit">
+                        <i class="ri-pencil-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-warning" data-action="delete" data-item-name="<?php echo htmlspecialchars($item['item_name']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this item?');">
+                        <i class="ri-delete-bin-line mr-0"></i>
+                    </button>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
-
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>                              
                         </div>
@@ -794,51 +760,43 @@ foreach ($items as $item): ?>
             <!-- List Invoices -->
             <h1>Invoice List</h1>
             <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Invoice Number</th>
-                        <th>Customer Name</th>
-                        <th>Order Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Invoice Number</th>
+            <th>Customer Name</th>
+            <th>Order Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
     <?php foreach ($invoices as $invoice): ?>
         <tr>
             <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
             <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
-            <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+            <td class="editable" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>"><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
             <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
             <td>
                 <div class="d-flex align-items-center list-action">
-                    <form method="post" style="display:inline;">
-                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
-                        <input type="hidden" name="action" value="view">
-                        <button type="submit" class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"><i class="ri-eye-line mr-0"></i></button>
-                    </form>
-                    <form method="post" style="display:inline;">
-                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
-                        <input type="hidden" name="action" value="save_pdf">
-                        <button type="submit" class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="Save as PDF"><i class="ri-download-line mr-0"></i></button>
-                    </form>
-                    <form method="post" style="display:inline;">
-                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
-                        <input type="hidden" name="action" value="edit">
-                        <button type="submit" class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class="ri-pencil-line mr-0"></i></button>
-                    </form>
-                    <form method="post" style="display:inline;">
-                        <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoice['invoice_id']); ?>">
-                        <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');"><i class="ri-delete-bin-line mr-0"></i></button>
-                    </form>
+                    <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View">
+                        <i class="ri-eye-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
+                        <i class="ri-download-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Edit">
+                        <i class="ri-pencil-line mr-0"></i>
+                    </button>
+                    <button class="action-btn badge bg-warning mr-2" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');">
+                        <i class="ri-delete-bin-line mr-0"></i>
+                    </button>
                 </div>
             </td>
         </tr>
     <?php endforeach; ?>
-</tbody>
+    </tbody>
+</table>
 
-            </table>
         <?php endif; ?>
     </div>
       </div>
@@ -904,11 +862,11 @@ document.getElementById('createButton').addEventListener('click', function() {
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Action buttons (view, save as PDF, edit, delete)
         document.querySelectorAll('.action-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const action = this.getAttribute('data-action');
                 const invoiceId = this.getAttribute('data-invoice-id');
-                const row = this.closest('tr');
 
                 if (action === 'view') {
                     fetch('pages-invoice.php', {
@@ -924,7 +882,6 @@ document.getElementById('createButton').addEventListener('click', function() {
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Assuming you have a modal or section with id 'invoiceModal'
                             document.getElementById('invoiceModalContent').innerHTML = `
                                 <h3>Invoice Details</h3>
                                 <p><strong>Invoice Number:</strong> ${data.invoice_number}</p>
@@ -932,103 +889,72 @@ document.getElementById('createButton').addEventListener('click', function() {
                                 <p><strong>Order Date:</strong> ${data.order_date}</p>
                                 <p><strong>Total Amount:</strong> ${data.total_amount}</p>
                             `;
-                            $('#invoiceModal').modal('show'); // Show the modal
+                            $('#invoiceModal').modal('show');
                         } else {
                             alert('Invoice not found.');
                         }
                     })
                     .catch(error => console.error('Error:', error));
+                } else if (action === 'save-pdf') {
+                    window.location.href = `pdf_generate.php?invoice_id=${invoiceId}`;
+                } else if (action === 'edit') {
+                    // Redirect to the editable invoice page
+                    window.location.href = `edit_invoice.php?invoice_id=${invoiceId}`;
+                } else if (action === 'delete' && confirm('Are you sure you want to delete this invoice?')) {
+                    fetch('pages-invoice.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({ action: 'delete', invoice_id: invoiceId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(() => alert('Error deleting invoice.'));
                 }
-                // Handle other actions here
             });
         });
-    });
-</script>
-<script>
-$(document).ready(function() {
-    // Edit functionality
-    $('.editable').on('click', function() {
-        var $this = $(this);
-        var currentText = $this.text();
-        var input = $('<input>', {
-            type: 'text',
-            value: currentText,
-            class: 'form-control form-control-sm'
-        });
-        $this.html(input);
-        input.focus();
 
-        // Save the new text when the input loses focus or Enter key is pressed
-        input.on('blur keypress', function(e) {
-            if (e.type === 'blur' || e.which === 13) { // Enter key
-                var newText = $(this).val();
-                $this.html(newText);
-                
-                // Save the updated text via AJAX
-                var invoiceId = $this.data('invoice-id');
-                $.post('pages-invoice.php', {
-                    action: 'update',
-                    invoice_id: invoiceId,
-                    updated_text: newText
-                }, function(response) {
-                    alert(response.message);
-                }, 'json').fail(function() {
-                    alert('Error updating invoice.');
+        // Editable cells for inline editing (if needed)
+        document.querySelectorAll('.editable').forEach(cell => {
+            cell.addEventListener('click', function () {
+                const currentText = cell.textContent;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentText;
+                input.className = 'form-control form-control-sm';
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                input.focus();
+
+                input.addEventListener('blur', saveNewText);
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') saveNewText();
                 });
-            }
-        });
-    });
 
-    // View functionality
-    $('.view-btn').on('click', function() {
-        var $row = $(this).closest('tr');
-        var invoiceId = $(this).data('invoice-id');
+                function saveNewText() {
+                    const newText = input.value;
+                    cell.textContent = newText;
+                    const invoiceId = cell.getAttribute('data-invoice-id');
 
-        $.post('pages-invoice.php', {
-            action: 'view',
-            invoice_id: invoiceId
-        }, function(data) {
-            if (data.success) {
-                $('#invoiceModalContent').html(`
-                    <h3>Invoice Details</h3>
-                    <p><strong>Invoice Number:</strong> ${data.invoice_number}</p>
-                    <p><strong>Customer Name:</strong> ${data.customer_name}</p>
-                    <p><strong>Order Date:</strong> ${data.order_date}</p>
-                    <p><strong>Total Amount:</strong> ${data.total_amount}</p>
-                `);
-                $('#invoiceModal').modal('show'); // Show the modal
-            } else {
-                alert('Invoice not found.');
-            }
-        }, 'json').fail(function() {
-            alert('Error fetching invoice details.');
-        });
-    });
-
-    // Save PDF functionality
-    $('.save-pdf-btn').on('click', function() {
-        var invoiceId = $(this).data('invoice-id');
-        window.location.href = 'pdf_generate.php?invoice_id=' + invoiceId;
-    });
-
-    // Delete functionality
-    $('.delete-btn').on('click', function() {
-        if (confirm('Are you sure you want to delete this invoice?')) {
-            var invoiceId = $(this).data('invoice-id');
-            $.post('pages-invoice.php', {
-                action: 'delete',
-                invoice_id: invoiceId
-            }, function(response) {
-                alert(response.message);
-                location.reload(); // Refresh the page to reflect changes
-            }, 'json').fail(function() {
-                alert('Error deleting invoice.');
+                    fetch('pages-invoice.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'update',
+                            invoice_id: invoiceId,
+                            updated_text: newText
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => alert(data.message))
+                    .catch(() => alert('Error updating invoice.'));
+                }
             });
-        }
+        });
     });
-});
 </script>
-
 
   </body>
 </html>
