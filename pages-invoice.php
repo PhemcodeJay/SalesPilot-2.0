@@ -670,18 +670,41 @@ try {
                                         </thead>
                                         <tbody>
                                             <?php $index = 1; ?>
-                                            <?php foreach ($items as $item): ?>
-                                                <tr>
-                                                    <th class="text-center" scope="row"><?php echo $index++; ?></th>
-                                                    <td>
-                                                        <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
-                                                        
-                                                    </td>
-                                                    <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                                    <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
-                                                    <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
-                                                </tr>
-                                            <?php endforeach; ?>
+                                           <?php
+// Initialize $items as an empty array to avoid undefined variable warning
+$items = [];
+
+// Check if invoice_id is set, and fetch items from the database
+if (isset($invoice_id)) {
+    try {
+        // Prepare and execute the query to fetch invoice items
+        $items_query = "SELECT item_name, quantity, price, total FROM invoices WHERE invoice_id = :invoice_id"; // Change the table name if necessary
+        $stmt = $connection->prepare($items_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+
+        // Fetch all items related to the invoice
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        echo "Error fetching items: " . $e->getMessage();
+    }
+}
+
+// Now we can safely use the foreach loop without warnings
+$index = 1; // Initialize index for row numbering
+foreach ($items as $item): ?>
+    <tr>
+        <th class="text-center" scope="row"><?php echo $index++; ?></th>
+        <td>
+            <h6 class="mb-0"><?php echo htmlspecialchars($item['item_name']); ?></h6>
+        </td>
+        <td class="text-center"><?php echo htmlspecialchars($item['quantity']); ?></td>
+        <td class="text-center">$<?php echo number_format($item['price'], 2); ?></td>
+        <td class="text-center"><b>$<?php echo number_format($item['total'], 2); ?></b></td>
+    </tr>
+<?php endforeach; ?>
+
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -811,7 +834,7 @@ document.getElementById('createButton').addEventListener('click', function() {
                 const row = this.closest('tr');
 
                 if (action === 'view') {
-                    fetch('fetch_invoice.php', {
+                    fetch('pages-invoice.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
@@ -872,7 +895,7 @@ $(document).ready(function() {
         var $row = $(this).closest('tr');
         var invoiceId = $(this).data('invoice-id');
 
-        $.post('fetch_invoice.php', {
+        $.post('pages-invoice.php', {
             action: 'view',
             invoice_id: invoiceId
         }, function(data) {
@@ -897,14 +920,14 @@ $(document).ready(function() {
     // Save PDF functionality
     $('.save-pdf-btn').on('click', function() {
         var invoiceId = $(this).data('invoice-id');
-        window.location.href = 'generate_pdf.php?invoice_id=' + invoiceId;
+        window.location.href = 'pdf_generate.php?invoice_id=' + invoiceId;
     });
 
     // Delete functionality
     $('.delete-btn').on('click', function() {
         if (confirm('Are you sure you want to delete this invoice?')) {
             var invoiceId = $(this).data('invoice-id');
-            $.post('update_invoice.php', {
+            $.post('pages-invoice.php', {
                 action: 'delete',
                 invoice_id: invoiceId
             }, function(response) {

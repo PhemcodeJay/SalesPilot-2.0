@@ -68,7 +68,6 @@ try {
             ";
 
             $stmt = $connection->prepare($invoice_query);
-
             $stmt->execute([
                 ':invoice_number' => $invoice_number,
                 ':customer_name' => $customer_name,
@@ -90,17 +89,15 @@ try {
             // Get the last inserted invoice ID
             $invoice_id = $connection->lastInsertId();
 
-            // Insert invoice items
-            $item_query = "
-                INSERT INTO invoice_items 
-                (invoice_id, item_name, quantity, price, total)
-                VALUES 
-                (:invoice_id, :item_name, :quantity, :price, :total)
-            ";
-
-            $stmt = $connection->prepare($item_query);
-
+            // Insert invoice items into the same invoices table
             foreach ($items as $index => $item_name) {
+                $item_query = "
+                    UPDATE invoices
+                    SET item_name = :item_name, qty = :quantity, price = :price, total = :total
+                    WHERE id = :invoice_id
+                ";
+
+                $stmt = $connection->prepare($item_query);
                 $stmt->execute([
                     ':invoice_id' => $invoice_id,
                     ':item_name' => $item_name,
@@ -636,13 +633,12 @@ try {
                 <div class="card-header d-flex justify-content-between bg-primary header-invoice">
                     <div class="iq-header-title">
                         <h4 class="card-title mb-0">Invoice#</h4>
-                        <input type="text" class="form-control" name="invoice_number" value="Enter invoice no" required>
+                        <input type="text" class="form-control" name="invoice_number" placeholder="Enter invoice no" required>
                     </div>
                     <div class="invoice-btn">
-                    <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
+                        <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
                             <i class="las la-print"></i> View Invoice
                         </a>
-
                         <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i> PDF</button>
                     </div>
                 </div>
@@ -651,8 +647,8 @@ try {
                         <div class="col-sm-12">
                             <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Logo">
                             <h5 class="mb-0">Hello, <?php echo $username; ?></h5>
-                            <input type="text" class="form-control" name="customer_name" value="Customer Name" required>
-                            <textarea name="invoice_description" class="form-control mt-2" required>Product or Services Details</textarea>
+                            <input type="text" class="form-control" name="customer_name" placeholder="Customer Name" required>
+                            <textarea name="invoice_description" class="form-control mt-2" placeholder="Product or Services Details" required></textarea>
                         </div>
                     </div>
                     <div class="row">
@@ -670,19 +666,19 @@ try {
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><input type="date" class="form-control" name="order_date" value="2016-01-17" required></td>
+                                            <td><input type="date" class="form-control" name="order_date" required></td>
                                             <td>
                                                 <select name="order_status" class="form-control" required>
                                                     <option value="unpaid" selected>Unpaid</option>
                                                     <option value="paid">Paid</option>
                                                 </select>
                                             </td>
-                                            <td><input type="text" class="form-control" name="order_id" value="Enter order id number" required></td>
+                                            <td><input type="text" class="form-control" name="order_id" placeholder="Enter order id number" required></td>
                                             <td>
-                                                <textarea name="billing_address" class="form-control" required>Enter billing address</textarea>
+                                                <textarea name="billing_address" class="form-control" placeholder="Enter billing address" required></textarea>
                                             </td>
                                             <td>
-                                                <textarea name="shipping_address" class="form-control" required>Enter shipping address</textarea>
+                                                <textarea name="shipping_address" class="form-control" placeholder="Enter shipping address" required></textarea>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -695,94 +691,124 @@ try {
                             <h5 class="mb-3">Order Summary</h5>
                             <div class="table-responsive-sm">
                             <table class="table" id="invoice-items">
-            <thead>
-                <tr>
-                    <th class="text-center" scope="col">#</th>
-                    <th scope="col">Item</th>
-                    <th class="text-center" scope="col">Quantity</th>
-                    <th class="text-center" scope="col">Price ($)</th>
-                    <th class="text-center" scope="col">Total ($)</th>
-                </tr>
-            </thead>
-            <tbody id="invoice-items-body">
-                <!-- Example item rows -->
-                <tr>
-                    <th class="text-center" scope="row">1</th>
-                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                </tr>
-                <tr>
-                    <th class="text-center" scope="row">2</th>
-                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                </tr>
-                <tr>
-                    <th class="text-center" scope="row">3</th>
-                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                </tr>
-            </tbody>
-        </table>
-        <button type="button" class="btn btn-primary" onclick="addRow()">Add Row</button>
-    </div>
+    <thead>
+        <tr>
+            <th class="text-center" scope="col">#</th>
+            <th scope="col">Item</th>
+            <th class="text-center" scope="col">Quantity</th>
+            <th class="text-center" scope="col">Price ($)</th>
+            <th class="text-center" scope="col">Total ($)</th>
+        </tr>
+    </thead>
+    <tbody id="invoice-items-body">
+        <tr>
+            <th class="text-center" scope="row">1</th>
+            <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+            <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+        </tr>
+    </tbody>
+</table>
+<button type="button" class="btn btn-primary" onclick="addRow()">Add Row</button>
+
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-12">
                             <label for="notes" class="text-danger">Notes:</label>
-                            <textarea id="notes" name="notes" class="form-control mt-2">Invoice Details</textarea>
+                            <textarea id="notes" name="notes" class="form-control mt-2" placeholder="Invoice Details"></textarea>
                         </div>
                     </div>
                     <div class="row mt-4 mb-3">
-                    <div class="col-sm-12">
+                        <div class="col-sm-12">
                             <div class="or-detail rounded">
                                 <div class="p-3">
                                     <h5 class="mb-3">Order Details</h5>
                                     <div class="mb-2">
                                         <label for="bank">Payment Mode</label>
-                                        <input type="text" id="bank" name="bank" class="form-control" value="MasterCard" required>
+                                        <input type="text" id="bank" name="bank" class="form-control" placeholder="MasterCard" required>
                                     </div>
                                     <div class="mb-2">
                                         <label for="account_no">Account No</label>
-                                        <input type="text" id="account_no" name="account_no" class="form-control" value="12333456789" required>
+                                        <input type="text" id="account_no" name="account_no" class="form-control" placeholder="12333456789" required>
                                     </div>
                                     <div class="mb-2">
                                         <label for="due_date">Due Date</label>
-                                        <input type="date" id="due_date" name="due_date" class="form-control" value="2020-08-12" required>
+                                        <input type="date" id="due_date" name="due_date" class="form-control" required>
                                     </div>
                                     <div class="mb-2">
                                         <label for="subtotal">Sub Total</label>
-                                        <input type="number" step="0.01" id="subtotal" name="subtotal" class="form-control" value="4597.50" required>
+                                        <input type="number" step="0.01" id="subtotal" name="subtotal" class="form-control" value="0.00" readonly>
                                     </div>
                                     <div class="mb-2">
-                                        <label for="discount">Discount</label>
-                                        <input type="text" id="discount" name="discount" class="form-control" value="10%" required>
+                                        <label for="discount">Discount (%)</label>
+                                        <input type="number" id="discount" name="discount" class="form-control" value="0" oninput="calculateSubtotal()">
                                     </div>
-                                </div>
-                                <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                    <h6>Total Amount</h6>
-                                    <h3 class="text-primary font-weight-500">$<input type="number" class="form-control" name="total_amount" value="1000" required></h3>
+                                    <div class="mb-2">
+                                        <label for="total-amount">Total Amount ($)</label>
+                                        <span id="total-amount" class="font-weight-bold">0.00</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <button type="submit" class="btn btn-primary">Submit Invoice</button>
-                        </div>
-                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Invoice</button>
                 </div>
             </div>
         </div>
     </div>
 </form>
+<script>
+function calculateSubtotal() {
+    const itemRows = document.querySelectorAll('#invoice-items-body tr');
+    let subtotal = 0;
+
+    itemRows.forEach(row => {
+        const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+        const price = parseFloat(row.querySelector('input[name="price[]"]').value) || 0;
+        const total = (quantity * price).toFixed(2);
+        subtotal += parseFloat(total);
+        
+        // Update the total for the current row
+        row.querySelector('input[name="total[]"]').value = total;
+    });
+
+    // Update the subtotal input field
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+
+    // Recalculate the total amount after updating the subtotal
+    calculateTotal(subtotal);
+}
+
+function calculateTotal(subtotal) {
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+    const discountAmount = (subtotal * (discount / 100));
+    const totalAmount = (subtotal - discountAmount).toFixed(2);
+
+    // Update the total amount display
+    document.getElementById('total-amount').textContent = totalAmount;
+}
+
+function addRow() {
+    const tableBody = document.getElementById('invoice-items-body');
+    const rowCount = tableBody.children.length + 1;
+
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <th class="text-center" scope="row">${rowCount}</th>
+        <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+        <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+    `;
+
+    tableBody.appendChild(newRow);
+}
+</script>
+
 
 
 </div>
@@ -818,23 +844,67 @@ try {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script>
-        let rowCount = 3; // Starting count of rows
+let rowCount = 1; // Starting count of rows
 
-        function addRow() {
-            rowCount++;
-            const tableBody = document.getElementById('invoice-items-body');
-            const newRow = `
-                <tr>
-                    <th class="text-center" scope="row">${rowCount}</th>
-                    <td><input type="text" class="form-control" name="item_name[]" value="Product or Service" required></td>
-                    <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="5" required></td>
-                    <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="120.00" required></td>
-                    <td class="text-center"><input type="text" class="form-control" name="total[]" value="600.00" required></td>
-                </tr>
-            `;
-            tableBody.insertAdjacentHTML('beforeend', newRow);
-        }
-    </script>
+function calculateRowTotal(row) {
+    const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+    const price = parseFloat(row.querySelector('input[name="price[]"]').value) || 0;
+    const total = (quantity * price).toFixed(2);
+    row.querySelector('input[name="total[]"]').value = total;
+    return parseFloat(total);
+}
+
+function calculateSubtotal() {
+    const itemRows = document.querySelectorAll('#invoice-items-body tr');
+    let subtotal = 0;
+
+    itemRows.forEach(row => {
+        subtotal += calculateRowTotal(row);
+    });
+
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+    calculateTotal(subtotal);
+}
+
+function calculateTotal(subtotal) {
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    const discountAmount = (subtotal * (discount / 100));
+    const totalAmount = (subtotal - discountAmount).toFixed(2);
+
+    document.getElementById('total-amount').textContent = totalAmount;
+}
+
+function addRow() {
+    const tableBody = document.getElementById('invoice-items-body');
+    rowCount++;
+
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <th class="text-center" scope="row">${rowCount}</th>
+        <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+        <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+    `;
+
+    // Attach input event listeners for quantity and price to recalculate on input
+    const quantityInput = newRow.querySelector('input[name="quantity[]"]');
+    const priceInput = newRow.querySelector('input[name="price[]"]');
+
+    quantityInput.addEventListener('input', () => {
+        calculateRowTotal(newRow);
+        calculateSubtotal(); // Update overall subtotal
+    });
+
+    priceInput.addEventListener('input', () => {
+        calculateRowTotal(newRow);
+        calculateSubtotal(); // Update overall subtotal
+    });
+
+    tableBody.appendChild(newRow);
+}
+</script>
+
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
