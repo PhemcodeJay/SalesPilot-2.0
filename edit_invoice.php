@@ -1,76 +1,112 @@
 <?php
-// Include database connection
-include 'config.php'; // Ensure this points to your actual database connection file
+// Include the database connection
+require 'config.php'; // Ensure this file contains your PDO connection settings
 
 // Initialize variables
-$invoice_id = null;
-$invoices = [];
+$message = '';
+$invoiceId = '';
+$invoiceNumber = '';
+$customerName = '';
+$orderDate = '';
+$dueDate = '';
+$subtotal = '';
+$discount = '';
+$totalAmount = '';
+$notes = '';
+$invoiceItems = [];
 
-// Check if an invoice ID is provided for viewing/editing
+// Check if an invoice ID is provided to fetch existing data
 if (isset($_GET['invoice_id'])) {
-    $invoice_id = $_GET['invoice_id'];
+    $invoiceId = $_GET['invoice_id'];
 
-    try {
-        // Fetch invoice details
-        $invoice_query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
-        $stmt = $connection->prepare($invoice_query);
-        $stmt->bindParam(':invoice_id', $invoice_id);
-        $stmt->execute();
-        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        echo "Error fetching invoice: " . $e->getMessage();
+    // Fetch invoice details
+    $invoiceQuery = "SELECT * FROM invoices WHERE invoice_id = ?";
+    $stmt = $connection->prepare($invoiceQuery);
+    $stmt->execute([$invoiceId]);
+    $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($invoice) {
+        // Populate the variables with fetched data
+        $invoiceNumber = $invoice['invoice_number'];
+        $customerName = $invoice['customer_name'];
+        $orderDate = $invoice['order_date'];
+        $dueDate = $invoice['due_date'];
+        $subtotal = $invoice['subtotal'];
+        $discount = $invoice['discount'];
+        $totalAmount = $invoice['total_amount'];
+        $notes = $invoice['notes'];
+
+        // Fetch associated invoice items
+        $itemsQuery = "SELECT * FROM invoice_items WHERE invoice_id = ?";
+        $itemStmt = $connection->prepare($itemsQuery);
+        $itemStmt->execute([$invoiceId]);
+        $invoiceItems = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
-// Fetch all invoices for the list
-try {
-    $invoices_query = "SELECT * FROM invoices";
-    $stmt = $connection->query($invoices_query);
-    $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo "Error fetching invoices: " . $e->getMessage();
-}
-
-// Handle edit and delete actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        if ($_POST['action'] === 'edit' && isset($_POST['invoice_id'])) {
-            // Logic to handle editing an invoice
-            $updated_invoice_number = $_POST['invoice_number'];
-            $updated_customer_name = $_POST['customer_name'];
-            $updated_order_date = $_POST['order_date'];
-            $invoice_id = $_POST['invoice_id']; // Ensure we have the invoice ID to update
+    // Get the invoice ID from the POST data
+    $invoiceId = $_POST['invoice_id'];
+    $invoiceNumber = $_POST['invoice_number'];
+    $customerName = $_POST['customer_name'];
+    $orderDate = $_POST['order_date'];
+    $dueDate = $_POST['due_date'];
+    $subtotal = $_POST['subtotal'];
+    $discount = $_POST['discount'];
+    $totalAmount = $_POST['total_amount'];
+    $notes = $_POST['notes'];
 
-            try {
-                $update_query = "UPDATE invoices SET invoice_number = :invoice_number, customer_name = :customer_name, order_date = :order_date WHERE invoice_id = :invoice_id";
-                $update_stmt = $connection->prepare($update_query);
-                $update_stmt->bindParam(':invoice_number', $updated_invoice_number);
-                $update_stmt->bindParam(':customer_name', $updated_customer_name);
-                $update_stmt->bindParam(':order_date', $updated_order_date);
-                $update_stmt->bindParam(':invoice_id', $invoice_id);
-                $update_stmt->execute();
+    // Prepare the SQL statement to update the invoice details
+    $updateInvoiceQuery = "UPDATE invoices 
+                            SET invoice_number = ?, 
+                                customer_name = ?, 
+                                order_date = ?, 
+                                due_date = ?, 
+                                subtotal = ?, 
+                                discount = ?, 
+                                total_amount = ?, 
+                                notes = ? 
+                            WHERE invoice_id = ?";
+    
+    try {
+        $stmt = $connection->prepare($updateInvoiceQuery);
+        $stmt->execute([$invoiceNumber, $customerName, $orderDate, $dueDate, $subtotal, $discount, $totalAmount, $notes, $invoiceId]);
 
-                // Redirect or show a success message
-                header("Location: your_page.php"); // Change this to your actual page
-                exit;
-            } catch (PDOException $e) {
-                echo "Error updating invoice: " . $e->getMessage();
-            }
-        } elseif ($_POST['action'] === 'delete' && isset($_POST['invoice_id'])) {
-            // Logic to handle deleting an invoice
-            try {
-                $delete_query = "DELETE FROM invoices WHERE invoice_id = :invoice_id";
-                $delete_stmt = $connection->prepare($delete_query);
-                $delete_stmt->bindParam(':invoice_id', $_POST['invoice_id']);
-                $delete_stmt->execute();
+        // Update items or insert new ones
+        if (isset($_POST['items'])) {
+            $items = $_POST['items']; // This should be an array of items
+            
+            foreach ($items as $item) {
+                $itemId = $item['id']; // Unique identifier for the item
+                $itemName = $item['item_name'];
+                $quantity = $item['quantity'];
+                $price = $item['price'];
+                $total = $quantity * $price; // Calculate total for the item
 
-                // Redirect or show a success message
-                header("Location: your_page.php"); // Change this to your actual page
-                exit;
-            } catch (PDOException $e) {
-                echo "Error deleting invoice: " . $e->getMessage();
+                if ($itemId) {
+                    // Update existing item
+                    $updateItemQuery = "UPDATE invoice_items 
+                                        SET item_name = ?, qty = ?, price = ?, total = ? 
+                                        WHERE invoice_items_id = ?";
+                    
+                    $itemStmt = $connection->prepare($updateItemQuery);
+                    $itemStmt->execute([$itemName, $quantity, $price, $total, $itemId]);
+                } else {
+                    // Insert new item
+                    $insertItemQuery = "INSERT INTO invoice_items (invoice_id, item_name, qty, price, total) 
+                                        VALUES (?, ?, ?, ?, ?)";
+                    
+                    $itemStmt = $connection->prepare($insertItemQuery);
+                    $itemStmt->execute([$invoiceId, $itemName, $quantity, $price, $total]);
+                }
             }
         }
+
+        // Success message
+        $message = "Invoice and items updated successfully.";
+    } catch (PDOException $e) {
+        // Handle any errors during the update
+        $message = "Error updating invoice: " . $e->getMessage();
     }
 }
 ?>
@@ -80,147 +116,167 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Management System</title>
+    <title>Update Invoice</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f7fa;
-            color: #333;
             margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #343a40;
+            color: #ffffff;
             padding: 20px;
+            text-align: center;
         }
-
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        /* Header */
-        .card-header {
-            background-color: #007bff; /* Bootstrap primary */
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .card-title {
-            margin: 0;
-        }
-
-        /* Invoice Table */
-        .table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-        }
-
-        .table th, .table td {
-            padding: 12px 15px;
-            border: 1px solid #dee2e6;
-            text-align: left;
-        }
-
-        .table th {
-            background-color: #f8f9fa; /* Light gray */
-            font-weight: bold;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background-color: #f2f2f2; /* Light gray */
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: none;
-            color: white;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3; /* Darker blue */
-        }
-
-        .action-btn {
-            background-color: #6c757d; /* Bootstrap secondary */
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .action-btn:hover {
-            background-color: #5a6268; /* Darker gray */
-        }
-
-        /* Form Styles */
         form {
-            background-color: #f9f9f9;
+            max-width: 600px;
+            margin: 20px auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .form-control {
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea {
             width: 100%;
             padding: 10px;
+            margin: 5px 0 15px;
             border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .table {
-                font-size: 14px;
-            }
-
-            .btn, .action-btn {
-                width: 100%;
-                margin-bottom: 10px;
-            }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-
-        /* Footer */
-        .footer {
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin: 20px 0;
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
             text-align: center;
-            padding: 20px;
-            font-size: 14px;
-            color: #999;
+            padding: 15px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .item-row {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        @media (max-width: 600px) {
+            form {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
 
+<header>
+    <h1>Update Invoice</h1>
+</header>
 
+<?php if ($message): ?>
+    <div class="message"><?php echo $message; ?></div>
+<?php endif; ?>
 
-<div class="footer">
-    <p>&copy; 2024 Invoice Management System. All rights reserved.</p>
-</div>
+<form method="POST" id="invoiceForm">
+    <input type="hidden" name="invoice_id" value="<?php echo htmlspecialchars($invoiceId); ?>">
+    
+    <label for="invoice_number">Invoice Number:</label>
+    <input type="text" name="invoice_number" id="invoice_number" required value="<?php echo htmlspecialchars($invoiceNumber); ?>">
+
+    <label for="customer_name">Customer Name:</label>
+    <input type="text" name="customer_name" id="customer_name" required value="<?php echo htmlspecialchars($customerName); ?>">
+
+    <label for="order_date">Order Date:</label>
+    <input type="date" name="order_date" id="order_date" required value="<?php echo htmlspecialchars($orderDate); ?>">
+
+    <label for="due_date">Due Date:</label>
+    <input type="date" name="due_date" id="due_date" required value="<?php echo htmlspecialchars($dueDate); ?>">
+
+    <label for="subtotal">Subtotal:</label>
+    <input type="number" name="subtotal" id="subtotal" step="0.01" required value="<?php echo htmlspecialchars($subtotal); ?>">
+
+    <label for="discount">Discount:</label>
+    <input type="number" name="discount" id="discount" step="0.01" value="<?php echo htmlspecialchars($discount); ?>">
+
+    <label for="total_amount">Total Amount:</label>
+    <input type="number" name="total_amount" id="total_amount" step="0.01" required value="<?php echo htmlspecialchars($totalAmount); ?>">
+
+    <label for="notes">Notes:</label>
+    <textarea name="notes" id="notes" rows="4"><?php echo htmlspecialchars($notes); ?></textarea>
+
+    <h3>Invoice Items</h3>
+    <div id="item-container">
+        <?php foreach ($invoiceItems as $index => $item): ?>
+            <div class="item-row">
+                <input type="hidden" name="items[<?php echo $index; ?>][id]" value="<?php echo $item['invoice_items_id']; ?>">
+                <label for="item_name">Item Name:</label>
+                <input type="text" name="items[<?php echo $index; ?>][item_name]" required value="<?php echo htmlspecialchars($item['item_name']); ?>">
+                
+                <label for="quantity">Quantity:</label>
+                <input type="number" name="items[<?php echo $index; ?>][quantity]" required value="<?php echo htmlspecialchars($item['qty']); ?>">
+                
+                <label for="price">Price:</label>
+                <input type="number" name="items[<?php echo $index; ?>][price]" required step="0.01" value="<?php echo htmlspecialchars($item['price']); ?>">
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <button type="button" id="add-item">Add Item</button>
+    <br><br>
+    <button type="submit">Update Invoice</button>
+</form>
+
+<footer>
+    <p>&copy; <?php echo date("Y"); ?> Your Company Name. All Rights Reserved.</p>
+</footer>
+
+<script>
+    document.getElementById('add-item').addEventListener('click', function() {
+        const itemContainer = document.getElementById('item-container');
+        const itemCount = itemContainer.children.length;
+
+        const newItemRow = document.createElement('div');
+        newItemRow.classList.add('item-row');
+        newItemRow.innerHTML = `
+            <input type="hidden" name="items[${itemCount}][id]" value="">
+            <label for="item_name">Item Name:</label>
+            <input type="text" name="items[${itemCount}][item_name]" required placeholder="Item Name">
+            
+            <label for="quantity">Quantity:</label>
+            <input type="number" name="items[${itemCount}][quantity]" required placeholder="Quantity">
+            
+            <label for="price">Price:</label>
+            <input type="number" name="items[${itemCount}][price]" required step="0.01" placeholder="Price">
+        `;
+        itemContainer.appendChild(newItemRow);
+    });
+</script>
+
 </body>
 </html>
