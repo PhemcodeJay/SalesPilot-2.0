@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 28, 2024 at 01:47 AM
+-- Generation Time: Oct 28, 2024 at 02:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -205,7 +205,7 @@ CREATE TABLE `invoices` (
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
 (15, '123456', 'Koko stores', 'Delivery Invoice', '2024-10-23', 'paid', '1234', '112 freeway Blvd Bklyn NY', 'same as above', 'MasterCard', '123334567678', '2020-08-13', 250.00, 5.00, 245.00, 'Products in good condition', 'Laptops ', 2, 200.00, 400.00),
 (16, '344656', 'Larry gaga', 'Product or Services Details', '2016-01-17', 'unpaid', '342', '111 freeway nairobi', '111 freeway mairobi', 'MasterCard', '12333456789', '2020-08-12', 480.00, 10.00, 450.00, 'Invoice Details', NULL, NULL, NULL, NULL),
-(20, '234', 'kimo', 'proforma', '2024-10-10', 'paid', '123445', '112 freeway Ohio ', '112 freeway Ohio ', 'visa', '34567890', '2024-10-17', 650.00, 10.00, 0.00, 'good', NULL, NULL, NULL, NULL),
+(20, '234', 'kimo', 'proforma', '2024-10-10', 'paid', '123445', '112 freeway Ohio ', '112 freeway Ohio ', 'visa', '34567890', '2024-10-17', 650.00, 10.00, 600.00, 'good', NULL, NULL, NULL, NULL),
 (21, '435657', 'joe', 'delivery', '2024-10-02', 'unpaid', '1245', '1234  highway Texas ', '1234  highway Texas ', 'mpesa', '3456789012', '2024-10-18', 410.00, 2.00, 0.00, '', NULL, NULL, NULL, NULL),
 (22, '7890', 'mike', 'product supply', '2024-10-05', 'paid', '6789009', '112 good estate bariga', '112 good estate bariga', 'mpesa', '3456789012', '2024-10-18', 430.00, 0.00, 0.00, '', NULL, NULL, NULL, NULL);
 

@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $items = $_POST['items']; // This should be an array of items
             
             foreach ($items as $item) {
-                $itemId = $item['id']; // Unique identifier for the item
+                $itemId = $item['invoice_items_id']; // Unique identifier for the item
                 $itemName = $item['item_name'];
                 $quantity = $item['quantity'];
                 $price = $item['price'];
