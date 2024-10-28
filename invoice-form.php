@@ -18,7 +18,7 @@ try {
     $username = htmlspecialchars($_SESSION["username"]);
 
     // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $user_query = "SELECT id, username, email, date, phone, location, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -28,9 +28,13 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
+    // Sanitize and store user data
     $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
+    $date = date('d F, Y', strtotime($user_info['date']));
+    $location = htmlspecialchars($user_info['location']);
+    $user_id = htmlspecialchars($user_info['id']);
+    $existing_image = htmlspecialchars($user_info['user_image']);
+    $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Retrieve form data
@@ -146,25 +150,6 @@ try {
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
 
-    // Prepare and execute the query to fetch user information from the users table
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-    }
 } catch (PDOException $e) {
     // Handle database errors
     exit("Database error: " . $e->getMessage());

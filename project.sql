@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 27, 2024 at 02:07 AM
+-- Generation Time: Oct 28, 2024 at 01:47 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -205,7 +205,31 @@ CREATE TABLE `invoices` (
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
 (15, '123456', 'Koko stores', 'Delivery Invoice', '2024-10-23', 'paid', '1234', '112 freeway Blvd Bklyn NY', 'same as above', 'MasterCard', '123334567678', '2020-08-13', 250.00, 5.00, 245.00, 'Products in good condition', 'Laptops ', 2, 200.00, 400.00),
 (16, '344656', 'Larry gaga', 'Product or Services Details', '2016-01-17', 'unpaid', '342', '111 freeway nairobi', '111 freeway mairobi', 'MasterCard', '12333456789', '2020-08-12', 480.00, 10.00, 450.00, 'Invoice Details', NULL, NULL, NULL, NULL),
-(19, '003', 'kyle', 'delivery invoice ', '2024-10-07', 'paid', '123445', '345 highway ohio', '345 highway ohio', ' visa', '34567890', '2024-10-16', 430.00, 2.00, 0.00, '', NULL, NULL, NULL, NULL);
+(20, '234', 'kimo', 'proforma', '2024-10-10', 'paid', '123445', '112 freeway Ohio ', '112 freeway Ohio ', 'visa', '34567890', '2024-10-17', 650.00, 10.00, 0.00, 'good', NULL, NULL, NULL, NULL),
+(21, '435657', 'joe', 'delivery', '2024-10-02', 'unpaid', '1245', '1234  highway Texas ', '1234  highway Texas ', 'mpesa', '3456789012', '2024-10-18', 410.00, 2.00, 0.00, '', NULL, NULL, NULL, NULL),
+(22, '7890', 'mike', 'product supply', '2024-10-05', 'paid', '6789009', '112 good estate bariga', '112 good estate bariga', 'mpesa', '3456789012', '2024-10-18', 430.00, 0.00, 0.00, '', NULL, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `invoice_items`
+--
+
+CREATE TABLE `invoice_items` (
+  `invoice_items_id` int(11) NOT NULL,
+  `invoice_id` int(11) NOT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `qty` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `invoice_items`
+--
+
+INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`, `total`) VALUES
+(0, 22, 'kettle ', 2, 215.00, 430.00);
 
 -- --------------------------------------------------------
 
@@ -368,24 +392,20 @@ INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_
 (47, 25, 7, 46, 63, 15, '2024-01-16 23:08:06', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 'uploads/productssamsung-galaxy-a10s.jpg', 250.00),
 (48, 31, 7, 47, 64, 230, '2024-02-16 23:58:29', 'completed', 'paid', 'Premium Beer', 'Goods', 'sold', 'uploads/productsbeer.jpg', 35.00),
 (49, 29, 7, 48, 65, 40, '2024-03-16 23:59:49', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 'uploads/productsiphone-15-128gb.jpg', 1500.00),
-(50, 30, 7, 46, 65, 150, '2024-04-17 00:01:24', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 'uploads/productsfloral-pleated-weave-dress.jpg', 245.00),
 (51, 27, 7, 49, 66, 500, '2024-05-17 00:03:47', 'completed', 'paid', 'Bottled Water', 'Goods', 'sold', 'uploads/productswater.jpg', 35.00),
 (52, 32, 7, 50, 63, 25, '2024-06-17 00:05:50', 'completed', 'paid', 'Camera', 'Goods', 'sold', 'uploads/productscamera.jpg', 280.00),
 (53, 33, 7, 51, 65, 2, '2024-07-17 00:07:59', 'completed', 'paid', 'Chevrolet AWD', 'Goods', 'sold', 'uploads/productsChevrolet.jpg', 65000.00),
 (54, 34, 7, 52, 67, 200, '2024-09-17 00:09:19', 'completed', 'paid', 'Mary Kay', 'Goods', 'sold', 'uploads/productslipgloss.jpg', 450.00),
-(55, 35, 7, 53, 68, 15, '2024-08-17 00:12:27', 'completed', 'paid', 'Necklace', 'Goods', 'sold', 'uploads/productsgoldnecklace.jpeg', 18000.00),
 (56, 36, 7, 54, 64, 150, '2024-09-17 00:14:43', 'completed', 'paid', 'Sony Headphones', 'Goods', 'sold', 'uploads/productsheadphones.jpg', 300.00),
-(57, 37, 7, 55, 63, 400, '2024-10-17 00:15:59', 'completed', 'paid', 'Hike Bag', 'Goods', 'sold', 'uploads/productshike-bag.jpg', 550.00),
 (58, 38, 7, 56, 65, 50, '2024-11-17 00:17:18', 'completed', 'paid', 'Dior female shoes', 'Goods', 'sold', 'uploads/productslady-shoes.jpg', 285.00),
 (60, 40, 7, 58, 68, 100, '2024-01-17 00:21:31', 'completed', 'paid', 'Make-up Kit', 'Goods', 'sold', 'uploads/productsmake-up.jpg', 450.00),
 (61, 41, 7, 48, 66, 150, '2024-02-17 00:23:27', 'completed', 'paid', 'Leather Shoes', 'Goods', 'sold', 'uploads/productsmen clothings.jpg', 350.00),
 (62, 42, 7, 46, 66, 100, '2024-03-17 00:24:43', 'completed', 'paid', 'Tea mugs', 'Goods', '', 'uploads/productsmugs.jpg', 55.00),
-(63, 43, 7, 57, 68, 55, '2024-09-17 00:25:56', 'completed', 'paid', 'Air Jordan', 'Goods', 'sold', '', 0.00),
-(64, 44, 7, 48, 67, 100, '2024-09-17 00:26:59', 'completed', 'paid', 'Perfume Spray', 'Goods', 'sold', 'uploads/productsperfume.jpg', 0.00),
-(65, 45, 7, 47, 65, 40, '2024-05-17 00:31:42', 'completed', 'paid', 'Rayban Sunglasses', 'Goods', 'sold', 'uploads/productsrayban.jpg', 0.00),
-(67, 48, 7, 60, 65, 2, '2024-07-17 00:40:10', 'completed', 'paid', 'Toyota corolla', 'Goods', 'sold', 'uploads/productstoyota-corolla-2024.jpg', 0.00),
-(68, 49, 7, 61, 66, 10, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg', 0.00),
-(69, 52, 7, 57, 63, 50, '2024-08-25 04:18:46', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 'uploads/productsvitamins.jpg', 0.00);
+(63, 43, 7, 57, 68, 55, '2024-09-17 00:25:56', 'completed', 'paid', 'Air Jordan', 'Goods', 'sold', '', 200.00),
+(64, 44, 7, 48, 67, 100, '2024-09-17 00:26:59', 'completed', 'paid', 'Perfume Spray', 'Goods', 'sold', 'uploads/productsperfume.jpg', 17.00),
+(65, 45, 7, 47, 65, 40, '2024-05-17 00:31:42', 'completed', 'paid', 'Rayban Sunglasses', 'Goods', 'sold', 'uploads/productsrayban.jpg', 35.00),
+(68, 49, 7, 61, 66, 10, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg', 450.00),
+(69, 52, 7, 57, 63, 50, '2024-08-25 04:18:46', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 'uploads/productsvitamins.jpg', 35.00);
 
 --
 -- Triggers `sales`
@@ -488,7 +508,6 @@ CREATE TABLE `staffs` (
 
 INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `position`, `created_at`) VALUES
 (63, 'chris', 'chris@gmail.com', '123456789', 'sales', '2024-09-16 23:08:06'),
-(64, 'stacey', '', '', 'sales', '2024-09-16 23:58:29'),
 (65, 'mark', 'mark@hotmail.com', '123098654', 'manager', '2024-09-16 23:59:49'),
 (66, 'kim', 'kim@gmail.com', '65723789', 'sales', '2024-09-17 00:03:47'),
 (68, 'john', 'john@gmail.com', '23423467', 'sales', '2024-09-17 00:12:27');
@@ -591,6 +610,13 @@ ALTER TABLE `invoices`
   ADD UNIQUE KEY `unique_invoice_item` (`invoice_number`,`item_name`);
 
 --
+-- Indexes for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  ADD PRIMARY KEY (`invoice_items_id`),
+  ADD KEY `invoice_id_idx` (`invoice_id`);
+
+--
 -- Indexes for table `password_resets`
 --
 ALTER TABLE `password_resets`
@@ -678,7 +704,7 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `inventory`
@@ -690,7 +716,7 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -738,7 +764,7 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -755,6 +781,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `inventory`
   ADD CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
+
+--
+-- Constraints for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  ADD CONSTRAINT `fk_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`invoice_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

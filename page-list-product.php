@@ -737,92 +737,73 @@ try {
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-$(document).ready(function() {
-    // Enable inline editing on click
-    $('.editable').on('click', function() {
-        var $this = $(this);
-        var currentText = $this.text().trim(); // Trim any whitespace
-        var input = $('<input>', {
-            type: 'text',
-            value: currentText,
-            class: 'form-control form-control-sm'
-        });
-        $this.html(input); // Replace the text with an input element
-        input.focus();
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle delete button click
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId; // Assuming data attribute in HTML
 
-        // Save the new value on blur
-        input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim the new value as well
-            $this.html(newText); // Restore text to the div
-        });
-
-        // Handle pressing the enter key to save and blur
-        input.on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
-                $(this).blur();
+            if (confirm("Are you sure you want to delete this product?")) {
+                fetch('page-list-product.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'action': 'delete',
+                        'product_id': productId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.status === 'success') {
+                        // Optionally remove the product from the UI
+                        location.reload(); // Reload page to reflect changes
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             }
         });
     });
 
-    // Save updated product details
-    $('.edit-btn').on('click', function() {
-        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var productId = $(this).data('product-id'); // Use data attribute for product ID
-        var productName = $row.find('[data-field="name"]').text().trim(); // Get the text from the editable cell
-        var productDescription = $row.find('[data-field="description"]').text().trim();
-        var productCategory = $row.find('[data-field="category"]').text().trim();
-        var productPrice = $row.find('[data-field="price"]').text().replace('$', '').trim();
-        var productInventoryQty = $row.find('[data-field="inventory_qty"]').text().trim();
-        var productCost = $row.find('[data-field="cost"]').text().replace('$', '').trim();
+    // Handle update button click
+    document.querySelectorAll('.update-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const name = document.querySelector(`#name-${productId}`).value;
+            const description = document.querySelector(`#description-${productId}`).value;
+            const price = document.querySelector(`#price-${productId}`).value;
+            const cost = document.querySelector(`#cost-${productId}`).value;
+            const inventoryQty = document.querySelector(`#inventory_qty-${productId}`).value;
 
-        // Validate fields before submitting
-        if (!productName || !productDescription || !productCategory || !productPrice || !productInventoryQty || !productCost) {
-            alert('Please fill in all fields before saving.');
-            return; // Stop execution if any field is empty
-        }
-
-        // Prepare data to send
-        var data = {
-            product_id: productId, // Send 'product_id' to match with PHP
-            name: productName,
-            description: productDescription,
-            category: productCategory,
-            price: productPrice,
-            inventory_qty: productInventoryQty,
-            cost: productCost,
-            action: 'update'
-        };
-
-        // Send POST request to update product
-        $.post('page-list-product.php', data)
-        .done(function(response) {
-            alert('Product updated successfully!');
-            location.reload(); // Reload the page to reflect the updates
-        })
-        .fail(function(xhr) {
-            console.error(xhr.responseText); // Log the error response for debugging
-            alert('Error updating product: ' + xhr.responseText); // Show error message
+            fetch('page-list-product.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'action': 'update',
+                    'product_id': productId,
+                    'name': name,
+                    'description': description,
+                    'price': price,
+                    'cost': cost,
+                    'inventory_qty': inventoryQty
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    // Optionally update the UI to reflect changes
+                    location.reload(); // Reload page to reflect changes
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     });
 
-    // Delete a product
-    $('.delete-btn').on('click', function() {
-        if (confirm('Are you sure you want to delete this product?')) {
-            var productId = $(this).data('product-id'); // Get product ID
-            $.post('page-list-product.php', {
-                product_id: productId, // Send 'product_id' to match with PHP
-                action: 'delete'
-            })
-            .done(function(response) {
-                alert('Product deleted successfully!');
-                location.reload(); // Refresh the page to reflect changes
-            })
-            .fail(function(xhr) {
-                console.error(xhr.responseText); // Log the error response for debugging
-                alert('Error deleting product: ' + xhr.responseText); // Show error message
-            });
-        }
-    });
 
     // Save product details as PDF
     $('.save-pdf-btn').on('click', function() {
