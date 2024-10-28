@@ -9,8 +9,7 @@ session_start([
 
 include('config.php'); // Includes database connection
 require 'vendor/autoload.php';
-require('fpdf/fpdf.php');
-
+require 'fpdf/fpdf.php';
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
@@ -20,7 +19,7 @@ if (!isset($_SESSION["username"])) {
 $username = htmlspecialchars($_SESSION["username"]);
 
 // Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = :username";
+$user_query = "SELECT id, username, email, date FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
 $stmt->execute();
@@ -34,46 +33,29 @@ if (!$user_info) {
 $email = htmlspecialchars($user_info['email']);
 $date = htmlspecialchars($user_info['date']);
 
-// Check if the user is logged in
-if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) 
-
-
-
 // Retrieve sales data from the sales table only
-$query = "SELECT sales_id, sale_date, name AS product_name, total_price AS price, sale_status AS sales_status, sales_qty, payment_status, sales_price 
+$query = "SELECT 
+            sales_id, 
+            sale_date, 
+            name AS product_name, 
+            total_price, 
+            sale_status AS sales_status, 
+            sales_qty, 
+            payment_status, 
+            sales_price 
           FROM sales
           ORDER BY sale_date DESC";
+
 $stmt = $connection->prepare($query);
 $stmt->execute();
 $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
     $sales_id = $_POST['sales_id'] ?? null;
 
-    // Update sale data
-    if ($action === 'update') {
-        $sale_date = $_POST['sale_date'];
-        $product_name = $_POST['product_name'];
-        $unit = $_POST['unit'];
-        $price = $_POST['price'];
-        $quantity = $_POST['quantity'];
-        $sales_status = $_POST['sales_status'];
-        $payment_status = $_POST['payment_status'];
-
-        $query = "UPDATE sales SET sale_date = ?, product_name = ?, unit = ?, price = ?, quantity = ?, sales_status = ?, payment_status = ? WHERE sales_id = ?";
-        $stmt = $connection->prepare($query);
-
-        if ($stmt->execute([$sale_date, $product_name, $unit, $price, $quantity, $sales_status, $payment_status, $sales_id])) {
-            echo json_encode(['success' => 'Sale updated successfully.']);
-            return;
-        }
-
-        echo json_encode(['error' => 'Failed to update sale.']);
-        return;
-    }
+    
 
     // Delete sale
     if ($action === 'delete') {
@@ -82,11 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($stmt->execute([$sales_id])) {
             echo json_encode(['success' => 'Sale deleted successfully.']);
-            return;
+            exit;
         }
 
         echo json_encode(['error' => 'Failed to delete sale.']);
-        return;
+        exit;
     }
 
     // Save as PDF
@@ -94,27 +76,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $query = "SELECT * FROM sales WHERE sales_id = ?";
         $stmt = $connection->prepare($query);
         $stmt->execute([$sales_id]);
-        $sale = $stmt->fetch();
+        $sale = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($sale) {
+            $sales_price = $sale['sales_price'] ?? 'N/A';
+            $total_price = $sale['total_price'] ?? 'N/A';
+
             // Generate PDF
             $pdf = new FPDF();
             $pdf->AddPage();
             $pdf->SetFont('Arial', 'B', 16);
             $pdf->Cell(40, 10, 'Sales Record');
-
             $pdf->Ln(10);
             $pdf->SetFont('Arial', '', 12);
-
             $pdf->Cell(40, 10, 'Sale Date: ' . $sale['sale_date']);
             $pdf->Ln(8);
             $pdf->Cell(40, 10, 'Product Name: ' . $sale['product_name']);
             $pdf->Ln(8);
             $pdf->Cell(40, 10, 'Unit: ' . $sale['unit']);
             $pdf->Ln(8);
-            $pdf->Cell(40, 10, 'Price: $' . number_format($sale['price'], 2));
+            $pdf->Cell(40, 10, 'Sales Price: $' . number_format($sales_price, 2));
             $pdf->Ln(8);
-            $pdf->Cell(40, 10, 'Quantity: ' . $sale['quantity']);
+            $pdf->Cell(40, 10, 'Total Price: $' . number_format($total_price, 2));
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Quantity: ' . $sale['sales_qty']);
             $pdf->Ln(8);
             $pdf->Cell(40, 10, 'Sales Status: ' . $sale['sales_status']);
             $pdf->Ln(8);
@@ -125,83 +110,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdf->Output('F', $pdf_filename);
 
             echo json_encode(['success' => 'PDF saved successfully.', 'pdf_url' => $pdf_filename]);
-            return;
+            exit;
         }
 
         echo json_encode(['error' => 'Sale not found.']);
-        return;
+        exit;
     }
 
     // Invalid action response
     echo json_encode(['error' => 'Invalid action.']);
+    exit;
 }
 
-    try {
-        // Fetch inventory notifications with product images
-        $inventoryQuery = $connection->prepare("
-            SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-            FROM inventory i
-            JOIN products p ON i.product_id = p.id
-            WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-            ORDER BY i.last_updated DESC
-        ");
-        $inventoryQuery->execute([
-            ':low_stock' => 10,
-            ':high_stock' => 1000,
-        ]);
-        $inventoryNotifications = $inventoryQuery->fetchAll();
-    
-        // Fetch reports notifications with product images
-        $reportsQuery = $connection->prepare("
-            SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-                   JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-                   p.image_path
-            FROM reports r
-            JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-            WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-               OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-            ORDER BY r.report_date DESC
-        ");
-        $reportsQuery->execute([
-            ':high_revenue' => 10000,
-            ':low_revenue' => 1000,
-        ]);
-        $reportsNotifications = $reportsQuery->fetchAll();
-    } catch (PDOException $e) {
-        // Handle any errors during database queries
-        echo "Error: " . $e->getMessage();
-    }
+// Fetch inventory notifications with product images
+try {
+    $inventoryQuery = $connection->prepare("
+        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
+        FROM inventory i
+        JOIN products p ON i.product_id = p.id
+        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
+        ORDER BY i.last_updated DESC
+    ");
+    $inventoryQuery->execute([
+        ':low_stock' => 10,
+        ':high_stock' => 1000,
+    ]);
+    $inventoryNotifications = $inventoryQuery->fetchAll();
+} catch (PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
 
-    try {
-        // Prepare and execute the query to fetch user information from the users table
-        $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-        $stmt = $connection->prepare($user_query);
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
+// Fetch reports notifications with product images
+try {
+    $reportsQuery = $connection->prepare("
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
+               p.image_path
+        FROM reports r
+        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
+           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        ORDER BY r.report_date DESC
+    ");
+    $reportsQuery->execute([
+        ':high_revenue' => 10000,
+        ':low_revenue' => 1000,
+    ]);
+    $reportsNotifications = $reportsQuery->fetchAll();
+} catch (PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
+
+// Prepare user data for display
+try {
+    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    
+    // Fetch user data
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user_info) {
+        // Retrieve user details and sanitize output
+        $email = htmlspecialchars($user_info['email']);
+        $date = date('d F, Y', strtotime($user_info['date']));
+        $location = htmlspecialchars($user_info['location']);
+        $user_id = htmlspecialchars($user_info['id']);
         
-        // Fetch user data
-        $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-        if ($user_info) {
-            // Retrieve user details and sanitize output
-            $email = htmlspecialchars($user_info['email']);
-            $date = date('d F, Y', strtotime($user_info['date']));
-            $location = htmlspecialchars($user_info['location']);
-            $user_id = htmlspecialchars($user_info['id']);
-            
-            // Check if a user image exists, use default if not
-            $existing_image = htmlspecialchars($user_info['user_image']);
-            $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-    
-        }
-    } catch (PDOException $e) {
-        // Handle database errors
-        exit("Database error: " . $e->getMessage());
-    } catch (Exception $e) {
-        // Handle user not found or other exceptions
-        exit("Error: " . $e->getMessage());
+        // Check if a user image exists, use default if not
+        $existing_image = htmlspecialchars($user_info['user_image']);
+        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
     }
-
+} catch (PDOException $e) {
+    exit("Database error: " . $e->getMessage());
+} catch (Exception $e) {
+    exit("Error: " . $e->getMessage());
+}
 ?>
 
 
@@ -662,7 +647,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
                 <td contenteditable="true" class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
                 <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['sales_price'], 2)); ?></td>
-                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['price'], 2)); ?></td>
+                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['total_price'], 2)); ?></td>
                 <td contenteditable="true" class="editable" data-field="sales-qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
                 <td contenteditable="true" class="editable" data-field="sales_status">
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div>
@@ -672,9 +657,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-success action-btn" data-action="save" data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
-                        <i data-toggle="tooltip" data-placement="top" title="Update" class="ri-pencil-line mr-0"></i>
-                    </button>
+                    
                     <button type="button" class="btn btn-warning action-btn" data-action="delete" data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
                         <i data-toggle="tooltip" data-placement="top" title="Delete" class="ri-delete-bin-line mr-0"></i>
                     </button>
@@ -734,72 +717,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Inline editing
-    $(document).on('click', '.editable', function() {
-        let $this = $(this);
-        let currentText = $this.text().trim();
-        let input = $('<input>', {
-            type: 'text',
-            value: currentText,
-            class: 'form-control form-control-sm'
-        });
-
-        $this.html(input);
-        input.focus();
-
-        input.on('blur', function() {
-            let newText = $(this).val().trim();
-            $this.text(newText);
-        });
-
-        input.on('keypress', function(e) {
-            if (e.which === 13) {
-                $(this).blur();
-            }
-        });
-    });
-
-    // Save updated sales details
-    $(document).on('click', '.action-btn[data-action="save"]', function() {
-        let $row = $(this).closest('tr');
-        let salesId = $(this).data('sale-id');
-        let saleDate = $row.find('[data-field="sale_date"]').text().trim();
-        let productName = $row.find('[data-field="product_name"]').text().trim();
-        let unit = $row.find('[data-field="unit"]').text().trim();
-        let price = $row.find('[data-field="price"]').text().trim().replace('$', '');
-        let quantity = $row.find('[data-field="sales-qty"]').text().trim();
-        let salesStatus = $row.find('[data-field="sales_status"]').text().trim();
-        let paymentStatus = $row.find('[data-field="payment_status"]').text().trim();
-
-        if (!saleDate || !productName || !unit || !price || !quantity || !salesStatus || !paymentStatus) {
-            alert('Please fill in all fields before saving.');
-            return;
-        }
-
-        $.post('page-list-sale.php', {
-            sales_id: salesId,
-            sale_date: saleDate,
-            product_name: productName,
-            unit: unit,
-            price: price,
-            quantity: quantity,
-            sales_status: salesStatus,
-            payment_status: paymentStatus,
-            action: 'update'
-        })
-        .done(function(response) {
-            try {
-                let data = JSON.parse(response);
-                alert(data.success || data.error);
-                location.reload();
-            } catch (error) {
-                alert('Error processing update response.');
-            }
-        })
-        .fail(function() {
-            alert('Error updating sale.');
-        });
-    });
 
     // Delete sale
     $(document).on('click', '.action-btn[data-action="delete"]', function() {
@@ -811,15 +728,18 @@ $(document).ready(function() {
                 action: 'delete'
             })
             .done(function(response) {
+                console.log("Response from server:", response); // Log the response for debugging
                 try {
                     let data = JSON.parse(response);
                     alert(data.success || data.error);
-                    location.reload();
+                    location.reload(); // Reload the page to reflect changes
                 } catch (error) {
+                    console.error('Error parsing response:', error);
                     alert('Error processing delete response.');
                 }
             })
             .fail(function() {
+                console.error('AJAX error occurred while deleting sale.');
                 alert('Error deleting sale.');
             });
         }
@@ -828,10 +748,13 @@ $(document).ready(function() {
     // Save sale details as PDF
     $(document).on('click', '.action-btn[data-action="save_pdf"]', function() {
         let salesId = $(this).data('sale-id');
-        window.location.href = 'pdf_generate.php?sales_id=' + salesId;
+        window.location.href = 'pdf_generate.php?sales_id=' + salesId; // Redirect to PDF generation script
     });
 });
 </script>
+
+
+
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
