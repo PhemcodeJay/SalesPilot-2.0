@@ -48,87 +48,48 @@ $stmt->execute();
 $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-// Handle form actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    $sale_id = $_POST['sale_id'] ?? null;
+include 'config.php'; // database configuration file
 
-    if (!$sale_id) {
-        echo json_encode(['error' => 'Sale ID is missing']);
-        exit;
-    }
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $action = $_POST['action'] ?? '';
+    $sales_id = $_POST['sales_id'] ?? null;
 
-    // Handle delete action
-    if ($action === 'delete') {
-        $delete_query = "DELETE FROM sales WHERE sales_id = :sales_id";
-        $stmt = $connection->prepare($delete_query);
-        $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
-        if ($stmt->execute()) {
-            echo json_encode(['success' => 'Sale deleted']);
-        } else {
-            echo json_encode(['error' => 'Failed to delete sale']);
-        }
-        exit;
-    }
+    switch ($action) {
+        case 'update':
+            // Update sale data
+            $sale_date = $_POST['sale_date'];
+            $product_name = $_POST['product_name'];
+            $unit = $_POST['unit'];
+            $price = $_POST['price'];
+            $quantity = $_POST['quantity'];
+            $sales_status = $_POST['sales_status'];
+            $payment_status = $_POST['payment_status'];
 
-    // Handle save (update) action
-    if ($action === 'update') {
-        $field = $_POST['field'] ?? null;
-        $value = $_POST['value'] ?? null;
-
-        if ($field && $value) {
-            $update_query = "UPDATE sales SET $field = :value WHERE sales_id = :sales_id";
-            $stmt = $connection->prepare($update_query);
-            $stmt->bindParam(':value', $value);
-            $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
-
-            if ($stmt->execute()) {
-                echo json_encode(['success' => 'Sale updated']);
+            $query = "UPDATE sales SET sale_date = ?, product_name = ?, unit = ?, price = ?, quantity = ?, sales_status = ?, payment_status = ? WHERE sales_id = ?";
+            $stmt = $pdo->prepare($query);
+            if ($stmt->execute([$sale_date, $product_name, $unit, $price, $quantity, $sales_status, $payment_status, $sales_id])) {
+                echo json_encode(['success' => 'Sale updated successfully.']);
             } else {
-                echo json_encode(['error' => 'Failed to update sale']);
+                echo json_encode(['error' => 'Failed to update sale.']);
             }
-        } else {
-            echo json_encode(['error' => 'Field or value missing']);
-        }
-        exit;
-    }
+            break;
 
-    // Handle save as PDF action
-    if ($action === 'save_pdf') {
-        // Fetch sale data
-        $query = "SELECT * FROM sales WHERE sales_id = :sales_id";
-        $stmt = $connection->prepare($query);
-        $stmt->bindParam(':sales_id', $sale_id, PDO::PARAM_INT);
-        $stmt->execute();
-        $sale = $stmt->fetch(PDO::FETCH_ASSOC);
+        case 'delete':
+            // Delete sale
+            $query = "DELETE FROM sales WHERE sales_id = ?";
+            $stmt = $pdo->prepare($query);
+            if ($stmt->execute([$sales_id])) {
+                echo json_encode(['success' => 'Sale deleted successfully.']);
+            } else {
+                echo json_encode(['error' => 'Failed to delete sale.']);
+            }
+            break;
 
-        if ($sale) {
-            // Generate PDF using FPDF (you should have FPDF installed)
-            require 'fpdf.php'; // Include FPDF library
-            $pdf = new FPDF();
-            $pdf->AddPage();
-            $pdf->SetFont('Arial', 'B', 16);
-            $pdf->Cell(40, 10, 'Sale Details');
-            $pdf->Ln();
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Cell(40, 10, 'Product: ' . $sale['product_name']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Price: $' . number_format($sale['price'], 2));
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Quantity: ' . $sale['sales_qty']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Sales Status: ' . $sale['sales_status']);
-            $pdf->Ln();
-            $pdf->Cell(40, 10, 'Payment Status: ' . $sale['payment_status']);
-            $pdf->Output('D', 'sale_' . $sale_id . '.pdf');
-        } else {
-            echo json_encode(['error' => 'Sale not found']);
-        }
-        exit;
+        default:
+            echo json_encode(['error' => 'Invalid action.']);
+            break;
     }
 }
-
-
 
     try {
         // Fetch inventory notifications with product images
@@ -728,102 +689,105 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Enable inline editing on click
-    $('.editable').on('click', function() {
-        var $this = $(this);
-        var currentText = $this.text().trim(); // Trim any whitespace
-        var input = $('<input>', {
+    // Inline editing
+    $(document).on('click', '.editable', function() {
+        let $this = $(this);
+        let currentText = $this.text().trim();
+        let input = $('<input>', {
             type: 'text',
             value: currentText,
             class: 'form-control form-control-sm'
         });
-        $this.html(input); // Replace the text with an input element
+
+        $this.html(input);
         input.focus();
 
-        // Save the new value on blur
         input.on('blur', function() {
-            var newText = $(this).val().trim(); // Trim the new value
-            var $parentRow = $this.closest('tr');
-            var id = $parentRow.data('sale-id'); // Get the sale ID
-            var field = $this.data('field');
-
-            if (newText === currentText) {
-                $this.html(currentText); // No change, revert to original
-                return;
-            }
-
-            // Send updated value to server
-            $.post('page-list-sale.php', {
-                sale_id: id, // Use 'sale_id' for the sale
-                field: field,
-                value: newText,
-                action: 'update'
-            })
-            .done(function(response) {
-                console.log('Sales data updated successfully.');
-                $this.html(newText); // Update cell content
-            })
-            .fail(function(xhr, status, error) {
-                console.error('Error updating sales data: ', error);
-                alert('Error updating sales data.');
-                $this.html(currentText); // Revert to original text on error
-            });
+            let newText = $(this).val().trim();
+            $this.text(newText);
         });
 
-        // Handle pressing the enter key to save and blur
         input.on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
+            if (e.which === 13) {
                 $(this).blur();
             }
         });
     });
 
-    // Save updated sales data
-    $('.action-btn[data-action="save"]').on('click', function() {
-        var $row = $(this).closest('tr'); // Get the closest table row for the clicked button
-        var id = $row.data('sale-id'); // Use data attribute for sale ID
-        var saleData = {
-            sale_id: id, // Send 'sale_id' to match with PHP
-            action: 'save'
-        };
+    // Save sale update
+    $(document).on('click', '.action-btn[data-action="save"]', function() {
+        let $row = $(this).closest('tr');
+        let saleId = $(this).data('sale-id');
+        let saleDate = $row.find('[data-field="sale_date"]').text().trim();
+        let productName = $row.find('[data-field="product_name"]').text().trim();
+        let unit = $row.find('[data-field="unit"]').text().trim();
+        let price = $row.find('[data-field="price"]').text().trim();
+        let quantity = $row.find('[data-field="quantity"]').text().trim();
+        let salesStatus = $row.find('[data-field="sales_status"]').text().trim();
+        let paymentStatus = $row.find('[data-field="payment_status"]').text().trim();
 
-        $.post('page-list-sale.php', saleData)
-            .done(function(response) {
-                alert('Sales data saved successfully!');
-            })
-            .fail(function(xhr, status, error) {
-                console.error('Error saving sales data: ', error);
-                alert('Error saving sales data.');
-            });
+        if (!saleDate || !productName || !unit || !price || !quantity || !salesStatus || !paymentStatus) {
+            alert('Please fill in all fields before saving.');
+            return;
+        }
+
+        $.post('page-list-sales.php', {
+            sales_id: saleId,
+            sale_date: saleDate,
+            product_name: productName,
+            unit: unit,
+            price: price,
+            quantity: quantity,
+            sales_status: salesStatus,
+            payment_status: paymentStatus,
+            action: 'update'
+        })
+        .done(function(response) {
+            try {
+                let data = JSON.parse(response);
+                alert(data.success || data.error);
+                location.reload();
+            } catch (error) {
+                alert('Error processing update response.');
+            }
+        })
+        .fail(function() {
+            alert('Error updating sale.');
+        });
     });
 
-    // Delete a sale
-    $('.action-btn[data-action="delete"]').on('click', function() {
-        if (confirm('Are you sure you want to delete this sales data?')) {
-            var id = $(this).data('sale-id'); // Use 'sale_id' for the sale
+    // Delete sale
+    $(document).on('click', '.action-btn[data-action="delete"]', function() {
+        if (confirm('Are you sure you want to delete this sale record?')) {
+            let saleId = $(this).data('sale-id');
 
-            $.post('page-list-sale.php', {
-                sale_id: id, // Send 'sale_id' to match with PHP
+            $.post('page-list-sales.php', {
+                sales_id: saleId,
                 action: 'delete'
             })
             .done(function(response) {
-                alert('Sales data deleted successfully!');
-                location.reload(); // Refresh the page to reflect changes
+                try {
+                    let data = JSON.parse(response);
+                    alert(data.success || data.error);
+                    location.reload();
+                } catch (error) {
+                    alert('Error processing delete response.');
+                }
             })
-            .fail(function(xhr, status, error) {
-                console.error('Error deleting sales data: ', error);
-                alert('Error deleting sales data.');
+            .fail(function() {
+                alert('Error deleting sale.');
             });
         }
     });
 
-    // Save sales data as PDF
-    $('.action-btn[data-action="save_pdf"]').on('click', function() {
-        var id = $(this).data('sale-id'); // Use 'sale_id' for the sale
-        window.location.href = 'pdf_generate.php?sales_id=' + id; // Pass 'sales_id' to the PDF generator
+    // Save as PDF
+    $(document).on('click', '.action-btn[data-action="save_pdf"]', function() {
+        let saleId = $(this).data('sale-id');
+        window.location.href = 'pdf_generate.php?sales_id=' + saleId;
     });
 });
 </script>
+
 
 
 
