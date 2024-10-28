@@ -958,14 +958,14 @@ $connection = null;
                     <div class="card-body">
                         <div class="d-flex flex-wrap align-items-center mt-2">
                             <div class="d-flex align-items-center progress-order-left">
-                                <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
+                                <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
                                     <span class="progress-left">
                                         <span class="progress-bar"></span>
                                     </span>
                                     <span class="progress-right">
                                         <span class="progress-bar"></span>
                                     </span>
-                                    <div class="progress-value text-secondary">
+                                    <div class="progress-value text-primary">
                                         <?php echo $percentage_expenses_to_revenue; ?>%
                                     </div>
 
@@ -976,14 +976,14 @@ $connection = null;
                                 </div>
                             </div>
                             <div class="d-flex align-items-center ml-5 progress-order-right">
-                                <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
+                                <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
                                     <span class="progress-left">
                                         <span class="progress-bar"></span>
                                     </span>
                                     <span class="progress-right">
                                         <span class="progress-bar"></span>
                                     </span>
-                                    <div class="progress-value text-primary">
+                                    <div class="progress-value text-seondary">
                                         <?php echo $percentage_profit_to_revenue; ?>%
                                     </div>
                                 </div>
