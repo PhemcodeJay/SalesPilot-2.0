@@ -48,47 +48,92 @@ $stmt->execute();
 $sales_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-include 'config.php'; // database configuration file
-
+// Handle form actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
     $sales_id = $_POST['sales_id'] ?? null;
 
-    switch ($action) {
-        case 'update':
-            // Update sale data
-            $sale_date = $_POST['sale_date'];
-            $product_name = $_POST['product_name'];
-            $unit = $_POST['unit'];
-            $price = $_POST['price'];
-            $quantity = $_POST['quantity'];
-            $sales_status = $_POST['sales_status'];
-            $payment_status = $_POST['payment_status'];
+    // Update sale data
+    if ($action === 'update') {
+        $sale_date = $_POST['sale_date'];
+        $product_name = $_POST['product_name'];
+        $unit = $_POST['unit'];
+        $price = $_POST['price'];
+        $quantity = $_POST['quantity'];
+        $sales_status = $_POST['sales_status'];
+        $payment_status = $_POST['payment_status'];
 
-            $query = "UPDATE sales SET sale_date = ?, product_name = ?, unit = ?, price = ?, quantity = ?, sales_status = ?, payment_status = ? WHERE sales_id = ?";
-            $stmt = $pdo->prepare($query);
-            if ($stmt->execute([$sale_date, $product_name, $unit, $price, $quantity, $sales_status, $payment_status, $sales_id])) {
-                echo json_encode(['success' => 'Sale updated successfully.']);
-            } else {
-                echo json_encode(['error' => 'Failed to update sale.']);
-            }
-            break;
+        $query = "UPDATE sales SET sale_date = ?, product_name = ?, unit = ?, price = ?, quantity = ?, sales_status = ?, payment_status = ? WHERE sales_id = ?";
+        $stmt = $connection->prepare($query);
 
-        case 'delete':
-            // Delete sale
-            $query = "DELETE FROM sales WHERE sales_id = ?";
-            $stmt = $pdo->prepare($query);
-            if ($stmt->execute([$sales_id])) {
-                echo json_encode(['success' => 'Sale deleted successfully.']);
-            } else {
-                echo json_encode(['error' => 'Failed to delete sale.']);
-            }
-            break;
+        if ($stmt->execute([$sale_date, $product_name, $unit, $price, $quantity, $sales_status, $payment_status, $sales_id])) {
+            echo json_encode(['success' => 'Sale updated successfully.']);
+            return;
+        }
 
-        default:
-            echo json_encode(['error' => 'Invalid action.']);
-            break;
+        echo json_encode(['error' => 'Failed to update sale.']);
+        return;
     }
+
+    // Delete sale
+    if ($action === 'delete') {
+        $query = "DELETE FROM sales WHERE sales_id = ?";
+        $stmt = $connection->prepare($query);
+
+        if ($stmt->execute([$sales_id])) {
+            echo json_encode(['success' => 'Sale deleted successfully.']);
+            return;
+        }
+
+        echo json_encode(['error' => 'Failed to delete sale.']);
+        return;
+    }
+
+    // Save as PDF
+    if ($action === 'save_pdf') {
+        $query = "SELECT * FROM sales WHERE sales_id = ?";
+        $stmt = $connection->prepare($query);
+        $stmt->execute([$sales_id]);
+        $sale = $stmt->fetch();
+
+        if ($sale) {
+            // Generate PDF
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 16);
+            $pdf->Cell(40, 10, 'Sales Record');
+
+            $pdf->Ln(10);
+            $pdf->SetFont('Arial', '', 12);
+
+            $pdf->Cell(40, 10, 'Sale Date: ' . $sale['sale_date']);
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Product Name: ' . $sale['product_name']);
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Unit: ' . $sale['unit']);
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Price: $' . number_format($sale['price'], 2));
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Quantity: ' . $sale['quantity']);
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Sales Status: ' . $sale['sales_status']);
+            $pdf->Ln(8);
+            $pdf->Cell(40, 10, 'Payment Status: ' . $sale['payment_status']);
+
+            // Save the PDF file
+            $pdf_filename = 'sale_' . $sales_id . '.pdf';
+            $pdf->Output('F', $pdf_filename);
+
+            echo json_encode(['success' => 'PDF saved successfully.', 'pdf_url' => $pdf_filename]);
+            return;
+        }
+
+        echo json_encode(['error' => 'Sale not found.']);
+        return;
+    }
+
+    // Invalid action response
+    echo json_encode(['error' => 'Invalid action.']);
 }
 
     try {
@@ -714,15 +759,15 @@ $(document).ready(function() {
         });
     });
 
-    // Save sale update
+    // Save updated sales details
     $(document).on('click', '.action-btn[data-action="save"]', function() {
         let $row = $(this).closest('tr');
-        let saleId = $(this).data('sale-id');
+        let salesId = $(this).data('sale-id');
         let saleDate = $row.find('[data-field="sale_date"]').text().trim();
         let productName = $row.find('[data-field="product_name"]').text().trim();
         let unit = $row.find('[data-field="unit"]').text().trim();
-        let price = $row.find('[data-field="price"]').text().trim();
-        let quantity = $row.find('[data-field="quantity"]').text().trim();
+        let price = $row.find('[data-field="price"]').text().trim().replace('$', '');
+        let quantity = $row.find('[data-field="sales-qty"]').text().trim();
         let salesStatus = $row.find('[data-field="sales_status"]').text().trim();
         let paymentStatus = $row.find('[data-field="payment_status"]').text().trim();
 
@@ -731,8 +776,8 @@ $(document).ready(function() {
             return;
         }
 
-        $.post('page-list-sales.php', {
-            sales_id: saleId,
+        $.post('page-list-sale.php', {
+            sales_id: salesId,
             sale_date: saleDate,
             product_name: productName,
             unit: unit,
@@ -758,11 +803,11 @@ $(document).ready(function() {
 
     // Delete sale
     $(document).on('click', '.action-btn[data-action="delete"]', function() {
-        if (confirm('Are you sure you want to delete this sale record?')) {
-            let saleId = $(this).data('sale-id');
+        if (confirm('Are you sure you want to delete this sale?')) {
+            let salesId = $(this).data('sale-id');
 
-            $.post('page-list-sales.php', {
-                sales_id: saleId,
+            $.post('page-list-sale.php', {
+                sales_id: salesId,
                 action: 'delete'
             })
             .done(function(response) {
@@ -780,17 +825,13 @@ $(document).ready(function() {
         }
     });
 
-    // Save as PDF
+    // Save sale details as PDF
     $(document).on('click', '.action-btn[data-action="save_pdf"]', function() {
-        let saleId = $(this).data('sale-id');
-        window.location.href = 'pdf_generate.php?sales_id=' + saleId;
+        let salesId = $(this).data('sale-id');
+        window.location.href = 'pdf_generate.php?sales_id=' + salesId;
     });
 });
 </script>
-
-
-
-
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
