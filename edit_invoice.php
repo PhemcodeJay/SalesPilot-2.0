@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
 <footer>
-    <p>&copy; <?php echo date("Y"); ?> Your Company Name. All Rights Reserved.</p>
+    <p>&copy; <?php echo date("Y"); ?> SalesPilot. All Rights Reserved.</p>
 </footer>
 
 <script>
