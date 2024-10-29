@@ -64,56 +64,137 @@ $(document).ready(function() {
     });
 
     // Fetch data for Sell-Through and Inventory Turnover Rates
-    fetchChartData('chart-data.php', '#apex-line-area', function(response) {
-        if (!response['apex-line-area']) {
-            console.error("Missing apex-line-area data");
-            return null;
-        }
+fetchChartData('chart-data.php', '#apex-line-area', function(response) {
+    if (!response['apex-line-area']) {
+        console.error("Missing apex-line-area data");
+        return null;
+    }
 
-        const sellThroughData = response['apex-line-area'].map(item => Number(item.avg_sell_through_rate));
-        const turnoverData = response['apex-line-area'].map(item => Number(item.avg_inventory_turnover_rate));
-        const lineDates = response['apex-line-area'].map(item => item.date);
+    const sellThroughData = response['apex-line-area'].map(item => Number(item.avg_sell_through_rate));
+    const turnoverData = response['apex-line-area'].map(item => Number(item.avg_inventory_turnover_rate));
+    const lineDates = response['apex-line-area'].map(item => item.date);
 
-        return {
+    // Check if the chart container exists
+    if (jQuery("#apex-line-area").length) {
+        const options = {
             chart: {
                 height: 350,
-                type: "area",
-                zoom: { enabled: false }
+                type: "area"
             },
+            dataLabels: {
+                enabled: false // Disable data labels
+            },
+            stroke: {
+                curve: "smooth" // Smooth lines for the area chart
+            },
+            colors: ["#4788ff", "#ff4b4b"], // Set colors for the series
             series: [
                 { name: "Sell-Through Rate", data: sellThroughData },
                 { name: "Inventory Turnover Rate", data: turnoverData }
             ],
-            xaxis: { categories: lineDates }
+            xaxis: {
+                type: "datetime", // Set x-axis type to datetime
+                categories: lineDates // Use the dates from the response
+            },
+            tooltip: {
+                x: {
+                    format: "dd/MM/yy HH:mm" // Format for tooltip date
+                }
+            }
         };
-    });
 
-    // Fetch data for Revenue vs. Expenses
-    fetchChartData('chart-data.php', '#apex-column', function(response) {
-        if (!response['apex-column']) {
-            console.error("Missing apex-column data");
-            return null;
+        // Create and render the chart
+        const chart = new ApexCharts(document.querySelector("#apex-line-area"), options);
+        chart.render();
+
+        // Dark mode handling
+        const body = document.querySelector('body');
+        if (body.classList.contains('dark')) {
+            apexChartUpdate(chart, { dark: true });
         }
 
-        const revenueData = response['apex-column'].map(item => Number(item.revenue.replace(/,/g, '')));
-        const expensesData = response['apex-column'].map(item => Number(item.total_expenses.replace(/,/g, '')));
-        const profitData = response['apex-column'].map(item => Number(item.profit.replace(/,/g, '')));
-        const columnDates = response['apex-column'].map(item => item.date);
+        document.addEventListener('ChangeColorMode', function (e) {
+            apexChartUpdate(chart, e.detail);
+        });
+    }
+});
 
-        return {
-            chart: {
-                height: 350,
-                type: "bar",
-                stacked: true
-            },
-            series: [
-                { name: "Revenue", data: revenueData },
-                { name: "Expenditure", data: expensesData },
-                { name: "Profit", data: profitData }
-            ],
-            xaxis: { categories: columnDates }
-        };
+
+    // Fetch data for Revenue vs. Expenses
+fetchChartData('chart-data.php', '#apex-column', function(response) {
+    if (!response['apex-column']) {
+        console.error("Missing apex-column data");
+        return null;
+    }
+
+    const revenueData = response['apex-column'].map(item => Number(item.revenue.replace(/,/g, '')));
+    const expensesData = response['apex-column'].map(item => Number(item.total_expenses.replace(/,/g, '')));
+    const profitData = response['apex-column'].map(item => Number(item.profit.replace(/,/g, '')));
+    const columnDates = response['apex-column'].map(item => item.date);
+
+    // Chart options
+    const options = {
+        chart: {
+            height: 350,
+            type: "bar",
+            stacked: false // Set to false to display bars side by side
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false, // Keep it vertical
+                columnWidth: "55%", // Adjust width of the bars
+                endingShape: "rounded" // Rounded ends for the bars
+            }
+        },
+        dataLabels: {
+            enabled: false // Disable data labels
+        },
+        stroke: {
+            show: true,
+            width: 2,
+            colors: ["transparent"]
+        },
+        colors: ["#4788ff", "#37e6b0", "#ff4b4b"], // Customize your colors
+        series: [
+            { name: "Revenue", data: revenueData },
+            { name: "Expenditure", data: expensesData },
+            { name: "Profit", data: profitData }
+        ],
+        xaxis: {
+            categories: columnDates // Set categories for the x-axis
+        },
+        yaxis: {
+            title: {
+                text: "$ (thousands)" // Y-axis title
+            }
+        },
+        fill: {
+            opacity: 1 // Set fill opacity
+        },
+        tooltip: {
+            y: {
+                formatter: function(e) {
+                    return "$ " + e + " thousands"; // Tooltip format
+                }
+            }
+        }
+    };
+
+    // Create and render the chart
+    const chart = new ApexCharts(document.querySelector("#apex-column"), options);
+    chart.render();
+
+    // Dark mode handling
+    const body = document.querySelector('body');
+    if (body.classList.contains('dark')) {
+        apexChartUpdate(chart, { dark: true });
+    }
+
+    document.addEventListener('ChangeColorMode', function (e) {
+        apexChartUpdate(chart, e.detail);
     });
+});
+
 
     // Fetch data for 3D Pie chart
     fetchChartData('chart-data.php', '#am-3dpie-chart', function(response) {
