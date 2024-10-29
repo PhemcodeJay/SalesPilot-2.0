@@ -747,15 +747,15 @@ h2 {
 
 <div class="dashboard" id="dashboard">
     <div class="control-panel">
-        <h1 style="font-weight: bold; text-decoration: underline;">Analytics Report</h1>
+        <h1 style="font-weight: bold; text-decoration: underline; ">Analytics Report</h1>
         
     </div>
 
-    <h2 style="text-decoration: underline;">Product Metrics</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Product Performance</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
-            <tr>
+            <tr class="bg-light">
                 <th>Product Name</th>
                 <th>Product Sold</th>
             </tr>
@@ -770,11 +770,11 @@ h2 {
         </tbody>
     </table>
 
-    <h2 style="text-decoration: underline;">Top 5 Products by Revenue</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Top Products by Revenue</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
-            <tr>
+            <tr class="bg-light">
                 <th>Product Name</th>
                 <th>Revenue</th>
             </tr>
@@ -789,11 +789,11 @@ h2 {
         </tbody>
     </table>
 
-    <h2 style="text-decoration: underline;">Inventory Metrics</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Inventory Metrics</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
-            <tr>
+            <tr class="bg-light">
                 <th>Product Name</th>
                 <th>Available Stock</th>
                 <th>Inventory Quantity</th>
@@ -810,11 +810,11 @@ h2 {
         </tbody>
     </table>
 
-    <h2 style="text-decoration: underline;">Income Overview</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Income Overview</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
-            <tr>
+            <tr class="bg-light">
                 <th>Date</th>
                 <th>Revenue</th>
                 <th>Total Expenses</th>
