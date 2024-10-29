@@ -9,16 +9,18 @@ session_start([
 
 require 'config.php'; // Include your database connection script
 require 'vendor/autoload.php';
-require('fpdf/fpdf.php');
+require 'fpdf/fpdf.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
     $invoice_id = $_POST['invoice_id'] ?? null;
 
+    // Common invoice query for fetching invoice details
+    $invoice_query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+    $stmt = $connection->prepare($invoice_query);
+    $stmt->bindParam(':invoice_id', $invoice_id);
+
     if ($action === 'view' && $invoice_id) {
-        $query = "SELECT * FROM invoices WHERE id = :invoice_id"; // Use 'id' instead of 'invoice_id'
-        $stmt = $connection->prepare($query);
-        $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -33,22 +35,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo json_encode(['success' => false]);
         }
+    } elseif ($action === 'generate_pdf' && $invoice_id) {
+        $stmt->execute();
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$invoice) {
+            echo json_encode(['success' => false, 'message' => 'Invoice not found.']);
+            exit;
+        }
+
+        // Fetch invoice items
+        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id";
+        $stmt = $connection->prepare($items_query);
+        $stmt->bindParam(':invoice_id', $invoice_id);
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Generate PDF
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
+
+        // Add invoice details
+        $pdf->SetFont('Arial', 'I', 12);
+        $pdf->Cell(0, 10, 'Invoice Number: ' . $invoice['invoice_number'], 0, 1);
+        $pdf->Cell(0, 10, 'Customer Name: ' . $invoice['customer_name'], 0, 1);
+        $pdf->Cell(0, 10, 'Order Date: ' . $invoice['order_date'], 0, 1);
+        $pdf->Cell(0, 10, 'Total Amount: ' . $invoice['total_amount'], 0, 1);
+        $pdf->Ln(10); // Add a line break
+
+        // Add items header
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(80, 10, 'Item Name', 1);
+        $pdf->Cell(30, 10, 'Quantity', 1);
+        $pdf->Cell(30, 10, 'Price', 1);
+        $pdf->Cell(30, 10, 'Total', 1);
+        $pdf->Ln();
+
+        // Add items to PDF
+        $pdf->SetFont('Arial', '', 12);
+        foreach ($items as $item) {
+            $pdf->Cell(80, 10, $item['item_name'], 1);
+            $pdf->Cell(30, 10, $item['quantity'], 1);
+            $pdf->Cell(30, 10, number_format($item['price'], 2), 1);
+            $pdf->Cell(30, 10, number_format($item['total'], 2), 1);
+            $pdf->Ln();
+        }
+
+        // Output PDF to browser
+        $pdf->Output('I', 'invoice_' . $invoice['invoice_number'] . '.pdf');
+        exit;
     } elseif ($action === 'update' && $invoice_id) {
         $updated_text = $_POST['updated_text'] ?? '';
-        
-        // Update the invoice with the new text here (assuming you are updating a specific field)
         $update_query = "UPDATE invoices SET field_name = :updated_text WHERE id = :invoice_id"; // Change 'field_name' to the actual field you are updating
         $stmt = $connection->prepare($update_query);
         $stmt->bindParam(':updated_text', $updated_text);
         $stmt->bindParam(':invoice_id', $invoice_id);
-        
+
         if ($stmt->execute()) {
             echo json_encode(['message' => 'Invoice updated successfully!']);
         } else {
             echo json_encode(['message' => 'Failed to update invoice.']);
         }
     } elseif ($action === 'delete' && $invoice_id) {
-        $delete_query = "DELETE FROM invoices WHERE id = :invoice_id"; // Use 'id' instead of 'invoice_id'
+        $delete_query = "DELETE FROM invoices WHERE invoice_id = :invoice_id";
         $stmt = $connection->prepare($delete_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
 
@@ -68,7 +119,7 @@ try {
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the users table
+    // Retrieve user information
     $user_query = "SELECT username, email, date FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -85,10 +136,6 @@ try {
     // Check if invoice_id is set
     if (isset($_GET['invoice_id'])) {
         $invoice_id = intval($_GET['invoice_id']);
-
-        // Fetch invoice details
-        $invoice_query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
-        $stmt = $connection->prepare($invoice_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -97,21 +144,19 @@ try {
             throw new Exception("Invoice not found.");
         }
 
-        // Fetch invoice items from the correct table
-        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id"; // Assuming you have an 'invoice_items' table
+        // Fetch invoice items
+        $items_query = "SELECT item_name, quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id";
         $stmt = $connection->prepare($items_query);
         $stmt->bindParam(':invoice_id', $invoice_id);
         $stmt->execute();
         $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     } else {
         // Retrieve invoices if no invoice_id is provided
-        $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices"; // Use 'id' instead of 'invoice_id'
+        $invoices_query = "SELECT invoice_id AS invoice_id, invoice_number, customer_name, order_date FROM invoices";
         $stmt = $connection->prepare($invoices_query);
         $stmt->execute();
         $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
 } catch (Exception $e) {
     echo 'Error: ' . $e->getMessage();
     exit;
@@ -135,53 +180,35 @@ try {
     // Fetch reports notifications with product images
     $reportsQuery = $connection->prepare("
         SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-               p.image_path
-        FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-        ORDER BY r.report_date DESC
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.total_sales')) AS total_sales 
+        FROM reports
     ");
-    $reportsQuery->execute([
-        ':high_revenue' => 10000,
-        ':low_revenue' => 1000,
-    ]);
+    $reportsQuery->execute();
     $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
-
-// Prepare and execute the query to fetch user information from the users table
-try {
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
 } catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
+    echo 'Error: ' . $e->getMessage();
+    exit;
 }
+
+// Additional code for rendering or processing notifications
+
+function fetchData($table, $field, $value) {
+    global $connection; // Your PDO instance
+
+    // Prepare the SQL query based on the table name
+    if ($table == 'invoices') {
+        $stmt = $connection->prepare("SELECT * FROM $table WHERE $field = :value LIMIT 1");
+        $stmt->execute(['value' => $value]);
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Return a single invoice
+    } elseif ($table == 'invoice_items') {
+        $stmt = $connection->prepare("SELECT * FROM $table WHERE $field = :value");
+        $stmt->execute(['value' => $value]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC); // Return all items for the given invoice
+    }
+
+    return []; // Return an empty array for other cases
+}
+
 ?>
 
 

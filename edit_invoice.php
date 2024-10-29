@@ -44,6 +44,7 @@ if (isset($_GET['invoice_id'])) {
     }
 }
 
+// Handle POST request to update invoice and items
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get the invoice ID from the POST data
     $invoiceId = $_POST['invoice_id'];
@@ -73,11 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$invoiceNumber, $customerName, $orderDate, $dueDate, $subtotal, $discount, $totalAmount, $notes, $invoiceId]);
 
         // Update items or insert new ones
-        if (isset($_POST['items'])) {
+        if (isset($_POST['items']) && is_array($_POST['items'])) {
             $items = $_POST['items']; // This should be an array of items
             
             foreach ($items as $item) {
-                $itemId = $item['invoice_items_id']; // Unique identifier for the item
+                $itemId = $item['id']; // Unique identifier for the item
                 $itemName = $item['item_name'];
                 $quantity = $item['quantity'];
                 $price = $item['price'];
@@ -104,12 +105,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Success message
         $message = "Invoice and items updated successfully.";
+
+        // Redirect to pages-invoice.php after successful update
+        header("Location: pages-invoice.php?message=" . urlencode($message));
+        exit(); // Ensure no further code is executed after the redirect
     } catch (PDOException $e) {
         // Handle any errors during the update
         $message = "Error updating invoice: " . $e->getMessage();
+        // Optionally log the error or handle it as needed
+        error_log($message); // Log the error for debugging
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

@@ -644,16 +644,16 @@ try {
     <?php if (!empty($sales_data)): ?>
         <?php foreach ($sales_data as $sale): ?>
             <tr data-sale-id="<?php echo htmlspecialchars($sale['sales_id']); ?>">
-                <td contenteditable="true" class="editable" data-field="sale_date"><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
-                <td contenteditable="true" class="editable" data-field="product_name"><?php echo htmlspecialchars($sale['product_name']); ?></td>
-                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['sales_price'], 2)); ?></td>
-                <td contenteditable="true" class="editable" data-field="price">$<?php echo htmlspecialchars(number_format($sale['total_price'], 2)); ?></td>
-                <td contenteditable="true" class="editable" data-field="sales-qty"><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
-                <td contenteditable="true" class="editable" data-field="sales_status">
+                <td><?php echo htmlspecialchars(date('d M Y', strtotime($sale['sale_date']))); ?></td>
+                <td><?php echo htmlspecialchars($sale['product_name']); ?></td>
+                <td>$<?php echo htmlspecialchars(number_format($sale['sales_price'], 2)); ?></td>
+                <td>$<?php echo htmlspecialchars(number_format($sale['total_price'], 2)); ?></td>
+                <td><?php echo htmlspecialchars($sale['sales_qty']); ?></td>
+                <td>
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['sales_status']); ?></div>
                 </td>
                 
-                <td contenteditable="true" class="editable" data-field="payment_status">
+                <td>
                     <div class="badge badge-success"><?php echo htmlspecialchars($sale['payment_status']); ?></div>
                 </td>
                 <td>

@@ -102,23 +102,61 @@ function handlePDFGeneration($type, $id) {
             }
             break;
 
-        case 'invoice':
-            $invoice = fetchData('invoices', 'invoice_id', $id);
-            if ($invoice) {
-                $data = [
-                    'Invoice Number' => $invoice['invoice_number'],
-                    'Customer Name' => $invoice['customer_name'],
-                    'Order Date' => $invoice['order_date'],
-                    'Due Date' => $invoice['due_date'],
-                    'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
-                    'Discount' => '$' . number_format($invoice['discount'], 2),
-                    'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
-                ];
-                generatePDF('Invoice Details', $data, "invoice_$id.pdf");
-            } else {
-                displayError('Invoice not found.');
-            }
-            break;
+            case 'invoice':
+                $invoice = fetchData('invoices', 'invoice_id', $id); // Fetch the invoice
+                if ($invoice) {
+                    // Fetching invoice items associated with the invoice
+                    $invoiceItems = fetchData('invoice_items', 'invoice_id', $id); // Fetch invoice items
+                    
+                    // Check the type of $invoiceItems
+                    if (!is_array($invoiceItems)) {
+                        // If it's not an array, log an error
+                        error_log('Invoice items fetch returned unexpected type: ' . gettype($invoiceItems));
+                        $invoiceItems = []; // Set to empty array to prevent further errors
+                    }
+            
+                    // Prepare the invoice data
+                    $data = [
+                        'Invoice Number' => $invoice['invoice_number'],
+                        'Customer Name' => $invoice['customer_name'],
+                        'Order Date' => $invoice['order_date'],
+                        'Due Date' => $invoice['due_date'],
+                        'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
+                        'Discount' => '$' . number_format($invoice['discount'], 2),
+                        'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
+                    ];
+            
+                    // Prepare the invoice items for the PDF
+                    if (!empty($invoiceItems)) {
+                        $itemsData = [];
+                        foreach ($invoiceItems as $item) {
+                            if (is_array($item)) {
+                                // Ensure $item is an array before accessing offsets
+                                $itemsData[] = [
+                                    'Item Name' => $item['item_name'],
+                                    'Quantity' => $item['quantity'],
+                                    'Price' => '$' . number_format($item['price'], 2),
+                                    'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
+                                ];
+                            } else {
+                                error_log('Unexpected item type: ' . gettype($item));
+                            }
+                        }
+                        // Add the items data to the PDF data
+                        $data['Items'] = $itemsData;
+                    } else {
+                        $data['Items'] = 'No items found for this invoice.';
+                    }
+            
+                    // Generate the PDF with invoice details and items
+                    generatePDF('Invoice Details', $data, "invoice_$id.pdf");
+                } else {
+                    displayError('Invoice not found.');
+                }
+                break;
+            
+            
+            
 
         case 'product':
             $product = fetchData('products', 'id', $id);
