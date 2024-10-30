@@ -569,7 +569,7 @@ if (jQuery("#layout1-chart-4").length) {
           height: 150,
           type: 'line',
           zoom: {
-            enabled: false
+            enabled: true
           },
           dropShadow: {
             enabled: true,

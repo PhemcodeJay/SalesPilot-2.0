@@ -240,7 +240,7 @@ fetchChartData('chart-data.php', '#apex-column', function(response) {
                 series.dataFields.value = "revenue";
                 series.dataFields.category = "product";
                 series.colors.list = [
-                    am4core.color("#4788ff"),
+                    am4core.color("#FF7E41"),
                     am4core.color("#37e6b0"),
                     am4core.color("#ff4b4b"),
                     am4core.color("#fe721c"),

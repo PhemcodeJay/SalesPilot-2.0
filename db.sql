@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 28, 2024 at 01:47 AM
+-- Generation Time: Oct 30, 2024 at 07:50 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -141,7 +141,7 @@ CREATE TABLE `invoice_items` (
   `item_name` varchar(255) NOT NULL,
   `qty` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `total` decimal(10,2) NOT NULL
+  `total` decimal(10,2) GENERATED ALWAYS AS (`qty` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -262,47 +262,6 @@ CREATE TABLE `sales` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
---
--- Triggers `sales`
---
-DELIMITER $$
-CREATE TRIGGER `update_inventory` AFTER INSERT ON `sales` FOR EACH ROW BEGIN
-    -- Update available stock in inventory 
-    UPDATE inventory im
-    SET im.available_stock = (
-        SELECT p.inventory_qty
-        FROM products p
-        WHERE p.id = NEW.id
-    ) - NEW.sales_qty
-    WHERE im.product_id = NEW.id;
-    
-    -- Update total_sales and total_quantity in sales_analytics
-    UPDATE sales_analytics sa
-    SET sa.total_sales = sa.total_sales + NEW.total_price,
-        sa.total_quantity = sa.total_quantity + NEW.sales_qty,
-        sa.total_profit = sa.total_profit + (NEW.total_price - (NEW.sales_qty * (
-            SELECT p.cost
-            FROM products p
-            WHERE p.id = NEW.id
-        ))),
-        sa.net_profit = sa.total_profit - sa.total_expenses
-    WHERE sa.id = NEW.id;
-    
-    -- Update most_sold_product_id in sales_analytics if necessary
-    UPDATE sales_analytics sa
-    SET sa.most_sold_product_id = NEW.id
-    WHERE sa.id = NEW.id
-    AND NEW.sales_qty > (
-        SELECT MAX(s.sales_qty)
-        FROM sales s
-        WHERE DATE(s.sale_date) = DATE(NEW.sale_date)
-        AND s.product_id = NEW.id
-        GROUP BY s.product_id
-    );
-END
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
@@ -367,7 +326,6 @@ CREATE TABLE `suppliers` (
   `supply_qty` int(11) NOT NULL,
   `note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -490,128 +448,14 @@ ALTER TABLE `staffs`
   ADD PRIMARY KEY (`staff_id`);
 
 --
--- Indexes for table `suppliers`
---
-ALTER TABLE `suppliers`
-  ADD PRIMARY KEY (`supplier_id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `activation_codes`
---
-ALTER TABLE `activation_codes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
-
---
--- AUTO_INCREMENT for table `customers`
---
-ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
-
---
--- AUTO_INCREMENT for table `expenses`
---
-ALTER TABLE `expenses`
-  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
-
---
--- AUTO_INCREMENT for table `inventory`
---
-ALTER TABLE `inventory`
-  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
-
---
--- AUTO_INCREMENT for table `invoices`
---
-ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
-
---
--- AUTO_INCREMENT for table `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `payments`
---
-ALTER TABLE `payments`
-  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
-
---
--- AUTO_INCREMENT for table `reports`
---
-ALTER TABLE `reports`
-  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
--- AUTO_INCREMENT for table `sales`
---
-ALTER TABLE `sales`
-  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
-
---
--- AUTO_INCREMENT for table `sales_analytics`
---
-ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=188;
-
---
--- AUTO_INCREMENT for table `staffs`
---
-ALTER TABLE `staffs`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
-
---
--- AUTO_INCREMENT for table `suppliers`
---
-ALTER TABLE `suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `inventory`
---
-ALTER TABLE `inventory`
-  ADD CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
-
---
--- Constraints for table `invoice_items`
+-- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  ADD CONSTRAINT `fk_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`invoice_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 28, 2024 at 03:24 AM
+-- Generation Time: Oct 30, 2024 at 07:50 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -203,11 +203,7 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
-(15, '123456', 'Koko stores', 'Delivery Invoice', '2024-10-23', 'paid', '1234', '112 freeway Blvd Bklyn NY', 'same as above', 'MasterCard', '123334567678', '2020-08-13', 250.00, 5.00, 245.00, 'Products in good condition', 'Laptops ', 2, 200.00, 400.00),
-(16, '344656', 'Larry gaga', 'Product or Services Details', '2016-01-17', 'unpaid', '342', '111 freeway nairobi', '111 freeway mairobi', 'MasterCard', '12333456789', '2020-08-12', 480.00, 10.00, 450.00, 'Invoice Details', NULL, NULL, NULL, NULL),
-(20, '234', 'kimo', 'proforma', '2024-10-10', 'paid', '123445', '112 freeway Ohio ', '112 freeway Ohio ', 'visa', '34567890', '2024-10-17', 650.00, 10.00, 600.00, 'good', NULL, NULL, NULL, NULL),
-(21, '435657', 'joe', 'delivery', '2024-10-02', 'unpaid', '1245', '1234  highway Texas ', '1234  highway Texas ', 'mpesa', '3456789012', '2024-10-18', 410.00, 2.00, 0.00, '', NULL, NULL, NULL, NULL),
-(22, '7890', 'mike', 'product supply', '2024-10-05', 'paid', '6789009', '112 good estate bariga', '112 good estate bariga', 'mpesa', '3456789012', '2024-10-18', 430.00, 0.00, 0.00, '', NULL, NULL, NULL, NULL);
+(0, '0012', 'Mini stores', 'Supply Invoice', '2024-10-24', 'paid', '12345', '1234 Billings way Lagos ', '1234 Billings way Lagos ', 'Mpesa', '0101674289', '2024-10-29', 745.00, 15.00, 0.00, '', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -221,15 +217,15 @@ CREATE TABLE `invoice_items` (
   `item_name` varchar(255) NOT NULL,
   `qty` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `total` decimal(10,2) NOT NULL
+  `total` decimal(10,2) GENERATED ALWAYS AS (`qty` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `invoice_items`
 --
 
-INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`, `total`) VALUES
-(0, 22, 'kettle ', 2, 215.00, 430.00);
+INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
+(1, 0, 'Dell laptop', 5, 125.00);
 
 -- --------------------------------------------------------
 
@@ -407,47 +403,6 @@ INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_
 (68, 49, 7, 61, 66, 10, '2024-09-17 00:42:22', 'completed', 'paid', 'Tissot  watch', 'Goods', 'sold', 'uploads/productswristwatch.jpg', 450.00),
 (69, 52, 7, 57, 63, 50, '2024-08-25 04:18:46', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 'uploads/productsvitamins.jpg', 35.00);
 
---
--- Triggers `sales`
---
-DELIMITER $$
-CREATE TRIGGER `update_inventory` AFTER INSERT ON `sales` FOR EACH ROW BEGIN
-    -- Update available stock in inventory 
-    UPDATE inventory im
-    SET im.available_stock = (
-        SELECT p.inventory_qty
-        FROM products p
-        WHERE p.id = NEW.id
-    ) - NEW.sales_qty
-    WHERE im.product_id = NEW.id;
-    
-    -- Update total_sales and total_quantity in sales_analytics
-    UPDATE sales_analytics sa
-    SET sa.total_sales = sa.total_sales + NEW.total_price,
-        sa.total_quantity = sa.total_quantity + NEW.sales_qty,
-        sa.total_profit = sa.total_profit + (NEW.total_price - (NEW.sales_qty * (
-            SELECT p.cost
-            FROM products p
-            WHERE p.id = NEW.id
-        ))),
-        sa.net_profit = sa.total_profit - sa.total_expenses
-    WHERE sa.id = NEW.id;
-    
-    -- Update most_sold_product_id in sales_analytics if necessary
-    UPDATE sales_analytics sa
-    SET sa.most_sold_product_id = NEW.id
-    WHERE sa.id = NEW.id
-    AND NEW.sales_qty > (
-        SELECT MAX(s.sales_qty)
-        FROM sales s
-        WHERE DATE(s.sale_date) = DATE(NEW.sale_date)
-        AND s.product_id = NEW.id
-        GROUP BY s.product_id
-    );
-END
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
@@ -483,6 +438,7 @@ CREATE TABLE `sales_analytics` (
 --
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
+(0, '2024-09-17', 433300.00, 27.74, 0.00, 0.00, 238.47, 0.42, 999.99, 0.00, 0.00, 313100.00, 120200.00, '2024-10-29 02:15:44', 433300, 1817, 99, 0, 0, 0, 0),
 (185, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-12 19:42:19', 1007925, 2659, 99, 0, 0, 0, 0),
 (186, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-17 19:08:51', 1007925, 2659, 99, 0, 0, 0, 0),
 (187, '2024-09-17', 1007925.00, 28.67, 0.00, 0.00, 379.06, 0.26, 999.99, 0.00, 0.00, 718975.00, 288950.00, '2024-10-26 15:33:20', 1007925, 2659, 99, 0, 0, 0, 0);
@@ -665,128 +621,14 @@ ALTER TABLE `staffs`
   ADD PRIMARY KEY (`staff_id`);
 
 --
--- Indexes for table `suppliers`
---
-ALTER TABLE `suppliers`
-  ADD PRIMARY KEY (`supplier_id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `activation_codes`
---
-ALTER TABLE `activation_codes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
-
---
--- AUTO_INCREMENT for table `customers`
---
-ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
-
---
--- AUTO_INCREMENT for table `expenses`
---
-ALTER TABLE `expenses`
-  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
-
---
--- AUTO_INCREMENT for table `inventory`
---
-ALTER TABLE `inventory`
-  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
-
---
--- AUTO_INCREMENT for table `invoices`
---
-ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
-
---
--- AUTO_INCREMENT for table `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `payments`
---
-ALTER TABLE `payments`
-  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
-
---
--- AUTO_INCREMENT for table `reports`
---
-ALTER TABLE `reports`
-  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
--- AUTO_INCREMENT for table `sales`
---
-ALTER TABLE `sales`
-  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
-
---
--- AUTO_INCREMENT for table `sales_analytics`
---
-ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=188;
-
---
--- AUTO_INCREMENT for table `staffs`
---
-ALTER TABLE `staffs`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
-
---
--- AUTO_INCREMENT for table `suppliers`
---
-ALTER TABLE `suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `inventory`
---
-ALTER TABLE `inventory`
-  ADD CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
-
---
--- Constraints for table `invoice_items`
+-- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  ADD CONSTRAINT `fk_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`invoice_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

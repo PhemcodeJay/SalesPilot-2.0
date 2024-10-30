@@ -174,6 +174,7 @@ try {
     $total_revenue = number_format($total_revenue, 2);
     $total_expenses_combined = number_format($total_expenses_combined, 2);
     $total_expenses = number_format($total_expenses, 2);
+    $total_cost = number_format($total_cost, 2);
     $total_profit = number_format($total_profit, 2);
     $percentage_expenses_to_revenue = number_format($percentage_expenses_to_revenue,);
     $percentage_profit_to_revenue = number_format($percentage_profit_to_revenue,);
@@ -719,8 +720,8 @@ $connection = null;
                                         <img src="http://localhost/project/assets/images/product/2.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
-                                    <p class="mb-2">Expenditure</p>
-                                    <h4>$<?php echo $total_expenses_combined; ?></h4>
+                                    <p class="mb-2">Total Cost</p>
+                                    <h4>$<?php echo $total_cost; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
@@ -774,7 +775,7 @@ $connection = null;
                     </div>                    
                     <div class="card-body">
                     <h4>Top Earners</h4>
-                        <div id="am-layeredcolumn-chart" style="height: 360px;"></div>
+                        <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
                     </div> 
                 </div>
             </div>
@@ -801,7 +802,7 @@ $connection = null;
                     </div>
                     <div class="card-body">
                     <h4>Revenue vs Profit</h4>
-                        <div id="am-columnlinr-chart" style="min-height: 360px;"></div>
+                        <div id="am-columnlinr-chart" style="min-height: 400px;"></div>
                     </div>
                 </div>
             </div>
@@ -939,7 +940,7 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Profit vs Expenditure</h4>
+                            <h4 class="card-title">Net Profit vs Expenditure</h4>
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
     <div class="dropdown">
@@ -983,13 +984,13 @@ $connection = null;
                                     <span class="progress-right">
                                         <span class="progress-bar"></span>
                                     </span>
-                                    <div class="progress-value text-seondary">
+                                    <div class="progress-value text-secondary">
                                         <?php echo $percentage_profit_to_revenue; ?>%
                                     </div>
                                 </div>
                                 <div class="progress-value ml-3">
                                     <h5>$<?php echo $total_profit; ?></h5>
-                                    <p class="mb-0">Profit</p>
+                                    <p class="mb-0">Net Profit</p>
                                 </div>
                             </div>
                         </div>
@@ -1039,7 +1040,14 @@ $connection = null;
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Function to update all charts based on the selected time range

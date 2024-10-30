@@ -561,7 +561,7 @@ try {
                         </div>
 
                    <div class="card-body">
-                     <div id="apex-basic" style="height: 350px;"></div>
+                     <div id="apex-basic" style="height: 400px;"></div>
                   </div>
                </div>
         
@@ -573,7 +573,7 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
@@ -584,7 +584,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="apex-line-area" style="height: 350px;"></div>
+                     <div id="apex-line-area" style="height: 400px;"></div>
                   </div>
                </div> 
 
@@ -598,7 +598,7 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
@@ -609,7 +609,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="am-3dpie-chart" style="height: 350px;"></div>
+                     <div id="am-3dpie-chart" style="height: 400px;"></div>
                   </div>
                </div>
                <div class="card">
@@ -620,7 +620,7 @@ try {
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
+                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
                                     This Month<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
@@ -631,7 +631,7 @@ try {
                             </div>
                         </div>
                   <div class="card-body">
-                     <div id="apex-column" style="height: 350px;"></div>
+                     <div id="apex-column" style="height: 400px;"></div>
                   </div>
                </div>
               
@@ -686,7 +686,14 @@ try {
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-
+<script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
 
 <script>
 document.getElementById('createButton').addEventListener('click', function() {
