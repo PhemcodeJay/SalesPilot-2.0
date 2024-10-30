@@ -7,134 +7,106 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-require 'config.php'; // Include your database connection script
+require 'config.php'; // Include database connection script
 
 try {
-    // Check if username is set in session
+    // Ensure the user is logged in
     if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
+        throw new Exception("User not logged in.");
     }
 
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user information from the users table
-    $user_query = "SELECT id, username, email, date, phone, location, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
+    // Retrieve user details
+    $userQuery = "SELECT id, username, email, date, phone, location, user_image FROM users WHERE username = :username";
+    $stmt = $connection->prepare($userQuery);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user_info) {
-        throw new Exception("User not found.");
+    if (!$user) {
+        throw new Exception("User details not found.");
     }
 
-    // Sanitize and store user data
-    $email = htmlspecialchars($user_info['email']);
-    $date = date('d F, Y', strtotime($user_info['date']));
-    $location = htmlspecialchars($user_info['location']);
-    $user_id = htmlspecialchars($user_info['id']);
-    $existing_image = htmlspecialchars($user_info['user_image']);
-    $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
+    // Set default image if not set
+    $userImage = !empty($user['user_image']) ? $user['user_image'] : 'uploads/user/default.png';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Retrieve and sanitize form data
-    $invoice_number = $_POST['invoice_number'] ?? '';
-    $customer_name = $_POST['customer_name'] ?? '';
-    $invoice_description = $_POST['invoice_description'] ?? '';
-    $order_date = $_POST['order_date'] ?? '';
-    $order_status = $_POST['order_status'] ?? '';
-    $order_id = $_POST['order_id'] ?? '';
-    $billing_address = $_POST['billing_address'] ?? '';
-    $shipping_address = $_POST['shipping_address'] ?? '';
-    $items = $_POST['item_name'] ?? [];
-    $quantities = $_POST['quantity'] ?? [];
-    $prices = $_POST['price'] ?? [];
-    $notes = $_POST['notes'] ?? '';
-    $bank = $_POST['bank'] ?? '';
-    $account_no = $_POST['account_no'] ?? '';
-    $due_date = $_POST['due_date'] ?? '';
-    $subtotal = $_POST['subtotal'] ?? 0;
-    $discount = $_POST['discount'] ?? 0;
-    $total_amount = $_POST['total_amount'] ?? 0;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Get and sanitize form data
+        $invoiceData = [
+            'invoice_number' => $_POST['invoice_number'] ?? '',
+            'customer_name' => $_POST['customer_name'] ?? '',
+            'invoice_description' => $_POST['invoice_description'] ?? '',
+            'order_date' => $_POST['order_date'] ?? '',
+            'order_status' => $_POST['order_status'] ?? '',
+            'order_id' => $_POST['order_id'] ?? '',
+            'billing_address' => $_POST['billing_address'] ?? '',
+            'shipping_address' => $_POST['shipping_address'] ?? '',
+            'notes' => $_POST['notes'] ?? '',
+            'bank' => $_POST['bank'] ?? '',
+            'account_no' => $_POST['account_no'] ?? '',
+            'due_date' => $_POST['due_date'] ?? '',
+            'subtotal' => $_POST['subtotal'] ?? 0,
+            'discount' => $_POST['discount'] ?? 0,
+            'total_amount' => $_POST['total_amount'] ?? 0,
+        ];
 
-    try {
-        // Begin transaction
-        $connection->beginTransaction();
+        // Extract item details from form data
+        $items = $_POST['item_name'] ?? [];
+        $quantities = $_POST['quantity'] ?? [];
+        $prices = $_POST['price'] ?? [];
 
-        // Insert invoice data
-        $invoice_query = "
-            INSERT INTO invoices 
-            (invoice_number, customer_name, invoice_description, order_date, order_status, 
-            order_id, billing_address, shipping_address, bank, account_no, due_date, 
-            subtotal, discount, total_amount, notes)
-            VALUES 
-            (:invoice_number, :customer_name, :invoice_description, :order_date, :order_status, 
-            :order_id, :billing_address, :shipping_address, :bank, :account_no, :due_date, 
-            :subtotal, :discount, :total_amount, :notes)
-        ";
+        try {
+            $connection->beginTransaction();
 
-        $stmt = $connection->prepare($invoice_query);
-        $stmt->execute([
-            ':invoice_number' => $invoice_number,
-            ':customer_name' => $customer_name,
-            ':invoice_description' => $invoice_description,
-            ':order_date' => $order_date,
-            ':order_status' => $order_status,
-            ':order_id' => $order_id,
-            ':billing_address' => $billing_address,
-            ':shipping_address' => $shipping_address,
-            ':bank' => $bank,
-            ':account_no' => $account_no,
-            ':due_date' => $due_date,
-            ':subtotal' => $subtotal,
-            ':discount' => $discount,
-            ':total_amount' => $total_amount,
-            ':notes' => $notes,
-        ]);
+            // Insert main invoice data
+            $invoiceQuery = "
+                INSERT INTO invoices 
+                (invoice_number, customer_name, invoice_description, order_date, order_status, order_id, 
+                billing_address, shipping_address, bank, account_no, due_date, subtotal, discount, total_amount, notes)
+                VALUES 
+                (:invoice_number, :customer_name, :invoice_description, :order_date, :order_status, :order_id, 
+                :billing_address, :shipping_address, :bank, :account_no, :due_date, :subtotal, :discount, :total_amount, :notes)
+            ";
 
-        // Get the last inserted invoice ID
-        $invoice_id = $connection->lastInsertId();
+            $stmt = $connection->prepare($invoiceQuery);
+            $stmt->execute($invoiceData);
+            $invoiceId = $connection->lastInsertId();
 
-        // Insert each item associated with this invoice
-        $item_query = "
-            INSERT INTO invoice_items (invoice_id, item_name, qty, price, total)
-            VALUES (:invoice_id, :item_name, :quantity, :price, :total)
-        ";
-        $stmtItem = $connection->prepare($item_query);
+            // Insert each item linked to the invoice
+            $itemQuery = "
+                INSERT INTO invoice_items (invoice_id, item_name, qty, price, total)
+                VALUES (:invoice_id, :item_name, :quantity, :price, :total)
+            ";
+            $stmtItem = $connection->prepare($itemQuery);
 
-        foreach ($items as $index => $item_name) {
-            // Ensure item details are not empty
-            if (!empty($item_name) && isset($quantities[$index]) && isset($prices[$index])) {
-                $quantity = $quantities[$index] ?? 0;
-                $price = $prices[$index] ?? 0.00;
-                $total = $quantity * $price;
+            foreach ($items as $index => $itemName) {
+                if (!empty($itemName) && isset($quantities[$index]) && isset($prices[$index])) {
+                    $quantity = $quantities[$index];
+                    $price = $prices[$index];
+                    $total = $quantity * $price;
 
-                // Execute the item insertion query
-                $stmtItem->execute([
-                    ':invoice_id' => $invoice_id,
-                    ':item_name' => $item_name,
-                    ':quantity' => $quantity,
-                    ':price' => $price,
-                    ':total' => $total,
-                ]);
+                    $stmtItem->execute([
+                        ':invoice_id' => $invoiceId,
+                        ':item_name' => $itemName,
+                        ':quantity' => $quantity,
+                        ':price' => $price,
+                        ':total' => $total,
+                    ]);
+                }
             }
+
+            $connection->commit();
+            header('Location: pages-invoice.php?status=success');
+            exit;
+
+        } catch (PDOException $e) {
+            $connection->rollBack();
+            echo 'Database error: ' . $e->getMessage();
         }
-
-        // Commit transaction
-        $connection->commit();
-
-        // Redirect to pages-invoice.php with a success status
-        header('Location: pages-invoice.php?status=success');
-        exit;
-    } catch (PDOException $e) {
-        // Roll back transaction if there is an error
-        $connection->rollBack();
-        echo 'Database error: ' . $e->getMessage();
     }
-}
 
-
-    // Fetch inventory notifications with product images
+    // Fetch inventory notifications
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
         FROM inventory i
@@ -142,13 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
         ORDER BY i.last_updated DESC
     ");
-    $inventoryQuery->execute([
-        ':low_stock' => 10,
-        ':high_stock' => 1000,
-    ]);
+    $inventoryQuery->execute([':low_stock' => 10, ':high_stock' => 1000]);
     $inventoryNotifications = $inventoryQuery->fetchAll();
 
-    // Fetch reports notifications with product images
+    // Fetch report notifications
     $reportsQuery = $connection->prepare("
         SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
                JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
@@ -159,17 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
         ORDER BY r.report_date DESC
     ");
-    $reportsQuery->execute([
-        ':high_revenue' => 10000,
-        ':low_revenue' => 1000,
-    ]);
+    $reportsQuery->execute([':high_revenue' => 10000, ':low_revenue' => 1000]);
     $reportsNotifications = $reportsQuery->fetchAll();
 
 } catch (PDOException $e) {
-    // Handle database errors
     exit("Database error: " . $e->getMessage());
 } catch (Exception $e) {
-    // Handle user not found or other exceptions
     exit("Error: " . $e->getMessage());
 }
 ?>
