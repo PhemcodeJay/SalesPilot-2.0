@@ -36,88 +36,103 @@ try {
     $existing_image = htmlspecialchars($user_info['user_image']);
     $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Retrieve form data
-        $invoice_number = $_POST['invoice_number'] ?? '';
-        $customer_name = $_POST['customer_name'] ?? '';
-        $invoice_description = $_POST['invoice_description'] ?? '';
-        $order_date = $_POST['order_date'] ?? '';
-        $order_status = $_POST['order_status'] ?? '';
-        $order_id = $_POST['order_id'] ?? '';
-        $billing_address = $_POST['billing_address'] ?? '';
-        $shipping_address = $_POST['shipping_address'] ?? '';
-        $items = $_POST['item_name'] ?? [];
-        $quantities = $_POST['quantity'] ?? [];
-        $prices = $_POST['price'] ?? [];
-        $notes = $_POST['notes'] ?? '';
-        $bank = $_POST['bank'] ?? '';
-        $account_no = $_POST['account_no'] ?? '';
-        $due_date = $_POST['due_date'] ?? '';
-        $subtotal = $_POST['subtotal'] ?? 0;
-        $discount = $_POST['discount'] ?? 0;
-        $total_amount = $_POST['total_amount'] ?? 0;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve and sanitize form data
+    $invoice_number = $_POST['invoice_number'] ?? '';
+    $customer_name = $_POST['customer_name'] ?? '';
+    $invoice_description = $_POST['invoice_description'] ?? '';
+    $order_date = $_POST['order_date'] ?? '';
+    $order_status = $_POST['order_status'] ?? '';
+    $order_id = $_POST['order_id'] ?? '';
+    $billing_address = $_POST['billing_address'] ?? '';
+    $shipping_address = $_POST['shipping_address'] ?? '';
+    $items = $_POST['item_name'] ?? [];
+    $quantities = $_POST['quantity'] ?? [];
+    $prices = $_POST['price'] ?? [];
+    $notes = $_POST['notes'] ?? '';
+    $bank = $_POST['bank'] ?? '';
+    $account_no = $_POST['account_no'] ?? '';
+    $due_date = $_POST['due_date'] ?? '';
+    $subtotal = $_POST['subtotal'] ?? 0;
+    $discount = $_POST['discount'] ?? 0;
+    $total_amount = $_POST['total_amount'] ?? 0;
 
-        try {
-            // Insert invoice data
-            $invoice_query = "
-                INSERT INTO invoices 
-                (invoice_number, customer_name, invoice_description, order_date, order_status, 
-                order_id, billing_address, shipping_address, bank, account_no, due_date, 
-                subtotal, discount, total_amount, notes)
-                VALUES 
-                (:invoice_number, :customer_name, :invoice_description, :order_date, :order_status, 
-                :order_id, :billing_address, :shipping_address, :bank, :account_no, :due_date, 
-                :subtotal, :discount, :total_amount, :notes)
-            ";
+    try {
+        // Begin transaction
+        $connection->beginTransaction();
 
-            $stmt = $connection->prepare($invoice_query);
-            $stmt->execute([
-                ':invoice_number' => $invoice_number,
-                ':customer_name' => $customer_name,
-                ':invoice_description' => $invoice_description,
-                ':order_date' => $order_date,
-                ':order_status' => $order_status,
-                ':order_id' => $order_id,
-                ':billing_address' => $billing_address,
-                ':shipping_address' => $shipping_address,
-                ':bank' => $bank,
-                ':account_no' => $account_no,
-                ':due_date' => $due_date,
-                ':subtotal' => $subtotal,
-                ':discount' => $discount,
-                ':total_amount' => $total_amount,
-                ':notes' => $notes,
-            ]);
+        // Insert invoice data
+        $invoice_query = "
+            INSERT INTO invoices 
+            (invoice_number, customer_name, invoice_description, order_date, order_status, 
+            order_id, billing_address, shipping_address, bank, account_no, due_date, 
+            subtotal, discount, total_amount, notes)
+            VALUES 
+            (:invoice_number, :customer_name, :invoice_description, :order_date, :order_status, 
+            :order_id, :billing_address, :shipping_address, :bank, :account_no, :due_date, 
+            :subtotal, :discount, :total_amount, :notes)
+        ";
 
-            // Get the last inserted invoice ID
-            $invoice_id = $connection->lastInsertId();
+        $stmt = $connection->prepare($invoice_query);
+        $stmt->execute([
+            ':invoice_number' => $invoice_number,
+            ':customer_name' => $customer_name,
+            ':invoice_description' => $invoice_description,
+            ':order_date' => $order_date,
+            ':order_status' => $order_status,
+            ':order_id' => $order_id,
+            ':billing_address' => $billing_address,
+            ':shipping_address' => $shipping_address,
+            ':bank' => $bank,
+            ':account_no' => $account_no,
+            ':due_date' => $due_date,
+            ':subtotal' => $subtotal,
+            ':discount' => $discount,
+            ':total_amount' => $total_amount,
+            ':notes' => $notes,
+        ]);
 
-            // Insert invoice items into a separate items table
-            foreach ($items as $index => $item_name) {
-                if (!empty($item_name) && isset($quantities[$index]) && isset($prices[$index])) {
-                    $item_query = "
-                        INSERT INTO invoice_items (invoice_id, item_name, qty, price, total)
-                        VALUES (:invoice_id, :item_name, :quantity, :price, :total)
-                    ";
+        // Get the last inserted invoice ID
+        $invoice_id = $connection->lastInsertId();
 
-                    $stmt = $connection->prepare($item_query);
-                    $stmt->execute([
-                        ':invoice_id' => $invoice_id,
-                        ':item_name' => $item_name,
-                        ':quantity' => $quantities[$index] ?? 0,
-                        ':price' => $prices[$index] ?? 0.00,
-                        ':total' => ($quantities[$index] ?? 0) * ($prices[$index] ?? 0.00),
-                    ]);
-                }
+        // Insert each item associated with this invoice
+        $item_query = "
+            INSERT INTO invoice_items (invoice_id, item_name, qty, price, total)
+            VALUES (:invoice_id, :item_name, :quantity, :price, :total)
+        ";
+        $stmtItem = $connection->prepare($item_query);
+
+        foreach ($items as $index => $item_name) {
+            // Ensure item details are not empty
+            if (!empty($item_name) && isset($quantities[$index]) && isset($prices[$index])) {
+                $quantity = $quantities[$index] ?? 0;
+                $price = $prices[$index] ?? 0.00;
+                $total = $quantity * $price;
+
+                // Execute the item insertion query
+                $stmtItem->execute([
+                    ':invoice_id' => $invoice_id,
+                    ':item_name' => $item_name,
+                    ':quantity' => $quantity,
+                    ':price' => $price,
+                    ':total' => $total,
+                ]);
             }
-
-            // Redirect to pages-invoice.php with a success message
-            header('Location: pages-invoice.php?status=success');
-            exit;
-        } catch (PDOException $e) {
-            echo 'Database error: ' . $e->getMessage();
         }
+
+        // Commit transaction
+        $connection->commit();
+
+        // Redirect to pages-invoice.php with a success status
+        header('Location: pages-invoice.php?status=success');
+        exit;
+    } catch (PDOException $e) {
+        // Roll back transaction if there is an error
+        $connection->rollBack();
+        echo 'Database error: ' . $e->getMessage();
     }
+}
+
 
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("

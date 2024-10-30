@@ -190,53 +190,6 @@ try {
     exit;
 }
 
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-        // Determine the time of day for personalized greeting
-        $current_hour = (int)date('H');
-        if ($current_hour < 12) {
-            $time_of_day = "Morning";
-        } elseif ($current_hour < 18) {
-            $time_of_day = "Afternoon";
-        } else {
-            $time_of_day = "Evening";
-        }
-
-        // Personalized greeting
-        $greeting = "Hi " . $username . ", Good " . $time_of_day;
-    } else {
-        // If no user data, fallback to guest greeting and default image
-        $greeting = "Hello, Guest";
-        $image_to_display = 'uploads/user/default.png';
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
-
 // Additional code for rendering or processing notifications
 
 function fetchData($table, $field, $value) {
