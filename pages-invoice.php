@@ -14,8 +14,6 @@ require 'config.php'; // Include database connection script
 require 'vendor/autoload.php';
 require 'fpdf/fpdf.php';
 
-
-
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
@@ -174,8 +172,51 @@ function generateInvoicePDF($invoice_id) {
     $pdf->Output('D', 'Invoice_' . $invoice['invoice_number'] . '.pdf');
     exit;
 }
-?>
 
+
+
+
+// Fetch inventory notifications with product images
+try {
+    $inventoryQuery = $connection->prepare("
+        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
+        FROM inventory i
+        JOIN products p ON i.product_id = p.id
+        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
+        ORDER BY i.last_updated DESC
+    ");
+    $inventoryQuery->execute([
+        ':low_stock' => 10,
+        ':high_stock' => 1000,
+    ]);
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
+
+// Fetch reports notifications with product images
+try {
+    $reportsQuery = $connection->prepare("
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
+               p.image_path
+        FROM reports r
+        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
+           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        ORDER BY r.report_date DESC
+    ");
+    $reportsQuery->execute([
+        ':high_revenue' => 10000,
+        ':low_revenue' => 1000,
+    ]);
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
+?>
 
 
 
@@ -628,22 +669,22 @@ function generateInvoicePDF($invoice_id) {
         <?php if (!empty($invoices)): ?>
             <?php foreach ($invoices as $invoice): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($invoice['id']); ?></td>
+                    <td><?php echo htmlspecialchars($invoice['invoice_id']); ?></td>
                     <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
                     <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
                     <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
                     <td>
                         <div class="d-flex align-items-center list-action">
-                            <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['id']); ?>" title="View" data-toggle="modal" data-target="#invoiceModal">
+                            <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View" data-toggle="modal" data-target="#invoiceModal">
                                 <i class="ri-eye-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['id']); ?>" title="Save as PDF">
+                            <button class="action-btn badge bg-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
                                 <i class="ri-download-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['id']); ?>" title="Edit">
+                            <button class="action-btn badge bg-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Edit">
                                 <i class="ri-pencil-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-warning" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['id']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');">
+                            <button class="action-btn badge bg-warning" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');">
                                 <i class="ri-delete-bin-line mr-0"></i>
                             </button>
                         </div>
@@ -664,7 +705,7 @@ function generateInvoicePDF($invoice_id) {
 
 <!-- Modal for displaying invoice details -->
 <div id="invoiceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="invoiceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="invoiceModalLabel">Invoice Details</h5>
@@ -673,10 +714,21 @@ function generateInvoicePDF($invoice_id) {
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Dynamic content will be loaded here -->
-                <div id="invoiceDetails">
-                    <p class="text-center">Loading invoice details...</p>
-                </div>
+                <p><strong>Invoice Number:</strong> <span id="modalInvoiceNumber"></span></p>
+                <p><strong>Customer Name:</strong> <span id="modalCustomerName"></span></p>
+                <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+                <p><strong>Total Amount:</strong> <span id="modalTotalAmount"></span></p>
+                <h4>Invoice Items:</h4>
+                <table id="itemsTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody"></tbody>
+                </table>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -684,6 +736,59 @@ function generateInvoicePDF($invoice_id) {
         </div>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    // Event delegation for opening the invoice modal
+    $('tbody').on('click', '.view-btn', function() {
+        var invoiceId = $(this).closest('tr').data('invoice-id'); // Get the invoice ID from the closest row
+
+        // AJAX request to fetch invoice details
+        $.ajax({
+            url: 'pages_invoice.php', // Your PHP script to fetch invoice data
+            type: 'POST', // Use POST for sending data
+            data: { action: 'view', invoice_id: invoiceId }, // Pass the action and invoice ID
+            dataType: 'json',
+            success: function(data) {
+                // Check if the response is successful
+                if (data.success) {
+                    // Populate modal fields with the fetched data
+                    $('#modalInvoiceNumber').text(data.invoice_number);
+                    $('#modalCustomerName').text(data.customer_name);
+                    $('#modalOrderDate').text(data.order_date);
+                    $('#modalTotalAmount').text(data.total_amount);
+
+                    // Clear previous items in the invoice items table
+                    $('#itemsBody').empty();
+
+                    // Append new invoice items to the table
+                    $.each(data.items, function(index, item) {
+                        $('#itemsBody').append(
+                            '<tr>' +
+                                '<td>' + item.item_name + '</td>' +
+                                '<td>' + item.quantity + '</td>' +
+                                '<td>$' + item.price.toFixed(2) + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    // Show the modal
+                    $('#invoiceModal').modal('show');
+                } else {
+                    // Handle the case where fetching the invoice details failed
+                    $('#itemsBody').html('<tr><td colspan="3" class="text-danger">Error fetching invoice details.</td></tr>');
+                    $('#invoiceModal').modal('show'); // Show modal to display the error message
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle AJAX errors
+                $('#itemsBody').html('<tr><td colspan="3" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
+                $('#invoiceModal').modal('show'); // Show modal to display the error message
+            }
+        });
+    });
+});
+</script>
 
 
 <!-- Footer-->
@@ -716,6 +821,8 @@ function generateInvoicePDF($invoice_id) {
     <script src="http://localhost/project/assets/js/app.js"></script>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
@@ -725,68 +832,49 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
+
 <script>
     $(document).ready(function() {
-        // Handle modal display and dynamic content loading for viewing invoices
-        $(document).on('click', '[data-action="view"], [data-toggle="modal"]', function() {
-            var invoiceId = $(this).data('invoice-id');
-            if (invoiceId) {
-                $.ajax({
-                    url: 'pages-invoice.php', // URL for fetching invoice details
-                    type: 'GET',
-                    data: { action: 'fetch_invoice_details', invoice_id: invoiceId },
-                    success: function(response) {
-                        $('#invoiceModal .modal-body').html(response);
-                        $('#invoiceModal').modal('show');
-                    },
-                    error: function() {
-                        alert('Error fetching invoice details.');
-                    }
-                });
-            }
-        });
+        // Event delegation for button clicks within the table body
+        $('tbody').on('click', '.action-btn', function() {
+            var button = $(this);
+            var action = button.data('action');
+            var invoiceId = button.data('invoice-id');
 
-        // Handle save as PDF action
-        $(document).on('click', '[data-action="save-pdf"]', function() {
-            var invoiceId = $(this).data('invoice-id');
-            if (invoiceId) {
-                window.location.href = 'pdf_generate.php?action=save_invoice_pdf&invoice_id=' + invoiceId;
+            if  (action === 'save-pdf') {
+                // Redirect to pdf_generate.php to save PDF
+                window.location.href = 'pdf_generate.php?id=' + invoiceId;
+            } else if (action === 'edit') {
+                // Redirect to edit-invoice.php for editing the invoice
+                window.location.href = 'edit_invoice.php?invoice_id=' + invoiceId;
+            } else if (action === 'delete') {
+    // Confirm deletion
+    if (confirm('Are you sure you want to delete this invoice?')) {
+        // AJAX call to delete the invoice
+        $.ajax({
+            url: 'pages-invoice.php',
+            method: 'POST', // Change to POST
+            data: { action: 'delete', id: invoiceId }, // Include action type
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    // Remove the row from the table
+                    button.closest('tr').remove();
+                    alert('Invoice deleted successfully.');
+                } else {
+                    alert('Failed to delete invoice.');
+                }
+            },
+            error: function() {
+                alert('Error deleting invoice.');
             }
-        });
-
-        // Handle update action
-        $(document).on('click', '[data-action="edit"]', function() {
-            var invoiceId = $(this).data('invoice-id');
-            if (invoiceId) {
-                // Redirect to edit page
-                window.location.href = 'pages-invoice.php?action=edit_invoice&invoice_id=' + invoiceId;
-            }
-        });
-
-        // Handle delete action
-        $(document).on('click', '[data-action="delete"]', function() {
-            var invoiceId = $(this).data('invoice-id');
-            if (invoiceId && confirm('Are you sure you want to delete this invoice?')) {
-                $.ajax({
-                    url: 'pages-invoice.php', // URL for deletion
-                    type: 'POST',
-                    data: { action: 'delete_invoice', invoice_id: invoiceId },
-                    success: function(response) {
-                        if (response.success) {
-                            alert('Invoice deleted successfully.');
-                            location.reload(); // Reload the page to update the invoice list
-                        } else {
-                            alert('Error deleting invoice: ' + response.message);
-                        }
-                    },
-                    error: function() {
-                        alert('Error deleting invoice.');
-                    }
-                });
+        });      
+                }
             }
         });
     });
 </script>
+
 
   </body>
 </html>

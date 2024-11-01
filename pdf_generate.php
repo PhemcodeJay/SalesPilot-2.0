@@ -127,7 +127,7 @@ function handlePDFGeneration($type, $id) {
                     ];
             
                     // Prepare the invoice items for the PDF
-                    if (!empty($invoiceItems)) {
+                    if (!empty($invoiceItems) && is_array($invoiceItems)) {
                         $itemsData = [];
                         foreach ($invoiceItems as $item) {
                             if (is_array($item)) {
@@ -154,7 +154,6 @@ function handlePDFGeneration($type, $id) {
                     displayError('Invoice not found.');
                 }
                 break;
-            
             
             
 
