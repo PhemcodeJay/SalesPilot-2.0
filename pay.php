@@ -4,7 +4,7 @@ session_start();
 // Sample product details (this should be fetched from your database)
 $plans = [
     'starter' => [
-        'monthly' => 0, // Monthly price for Starter Plan
+        'monthly' => 9, // Monthly price for Starter Plan
     ],
     'growth' => [
         'monthly' => 29, // Monthly price for Growth Plan
