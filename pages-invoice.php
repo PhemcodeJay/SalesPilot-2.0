@@ -147,47 +147,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-// Generate invoice PDF function
-function generateInvoicePDF($invoice_id) {
-    global $connection;
+// Handle PDF generation (GET request for invoice)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
+    $invoice_id = $_GET['invoice_id'];
     
-    $invoice = fetchInvoice($invoice_id);
+    // Fetch the invoice details
+    $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':invoice_id', $invoice_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$invoice) {
-        echo json_encode(['success' => false, 'message' => 'Invoice not found.']);
-        return;
-    }
+    // Check if the invoice was found
+    if ($invoice) {
+        // Fetch the invoice items
+        $queryItems = "SELECT * FROM invoice_items WHERE invoice_id = :invoice_id";
+        $stmtItems = $connection->prepare($queryItems);
+        $stmtItems->bindParam(':invoice_id', $invoice_id, PDO::PARAM_INT);
+        $stmtItems->execute();
+        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
 
-    $items = fetchInvoiceItems($invoice_id);
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
-    $pdf->SetFont('Arial', 'I', 12);
-    $pdf->Cell(0, 10, 'Invoice Number: ' . $invoice['invoice_number'], 0, 1);
-    $pdf->Cell(0, 10, 'Customer Name: ' . $invoice['customer_name'], 0, 1);
-    $pdf->Cell(0, 10, 'Order Date: ' . $invoice['order_date'], 0, 1);
-    $pdf->Cell(0, 10, 'Total Amount: ' . number_format($invoice['total_amount'], 2), 0, 1);
-    $pdf->Ln(10);
+        // Initialize the PDF document
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
+        $pdf->SetFont('Arial', 'I', 12);
+        $pdf->Cell(0, 10, 'Invoice Number: ' . $invoice['invoice_number'], 0, 1);
+        $pdf->Cell(0, 10, 'Customer Name: ' . $invoice['customer_name'], 0, 1);
+        $pdf->Cell(0, 10, 'Order Date: ' . $invoice['order_date'], 0, 1);
+        $pdf->Cell(0, 10, 'Total Amount: $' . number_format($invoice['total_amount'], 2), 0, 1);
+        $pdf->Ln(10);
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(80, 10, 'Item Name', 1);
-    $pdf->Cell(30, 10, 'Quantity', 1);
-    $pdf->Cell(30, 10, 'Price', 1);
-    $pdf->Cell(30, 10, 'Total', 1);
-    $pdf->Ln();
-
-    $pdf->SetFont('Arial', '', 12);
-    foreach ($items as $item) {
-        $pdf->Cell(80, 10, $item['item_name'], 1);
-        $pdf->Cell(30, 10, $item['quantity'], 1);
-        $pdf->Cell(30, 10, number_format($item['price'], 2), 1);
-        $pdf->Cell(30, 10, number_format($item['total'], 2), 1);
+        // Table header for items
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(80, 10, 'Item Name', 1);
+        $pdf->Cell(30, 10, 'Quantity', 1);
+        $pdf->Cell(30, 10, 'Price', 1);
+        $pdf->Cell(30, 10, 'Total', 1);
         $pdf->Ln();
-    }
 
-    $pdf->Output('D', 'Invoice_' . $invoice['invoice_number'] . '.pdf');
-    exit;
+        // Table data for each item
+        $pdf->SetFont('Arial', '', 12);
+        foreach ($items as $item) {
+            $pdf->Cell(80, 10, $item['item_name'], 1);
+            $pdf->Cell(30, 10, $item['quantity'], 1);
+            $pdf->Cell(30, 10, '$' . number_format($item['price'], 2), 1);
+            $pdf->Cell(30, 10, '$' . number_format($item['total'], 2), 1);
+            $pdf->Ln();
+        }
+
+        // Output the PDF as a download
+        $pdf->Output('D', 'Invoice_' . $invoice['invoice_number'] . '.pdf');
+        exit;
+    } else {
+        echo 'Invoice not found.';
+        exit;
+    }
 }
 
 
