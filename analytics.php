@@ -696,41 +696,141 @@ document.getElementById('createButton').addEventListener('click', function() {
 </script>
 
 <script>
-document.getElementById('createButton').addEventListener('click', function() {
-    // Optional: Validate input or perform any additional checks here
-    
-    // Redirect to invoice-form.php
-    window.location.href = 'invoice-form.php';
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const dropdownItems = document.querySelectorAll('.dropdown-item');
-    const dropdownButton = document.getElementById('dropdownMenuButton001');
+document.addEventListener("DOMContentLoaded", function () {
+    // Function to fetch chart data based on the selected period
+    async function fetchChartData(period) {
+        try {
+            const response = await fetch(`/chart-dash.php?period=${period}`); // Pass the selected period to the PHP script
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            return null; // Return null on error
+        }
+    }
 
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-            e.preventDefault();
-            const selectedPeriod = item.dataset.period;
+    // Function to initialize charts with data
+    function initializeCharts(data) {
+        if (!data) return; // Return if there's no data
 
-            // Update dropdown button text based on selection
-            dropdownButton.innerHTML = `This ${capitalizeFirstLetter(selectedPeriod)}<i class="ri-arrow-down-s-line ml-1"></i>`;
+        // Extract data for each chart
+        const productMetricsData = data.productMetrics; // Assuming your data structure
+        const inventoryMetricsData = data.inventoryMetrics; // Assuming your data structure
+        const revenueByProductData = data.revenueByProduct; // Assuming your data structure
+        const expenditureData = data.expenditure; // Assuming your data structure
+        const labels = data.labels; // Assuming your data includes labels
 
-            // Call a function to fetch and update data based on the selected period
-            fetchData(selectedPeriod);
+        // Update Product Metrics Chart
+        const ctx1 = document.getElementById('apex-basic').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line', // Example type
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Product Metrics',
+                    data: productMetricsData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Update Inventory Metrics Chart
+        const ctx2 = document.getElementById('apex-line-area').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line', // Example type
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Inventory Metrics',
+                    data: inventoryMetricsData,
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Update Revenue by Product Chart
+        const ctx3 = document.getElementById('am-3dpie-chart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'pie', // Example type
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Revenue by Product',
+                    data: revenueByProductData,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'], // Sample colors
+                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        // Update Expenditure Chart
+        const ctx4 = document.getElementById('apex-column').getContext('2d');
+        new Chart(ctx4, {
+            type: 'bar', // Example type
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Expenditure',
+                    data: expenditureData,
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Event listener for dropdown items
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', async function (event) {
+            event.preventDefault();
+            const period = this.getAttribute('data-period'); // Get the selected period
+
+            // Fetch data for the selected period
+            const data = await fetchChartData(period);
+
+            // Initialize charts with the fetched data
+            initializeCharts(data);
         });
     });
 
-    function fetchData(period) {
-        // Replace with your logic to fetch data based on the selected period
-        console.log(`Fetching data for: ${period}`);
-        // Example: Use AJAX/fetch API to get data and update the UI
-    }
-
-    function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
+    // Initial fetch for default period (e.g., Month)
+    fetchChartData('month').then(data => initializeCharts(data));
 });
+
 </script>
 </body>
 </html>

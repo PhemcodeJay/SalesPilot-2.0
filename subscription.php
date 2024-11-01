@@ -10,7 +10,7 @@ session_start([
 include('config.php'); // Includes database connection
 
 try {
-    $pdo = new PDO($dsn, $username, $password, $options);
+    $connection = new PDO($dsn, $username, $password, $options);
 
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Process payment form submission
@@ -19,10 +19,10 @@ try {
         $status = 'Pending'; // Default status
 
         // Prepare SQL query
-        $stmt = $pdo->prepare("INSERT INTO payments (amount, method, status) VALUES (?, ?, ?)");
+        $stmt = $connection->prepare("INSERT INTO payments (amount, method, status) VALUES (?, ?, ?)");
         $stmt->execute([$amount, $method, $status]);
 
-        $paymentId = $pdo->lastInsertId();
+        $paymentId = $connection->lastInsertId();
 
         // Process payment based on method
         switch ($method) {
@@ -66,7 +66,7 @@ try {
         // Display payment form
 
         // Fetch inventory notifications with product images
-        $inventoryQuery = $pdo->prepare("
+        $inventoryQuery = $connection->prepare("
             SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
             FROM inventory i
             JOIN products p ON i.product_id = p.id
@@ -80,7 +80,7 @@ try {
         $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
         // Fetch reports notifications with product images
-        $reportsQuery = $pdo->prepare("
+        $reportsQuery = $connection->prepare("
             SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
                    JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
                    p.image_path
@@ -106,7 +106,7 @@ try {
 
     // Fetch user information
     $user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
-    $stmt = $pdo->prepare($user_query);
+    $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
     $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -137,7 +137,7 @@ try {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>List Customers</title>
+      <title>Subscriptions</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -678,7 +678,7 @@ try {
     </div>
 </div>
 <div class="container">
-        <h1>Payment Page</h1>
+        <h1>Renew Your Subscription</h1>
         <form id="paymentForm" method="post" action="">
             <div class="form-group">
                 <label for="amount">Amount:</label>

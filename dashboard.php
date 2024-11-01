@@ -884,123 +884,117 @@ $connection = null;
     </div>
     <?php } ?>
 </div>
-            <div class="col-lg-4">  
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body">
-                        <div class="d-flex align-items-top justify-content-between">
-                            <div class="">
-                                <p class="mb-0">Net Profit</p>
-                                <h5>$<?php echo $total_profit; ?></h5>
-                            </div>
-                            <div class="card-header-toolbar d-flex align-items-center">
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003"
-                                        data-toggle="dropdown">
-                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
-                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                        aria-labelledby="dropdownMenuButton003">
-                                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="layout1-chart-3" class="layout-chart-1"></div>
-                    </div>
+<div class="col-lg-4">  
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body">
+            <div class="d-flex align-items-top justify-content-between">
+                <div class="">
+                    <p class="mb-0">Net Profit</p>
+                    <h5>$<?php echo $total_profit; ?></h5>
                 </div>
-                <div class="card card-block card-stretch card-height-helf">
-                    <div class="card-body">
-                        <div class="d-flex align-items-top justify-content-between">
-                            <div class="">
-                                <p class="mb-0">Expenses</p>
-                                <h5>$<?php echo $total_expenses; ?></h5>
-                            </div>
-                            <div class="card-header-toolbar d-flex align-items-center">
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004"
-                                        data-toggle="dropdown">
-                                        This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
-                                    <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                        aria-labelledby="dropdownMenuButton004">
-                                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="card-header-toolbar d-flex align-items-center">
+                    <div class="dropdown">
+                        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003" data-toggle="dropdown">
+                            This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                        </span>
+                        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton003">
+                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
                         </div>
-                        <div id="layout1-chart-4" class="layout-chart-2"></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-8">  
-                <div class="card card-block card-stretch card-height">
-                    <div class="card-header d-flex justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Net Profit vs Expenditure</h4>
-                        </div>                        
-                        <div class="card-header-toolbar d-flex align-items-center">
-    <div class="dropdown">
-        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005" data-toggle="dropdown">
-            This Month <i class="ri-arrow-down-s-line ml-1"></i> <!-- Default initial time frame -->
-        </span>
-        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton005">
-            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
+            <div id="layout1-chart-3" class="layout-chart-1"></div>
+        </div>
+    </div>
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body">
+            <div class="d-flex align-items-top justify-content-between">
+                <div class="">
+                    <p class="mb-0">Expenses</p>
+                    <h5>$<?php echo $total_expenses; ?></h5>
+                </div>
+                <div class="card-header-toolbar d-flex align-items-center">
+                    <div class="dropdown">
+                        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
+                            This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                        </span>
+                        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton004">
+                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="layout1-chart-4" class="layout-chart-2"></div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-8">  
+    <div class="card card-block card-stretch card-height">
+        <div class="card-header d-flex justify-content-between">
+            <div class="header-title">
+                <h4 class="card-title">Net Profit vs Expenditure</h4>
+            </div>                        
+            <div class="card-header-toolbar d-flex align-items-center">
+                <div class="dropdown">
+                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005" data-toggle="dropdown">
+                        This Month <i class="ri-arrow-down-s-line ml-1"></i>
+                    </span>
+                    <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton005">
+                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
+                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
+                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
+                    </div>
+                </div>
+            </div>
+        </div> 
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center mt-2">
+                <div class="d-flex align-items-center progress-order-left">
+                    <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
+                        <span class="progress-left">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <span class="progress-right">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <div class="progress-value text-primary">
+                            <?php echo $percentage_expenses_to_revenue; ?>%
+                        </div>
+                    </div>
+                    <div class="progress-value ml-3 pr-5 border-right">
+                        <h5>$<?php echo $total_expenses_combined; ?></h5>
+                        <p class="mb-0">Expenditure</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center ml-5 progress-order-right">
+                    <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
+                        <span class="progress-left">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <span class="progress-right">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <div class="progress-value text-secondary">
+                            <?php echo $percentage_profit_to_revenue; ?>%
+                        </div>
+                    </div>
+                    <div class="progress-value ml-3">
+                        <h5>$<?php echo $total_profit; ?></h5>
+                        <p class="mb-0">Net Profit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pt-0">
+            <div id="layout1-chart-5"></div>
         </div>
     </div>
 </div>
 
-                    </div> 
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap align-items-center mt-2">
-                            <div class="d-flex align-items-center progress-order-left">
-                                <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
-                                    <span class="progress-left">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <span class="progress-right">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <div class="progress-value text-primary">
-                                        <?php echo $percentage_expenses_to_revenue; ?>%
-                                    </div>
-
-                                </div>
-                                <div class="progress-value ml-3 pr-5 border-right">
-                                    <h5>$<?php echo $total_expenses_combined; ?></h5>
-                                    <p class="mb-0">Expenditure</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center ml-5 progress-order-right">
-                                <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
-                                    <span class="progress-left">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <span class="progress-right">
-                                        <span class="progress-bar"></span>
-                                    </span>
-                                    <div class="progress-value text-secondary">
-                                        <?php echo $percentage_profit_to_revenue; ?>%
-                                    </div>
-                                </div>
-                                <div class="progress-value ml-3">
-                                    <h5>$<?php echo $total_profit; ?></h5>
-                                    <p class="mb-0">Net Profit</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <div id="layout1-chart-5"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- Page end  -->
     </div>
       </div>
@@ -1040,6 +1034,166 @@ $connection = null;
     <!-- app JavaScript -->
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    // Function to fetch data from the server
+    async function fetchChartData() {
+        try {
+            const response = await fetch('/chart-dash.php'); // Path to your chart-dash.php file
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+
+            // Initialize charts with fetched data
+            initializeCharts(data);
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+        }
+    }
+
+    // Function to initialize charts
+    function initializeCharts(data) {
+        // Example data extraction from the response
+        const netProfitData = data.netProfit; // Assuming this is an array of values
+        const expensesData = data.expenses; // Assuming this is an array of values
+        const netProfitVsExpenditureData = data.netProfitVsExpenditure; // Assuming this is an array of objects
+        const newChart1Data = data.newChart1; // Assuming this is an array of values
+        const newChart2Data = data.newChart2; // Assuming this is an array of values
+
+        // Net Profit Chart
+        const ctx1 = document.getElementById('layout1-chart-3').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line', // Example type
+            data: {
+                labels: data.labels, // Assuming your data includes labels
+                datasets: [{
+                    label: 'Net Profit',
+                    data: netProfitData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Expenses Chart
+        const ctx2 = document.getElementById('layout1-chart-4').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar', // Example type
+            data: {
+                labels: data.labels, // Assuming your data includes labels
+                datasets: [{
+                    label: 'Expenses',
+                    data: expensesData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Net Profit vs Expenditure Chart
+        const ctx3 = document.getElementById('layout1-chart-5').getContext('2d');
+        new Chart(ctx3, {
+            type: 'line', // Example type
+            data: {
+                labels: data.labels, // Assuming your data includes labels
+                datasets: [
+                    {
+                        label: 'Net Profit',
+                        data: netProfitVsExpenditureData.map(item => item.netProfit), // Adjust as needed
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Expenses',
+                        data: netProfitVsExpenditureData.map(item => item.expenses), // Adjust as needed
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // New Chart 1
+        const ctx4 = document.getElementById('layout1-chart-6').getContext('2d'); // Assuming you create a new div for this
+        new Chart(ctx4, {
+            type: 'bar', // Example type
+            data: {
+                labels: data.newChart1Labels, // Assuming this comes from your data
+                datasets: [{
+                    label: 'New Chart 1',
+                    data: newChart1Data,
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // New Chart 2
+        const ctx5 = document.getElementById('layout1-chart-7').getContext('2d'); // Assuming you create a new div for this
+        new Chart(ctx5, {
+            type: 'line', // Example type
+            data: {
+                labels: data.newChart2Labels, // Assuming this comes from your data
+                datasets: [{
+                    label: 'New Chart 2',
+                    data: newChart2Data,
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Call the fetch function to load data
+    fetchChartData();
+});
+
+</script>
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
@@ -1048,169 +1202,6 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Function to update all charts based on the selected time range
-    function updateCharts(range) {
-        fetch(`/chart-dash.php?range=${range}`) // Update with actual PHP endpoint path
-            .then(response => response.json())
-            .then(data => {
-                // Update each chart with the respective data
-                updateLayeredColumnChart(data.apexLayeredColumnChart); // Top 5 Categories Revenue Chart
-                updateColumnLineChart(data.apexColumnLineChart);       // Revenue vs. Profit Chart
-                updateProfitChart(data['layout1-chart-3']);           // Profit Only Chart
-                updateExpensesChart(data['layout1-chart-4']);         // Expenses Only Chart
-                updateProfitExpensesChart(data['layout1-chart-5']);    // Profit and Expenses Combined Chart
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
-    }
-
-    // Attach event listeners to dropdown items
-    document.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default anchor behavior
-            const timeframe = this.dataset.timeframe; // Get the selected timeframe
-            const dropdownButton = this.closest('.dropdown').querySelector('.dropdown-toggle');
-            dropdownButton.innerHTML = timeframe + '<i class="ri-arrow-down-s-line ml-1"></i>'; // Update button text
-            updateCharts(timeframe.toLowerCase()); // Update charts with selected timeframe
-        });
-    });
-
-    // Initial chart load with default timeframe
-    updateCharts('monthly'); // Default to monthly on page load
-});
-
-// Function to update layered column chart with fetched data
-function updateLayeredColumnChart(data) {
-    const categories = data.map(item => item.category_name);
-    const revenues = data.map(item => parseFloat(item.revenue)); // Ensure revenue is a float
-
-    const options = {
-        chart: {
-            type: 'bar',
-            height: 350,
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-            },
-        },
-        xaxis: {
-            categories: categories,
-        },
-        series: [{
-            name: 'Revenue',
-            data: revenues,
-        }],
-    };
-
-    const chart = new ApexCharts(document.querySelector("#layered-column-chart"), options);
-    chart.render();
-}
-
-// Function to update column line chart with fetched data
-function updateColumnLineChart(data) {
-    const dates = data.map(item => item.date);
-    const revenues = data.map(item => parseFloat(item.revenue));
-    const profits = data.map(item => parseFloat(item.profit));
-
-    const options = {
-        chart: {
-            type: 'line',
-            height: 350,
-        },
-        xaxis: {
-            categories: dates,
-        },
-        series: [{
-            name: 'Revenue',
-            type: 'column',
-            data: revenues,
-        }, {
-            name: 'Profit',
-            type: 'line',
-            data: profits,
-        }],
-    };
-
-    const chart = new ApexCharts(document.querySelector("#column-line-chart"), options);
-    chart.render();
-}
-
-// Function to update profit chart with fetched data
-function updateProfitChart(data) {
-    const dates = data.map(item => item.date);
-    const profits = data.map(item => parseFloat(item.profit));
-
-    const options = {
-        chart: {
-            type: 'line',
-            height: 350,
-        },
-        xaxis: {
-            categories: dates,
-        },
-        series: [{
-            name: 'Profit',
-            data: profits,
-        }],
-    };
-
-    const chart = new ApexCharts(document.querySelector("#profit-chart"), options);
-    chart.render();
-}
-
-// Function to update expenses chart with fetched data
-function updateExpensesChart(data) {
-    const dates = data.map(item => item.date);
-    const expenses = data.map(item => parseFloat(item.expenses));
-
-    const options = {
-        chart: {
-            type: 'line',
-            height: 350,
-        },
-        xaxis: {
-            categories: dates,
-        },
-        series: [{
-            name: 'Expenses',
-            data: expenses,
-        }],
-    };
-
-    const chart = new ApexCharts(document.querySelector("#expenses-chart"), options);
-    chart.render();
-}
-
-// Function to update profit and expenses combined chart with fetched data
-function updateProfitExpensesChart(data) {
-    const dates = data.map(item => item.date);
-    const profits = data.map(item => parseFloat(item.profit));
-    const expenses = data.map(item => parseFloat(item.expenses));
-
-    const options = {
-        chart: {
-            type: 'line',
-            height: 350,
-        },
-        xaxis: {
-            categories: dates,
-        },
-        series: [{
-            name: 'Profit',
-            data: profits,
-        }, {
-            name: 'Expenses',
-            data: expenses,
-        }],
-    };
-
-    const chart = new ApexCharts(document.querySelector("#profit-expenses-chart"), options);
-    chart.render();
-}
-
-</script>
-
+    
 </body>
 </html>
