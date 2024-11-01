@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 01, 2024 at 01:17 PM
+-- Generation Time: Nov 01, 2024 at 01:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -188,7 +188,7 @@ CREATE TABLE `invoices` (
   `due_date` date NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
   `discount` decimal(5,2) NOT NULL,
-  `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` * `discount` / 100) STORED
+  `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` - `subtotal` * (`discount` / 100)) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dueDate = $_POST['due_date'];
     $subtotal = $_POST['subtotal'];
     $discount = $_POST['discount'];
-    $totalAmount = $_POST['total_amount'];
+    $totalAmount = $subtotal - ($subtotal * ($discount / 100)); // Calculate total amount
 
     // Prepare the SQL statement to update the invoice details
     $updateInvoiceQuery = "UPDATE invoices 
@@ -62,17 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 due_date = ?, 
                                 subtotal = ?, 
                                 discount = ?, 
-                                total_amount = ?, 
+                                total_amount = ?
                             WHERE invoice_id = ?";
-    
+
     try {
         $stmt = $connection->prepare($updateInvoiceQuery);
-        $stmt->execute([$invoiceNumber, $customerName, $orderDate, $dueDate, $subtotal, $discount, $totalAmount, $notes, $invoiceId]);
+        $stmt->execute([$invoiceNumber, $customerName, $orderDate, $dueDate, $subtotal, $discount, $totalAmount, $invoiceId]);
 
         // Update items or insert new ones
         if (isset($_POST['items']) && is_array($_POST['items'])) {
             $items = $_POST['items']; // This should be an array of items
             
+            // First, delete all existing items for this invoice
+            $deleteItemsQuery = "DELETE FROM invoice_items WHERE invoice_id = ?";
+            $deleteStmt = $connection->prepare($deleteItemsQuery);
+            $deleteStmt->execute([$invoiceId]);
+
             foreach ($items as $item) {
                 $itemId = $item['id']; // Unique identifier for the item
                 $itemName = $item['item_name'];
@@ -80,22 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $price = $item['price'];
                 $total = $quantity * $price; // Calculate total for the item
 
-                if ($itemId) {
-                    // Update existing item
-                    $updateItemQuery = "UPDATE invoice_items 
-                                        SET item_name = ?, qty = ?, price = ?, total = ? 
-                                        WHERE invoice_items_id = ?";
-                    
-                    $itemStmt = $connection->prepare($updateItemQuery);
-                    $itemStmt->execute([$itemName, $quantity, $price, $total, $itemId]);
-                } else {
-                    // Insert new item
-                    $insertItemQuery = "INSERT INTO invoice_items (invoice_id, item_name, qty, price, total) 
-                                        VALUES (?, ?, ?, ?, ?)";
-                    
-                    $itemStmt = $connection->prepare($insertItemQuery);
-                    $itemStmt->execute([$invoiceId, $itemName, $quantity, $price, $total]);
-                }
+                // Insert new item
+                $insertItemQuery = "INSERT INTO invoice_items (invoice_id, item_name, qty, price, total) 
+                                    VALUES (?, ?, ?, ?, ?)";
+                
+                $itemStmt = $connection->prepare($insertItemQuery);
+                $itemStmt->execute([$invoiceId, $itemName, $quantity, $price, $total]);
             }
         }
 
@@ -114,7 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #f8f9fa;
         }
         header {
-            background-color: #343a40;
+            background: linear-gradient(to right, #007bff, #ff7f50); /* Blue to Orange gradient */
             color: #ffffff;
             padding: 20px;
             text-align: center;
@@ -175,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: red;
         }
         footer {
-            background-color: #343a40;
+            background: linear-gradient(to right, #007bff, #ff7f50); /* Blue to Orange gradient */
             color: white;
             text-align: center;
             padding: 15px;
@@ -230,56 +224,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="number" name="discount" id="discount" step="0.01" value="<?php echo htmlspecialchars($discount); ?>">
 
     <label for="total_amount">Total Amount:</label>
-    <input type="number" name="total_amount" id="total_amount" step="0.01" required value="<?php echo htmlspecialchars($totalAmount); ?>">
-
-    <label for="notes">Notes:</label>
-    <textarea name="notes" id="notes" rows="4"><?php echo htmlspecialchars($notes); ?></textarea>
+    <input type="number" name="total_amount" id="total_amount" step="0.01" required value="<?php echo htmlspecialchars($totalAmount); ?>" readonly>
 
     <h3>Invoice Items</h3>
     <div id="item-container">
         <?php foreach ($invoiceItems as $index => $item): ?>
-            <div class="item-row">
-                <input type="hidden" name="items[<?php echo $index; ?>][id]" value="<?php echo $item['invoice_items_id']; ?>">
-                <label for="item_name">Item Name:</label>
+            <div class="item-row" id="item-row-<?php echo $index; ?>">
+                <input type="hidden" name="items[<?php echo $index; ?>][id]" value="<?php echo htmlspecialchars($item['invoice_id']); ?>">
+                <label>Item Name:</label>
                 <input type="text" name="items[<?php echo $index; ?>][item_name]" required value="<?php echo htmlspecialchars($item['item_name']); ?>">
                 
-                <label for="quantity">Quantity:</label>
-                <input type="number" name="items[<?php echo $index; ?>][quantity]" required value="<?php echo htmlspecialchars($item['qty']); ?>">
+                <label>Quantity:</label>
+                <input type="number" name="items[<?php echo $index; ?>][quantity]" min="1" required value="<?php echo htmlspecialchars($item['qty']); ?>" class="quantity" oninput="calculateTotal()">
                 
-                <label for="price">Price:</label>
-                <input type="number" name="items[<?php echo $index; ?>][price]" required step="0.01" value="<?php echo htmlspecialchars($item['price']); ?>">
+                <label>Price:</label>
+                <input type="number" name="items[<?php echo $index; ?>][price]" step="0.01" required value="<?php echo htmlspecialchars($item['price']); ?>" class="price" oninput="calculateTotal()">
+                
+                <label>Total:</label>
+                <input type="number" name="items[<?php echo $index; ?>][total]" required value="<?php echo htmlspecialchars($item['total']); ?>" class="total" readonly>
+                
+                <button type="button" onclick="removeItem(<?php echo $index; ?>)">Remove Item</button>
             </div>
         <?php endforeach; ?>
     </div>
-    <button type="button" id="add-item">Add Item</button>
-    <br><br>
+
+    <button type="button" id="add-item-btn">Add Item</button>
     <button type="submit">Update Invoice</button>
 </form>
 
 <footer>
-    <p>&copy; <?php echo date("Y"); ?> SalesPilot. All Rights Reserved.</p>
+    <p>Invoice Management System</p>
 </footer>
 
 <script>
-    document.getElementById('add-item').addEventListener('click', function() {
+    document.getElementById('add-item-btn').addEventListener('click', function() {
         const itemContainer = document.getElementById('item-container');
-        const itemCount = itemContainer.children.length;
+        const itemIndex = itemContainer.children.length;
 
         const newItemRow = document.createElement('div');
-        newItemRow.classList.add('item-row');
+        newItemRow.className = 'item-row';
+        newItemRow.id = 'item-row-' + itemIndex;
         newItemRow.innerHTML = `
-            <input type="hidden" name="items[${itemCount}][id]" value="">
-            <label for="item_name">Item Name:</label>
-            <input type="text" name="items[${itemCount}][item_name]" required placeholder="Item Name">
+            <input type="hidden" name="items[${itemIndex}][id]" value="">
+            <label>Item Name:</label>
+            <input type="text" name="items[${itemIndex}][item_name]" required>
             
-            <label for="quantity">Quantity:</label>
-            <input type="number" name="items[${itemCount}][quantity]" required placeholder="Quantity">
+            <label>Quantity:</label>
+            <input type="number" name="items[${itemIndex}][quantity]" min="1" required class="quantity" oninput="calculateTotal()">
             
-            <label for="price">Price:</label>
-            <input type="number" name="items[${itemCount}][price]" required step="0.01" placeholder="Price">
+            <label>Price:</label>
+            <input type="number" name="items[${itemIndex}][price]" step="0.01" required class="price" oninput="calculateTotal()">
+            
+            <label>Total:</label>
+            <input type="number" name="items[${itemIndex}][total]" required class="total" readonly>
+            
+            <button type="button" onclick="removeItem(${itemIndex})">Remove Item</button>
         `;
         itemContainer.appendChild(newItemRow);
     });
+
+    function removeItem(index) {
+        const itemRow = document.getElementById('item-row-' + index);
+        if (itemRow) {
+            itemRow.remove();
+            calculateTotal(); // Recalculate total after item removal
+        }
+    }
+
+    function calculateTotal() {
+        let subtotal = 0;
+        const itemContainer = document.getElementById('item-container');
+        const items = itemContainer.children;
+
+        for (let i = 0; i < items.length; i++) {
+            const quantity = parseFloat(items[i].querySelector('.quantity').value) || 0;
+            const price = parseFloat(items[i].querySelector('.price').value) || 0;
+            const total = quantity * price;
+            items[i].querySelector('.total').value = total.toFixed(2); // Update total for each item
+            subtotal += total; // Accumulate subtotal
+        }
+
+        // Update subtotal and total amount fields
+        document.getElementById('subtotal').value = subtotal.toFixed(2);
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const totalAmount = subtotal - (subtotal * (discount / 100));
+        document.getElementById('total_amount').value = totalAmount.toFixed(2);
+    }
 </script>
 
 </body>
