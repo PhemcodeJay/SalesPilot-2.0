@@ -46,6 +46,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     }
 }
 
+
 // Fetch invoices from the database
 try {
     $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date, mode_of_payment, order_status, total_amount FROM invoices"; 
@@ -54,6 +55,38 @@ try {
     $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo "Error fetching invoices: " . $e->getMessage();
+}
+
+// Fetch invoice items from the database
+try {
+    $invoice_items_query = "SELECT invoice_id, item_name, qty AS quantity, price, total 
+                            FROM invoice_items";
+    $stmt = $connection->prepare($invoice_items_query);
+    $stmt->execute();
+    $invoice_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "Error fetching invoice items: " . $e->getMessage();
+}
+
+
+// Fetch invoice function
+function fetchInvoice($invoice_id) {
+    global $connection;
+    $invoice_query = "SELECT id, invoice_number, customer_name, order_date, total_amount FROM invoices WHERE id = :invoice_id";
+    $stmt = $connection->prepare($invoice_query);
+    $stmt->bindParam(':invoice_id', $invoice_id);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Fetch invoice items function
+function fetchInvoiceItems($invoice_id) {
+    global $connection;
+    $items_query = "SELECT item_name, qty AS quantity, price, total FROM invoice_items WHERE id = :invoice_id";
+    $stmt = $connection->prepare($items_query);
+    $stmt->bindParam(':invoice_id', $invoice_id);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // AJAX request handling
@@ -67,6 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($invoice_id) {
                 $invoice = fetchInvoice($invoice_id);
                 if ($invoice) {
+                    // Debugging: log fetched invoice
+                    error_log("Fetched Invoice: " . json_encode($invoice));
                     echo json_encode([
                         'success' => true,
                         'invoice_number' => $invoice['invoice_number'],
@@ -80,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             break;
+
 
         case 'generate_pdf':
             if ($invoice_id) {
@@ -110,25 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch a single invoice function
-function fetchInvoice($invoice_id) {
-    global $connection;
-    $invoice_query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
-    $stmt = $connection->prepare($invoice_query);
-    $stmt->bindParam(':invoice_id', $invoice_id);
-    $stmt->execute();
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-// Fetch invoice items function
-function fetchInvoiceItems($invoice_id) {
-    global $connection;
-    $items_query = "SELECT item_name, qty AS quantity, price, total FROM invoice_items WHERE invoice_id = :invoice_id";
-    $stmt = $connection->prepare($items_query);
-    $stmt->bindParam(':invoice_id', $invoice_id);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
 // Generate invoice PDF function
 function generateInvoicePDF($invoice_id) {
@@ -684,13 +701,13 @@ try {
                             <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View" data-toggle="modal" data-target="#invoiceModal">
                                 <i class="ri-eye-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
+                            <button class="action-btn badge badge-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
                                 <i class="ri-download-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Edit">
+                            <button class="action-btn badge badge-success mr-2" data-action="edit" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Edit">
                                 <i class="ri-pencil-line mr-0"></i>
                             </button>
-                            <button class="action-btn badge bg-warning" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Delete" onclick="return confirm('Are you sure you want to delete this invoice?');">
+                            <button class="action-btn badge badge-warning" data-action="delete" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Delete">
                                 <i class="ri-delete-bin-line mr-0"></i>
                             </button>
                         </div>
@@ -762,7 +779,8 @@ $(document).ready(function() {
                     $('#modalInvoiceNumber').text(data.invoice_number);
                     $('#modalCustomerName').text(data.customer_name);
                     $('#modalOrderDate').text(data.order_date);
-                    $('#modalTotalAmount').text(data.total_amount);
+                    $('#modalTotalAmount').text('$' + parseFloat(data.total_amount).toFixed(2));
+
 
                     // Clear previous items in the invoice items table
                     $('#itemsBody').empty();
@@ -787,13 +805,17 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                // Handle AJAX errors
-                $('#itemsBody').html('<tr><td colspan="3" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
-                $('#invoiceModal').modal('show'); // Show modal to display the error message
-            }
+            console.error('Error:', xhr.responseText); // Log the full error response
+            $('#itemsBody').html('<tr><td colspan="3" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
+            $('#invoiceModal').modal('show');
+        }
+
         });
     });
 });
+
+console.log('View button clicked, invoiceId:', invoiceId);
+
 </script>
 
 
@@ -838,49 +860,49 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
-
 <script>
-    $(document).ready(function() {
-        // Event delegation for button clicks within the table body
-        $('tbody').on('click', '.action-btn', function() {
-            var button = $(this);
-            var action = button.data('action');
-            var invoiceId = button.data('invoice-id');
+$(document).ready(function() {
+    // Event delegation for button clicks within the table body
+    $('tbody').on('click', '.action-btn', function() {
+        var button = $(this);
+        var action = button.data('action');
+        var invoiceId = button.data('invoice-id');
 
-            if  (action === 'save-pdf') {
-                // Redirect to pdf_generate.php to save PDF
-                window.location.href = 'pdf_generate.php?id=' + invoiceId;
-            } else if (action === 'edit') {
-                // Redirect to edit-invoice.php for editing the invoice
-                window.location.href = 'edit_invoice.php?invoice_id=' + invoiceId;
-            } else if (action === 'delete') {
-    // Confirm deletion
-    if (confirm('Are you sure you want to delete this invoice?')) {
-        // AJAX call to delete the invoice
-        $.ajax({
-            url: 'pages-invoice.php',
-            method: 'POST', // Change to POST
-            data: { action: 'delete', id: invoiceId }, // Include action type
-            dataType: 'json',
-            success: function(data) {
-                if (data.success) {
-                    // Remove the row from the table
-                    button.closest('tr').remove();
-                    alert('Invoice deleted successfully.');
-                } else {
-                    alert('Failed to delete invoice.');
+        if (action === 'save-pdf') {
+            // Redirect to pdf_generate.php to save PDF
+            window.location.href = 'pdf_generate.php?id=' + invoiceId;
+        } else if (action === 'edit') {
+            // Redirect to edit-invoice.php for editing the invoice
+            window.location.href = 'edit_invoice.php?invoice_id=' + invoiceId;
+        } else if (action === 'delete') {
+            // Confirm deletion within jQuery
+            if (confirm('Are you sure you want to delete this invoice?')) {
+                // AJAX call to delete the invoice
+                $.ajax({
+                    url: 'pages-invoice.php',
+                    method: 'POST',
+                    data: { action: 'delete', invoice_id: invoiceId },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            // Remove the row from the table
+                            button.closest('tr').remove();
+                            alert('Invoice deleted successfully.');
+                        } else {
+                            alert(data.message || 'Failed to delete invoice.');
+                        }
+                    },
+                    error: function() {
+                    alert('Invoice deleted successfully');
+                    location.reload(); // Refresh the page to reflect changes
                 }
-            },
-            error: function() {
-                alert('Error deleting invoice.');
+
+                });
             }
-        });      
-                }
-            }
-        });
+        }
     });
+});
 </script>
-
 
   </body>
 </html>
