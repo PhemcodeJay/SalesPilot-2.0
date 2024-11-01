@@ -144,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <header>
-        <div class="logo">Your Logo</div>
+        <div class="logo">SalesPilot - Payment</div>
     </header>
 
     <main>
