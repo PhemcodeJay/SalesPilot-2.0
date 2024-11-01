@@ -113,11 +113,13 @@ try {
             }
 
             $connection->commit();
-            echo "Invoice submitted successfully!";
+            header("Location: pages-invoice.php");
+            exit(); // Ensure no further code is executed
         } catch (PDOException $e) {
             $connection->rollBack();
             throw new Exception("Database error while processing invoice: " . $e->getMessage());
         }
+        
     }
 
     // Fetch inventory notifications
