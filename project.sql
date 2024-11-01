@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 30, 2024 at 07:50 PM
+-- Generation Time: Nov 01, 2024 at 09:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -203,7 +203,7 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
-(0, '0012', 'Mini stores', 'Supply Invoice', '2024-10-24', 'paid', '12345', '1234 Billings way Lagos ', '1234 Billings way Lagos ', 'Mpesa', '0101674289', '2024-10-29', 745.00, 15.00, 0.00, '', NULL, NULL, NULL, NULL);
+(0, '123456', 'kimo', 'proforma invoice', '2024-10-18', 'paid', '1245', '112 Freeway NYC NY', '112 Freeway NYC NY', '', '', '0000-00-00', 0.00, 0.00, 0.00, '', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -225,7 +225,8 @@ CREATE TABLE `invoice_items` (
 --
 
 INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
-(1, 0, 'Dell laptop', 5, 125.00);
+(3, 0, 'Dell laptop', 2, 215.00),
+(4, 0, 'HP laptop', 2, 220.00);
 
 -- --------------------------------------------------------
 
@@ -628,7 +629,7 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
