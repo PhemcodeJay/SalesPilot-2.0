@@ -48,7 +48,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 
 // Fetch invoices from the database
 try {
-    $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date FROM invoices"; 
+    $invoices_query = "SELECT invoice_id, invoice_number, customer_name, order_date, mode_of_payment, order_status, total_amount FROM invoices"; 
     $stmt = $connection->prepare($invoices_query);
     $stmt->execute();
     $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -662,6 +662,9 @@ try {
             <th>Invoice Number</th>
             <th>Customer Name</th>
             <th>Order Date</th>
+            <th>Payment Mode</th>
+            <th>Order Status</th>
+            <th>Total</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -673,6 +676,9 @@ try {
                     <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
                     <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
                     <td><?php echo htmlspecialchars($invoice['order_date']); ?></td>
+                    <td><?php echo htmlspecialchars($invoice['mode_of_payment']); ?></td>
+                    <td><?php echo htmlspecialchars($invoice['order_status']); ?></td>
+                    <td><?php echo htmlspecialchars($invoice['total_amount']); ?></td>
                     <td>
                         <div class="d-flex align-items-center list-action">
                             <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View" data-toggle="modal" data-target="#invoiceModal">

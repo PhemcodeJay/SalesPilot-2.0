@@ -12,7 +12,6 @@ $dueDate = '';
 $subtotal = '';
 $discount = '';
 $totalAmount = '';
-$notes = '';
 $invoiceItems = [];
 
 // Check if an invoice ID is provided to fetch existing data
@@ -34,7 +33,6 @@ if (isset($_GET['invoice_id'])) {
         $subtotal = $invoice['subtotal'];
         $discount = $invoice['discount'];
         $totalAmount = $invoice['total_amount'];
-        $notes = $invoice['notes'];
 
         // Fetch associated invoice items
         $itemsQuery = "SELECT * FROM invoice_items WHERE invoice_id = ?";
@@ -55,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subtotal = $_POST['subtotal'];
     $discount = $_POST['discount'];
     $totalAmount = $_POST['total_amount'];
-    $notes = $_POST['notes'];
 
     // Prepare the SQL statement to update the invoice details
     $updateInvoiceQuery = "UPDATE invoices 
@@ -66,7 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 subtotal = ?, 
                                 discount = ?, 
                                 total_amount = ?, 
-                                notes = ? 
                             WHERE invoice_id = ?";
     
     try {

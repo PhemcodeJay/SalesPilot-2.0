@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 01, 2024 at 09:42 AM
+-- Generation Time: Nov 01, 2024 at 01:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -180,30 +180,25 @@ CREATE TABLE `invoices` (
   `invoice_number` varchar(50) NOT NULL,
   `customer_name` varchar(255) NOT NULL,
   `invoice_description` text DEFAULT NULL,
-  `order_date` date DEFAULT NULL,
-  `order_status` varchar(50) DEFAULT NULL,
-  `order_id` varchar(50) DEFAULT NULL,
-  `billing_address` text DEFAULT NULL,
-  `shipping_address` text DEFAULT NULL,
-  `bank` varchar(255) DEFAULT NULL,
-  `account_no` varchar(50) DEFAULT NULL,
-  `due_date` date DEFAULT NULL,
-  `subtotal` decimal(10,2) DEFAULT NULL,
-  `discount` decimal(5,2) DEFAULT NULL,
-  `total_amount` decimal(10,2) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `item_name` varchar(255) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL,
-  `total` decimal(10,2) DEFAULT NULL
+  `order_date` date NOT NULL,
+  `order_status` enum('Paid','Unpaid') NOT NULL,
+  `order_id` varchar(50) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `mode_of_payment` varchar(255) NOT NULL,
+  `due_date` date NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL,
+  `discount` decimal(5,2) NOT NULL,
+  `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` * `discount` / 100) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `invoices`
 --
 
-INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `billing_address`, `shipping_address`, `bank`, `account_no`, `due_date`, `subtotal`, `discount`, `total_amount`, `notes`, `item_name`, `quantity`, `price`, `total`) VALUES
-(0, '123456', 'kimo', 'proforma invoice', '2024-10-18', 'paid', '1245', '112 Freeway NYC NY', '112 Freeway NYC NY', '', '', '0000-00-00', 0.00, 0.00, 0.00, '', NULL, NULL, NULL, NULL);
+INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `delivery_address`, `mode_of_payment`, `due_date`, `subtotal`, `discount`) VALUES
+(1, '123456', 'kimo 2', 'proforma invoice', '2024-10-18', 'Paid', '1245', '112 Freeway NYC NY', 'Paypal', '2024-11-02', 0.00, 0.00),
+(2, '435657', 'Mini stores', 'delivery', '2024-10-26', 'Paid', '1234', '112 Freeway Ohio', 'Mpesa', '2024-10-31', 880.00, 5.00),
+(3, '003', 'Kyle stores 4', 'delivery ', '2024-10-04', 'Paid', '1245', '146 highway london', 'Binance Pay', '2024-10-30', 360.00, 6.00);
 
 -- --------------------------------------------------------
 
@@ -226,7 +221,11 @@ CREATE TABLE `invoice_items` (
 
 INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
 (3, 0, 'Dell laptop', 2, 215.00),
-(4, 0, 'HP laptop', 2, 220.00);
+(4, 0, 'HP laptop', 2, 220.00),
+(5, 2, 'Mens shoes', 4, 160.00),
+(6, 2, 'Bag', 2, 120.00),
+(7, 3, 'kettle ', 4, 45.00),
+(8, 3, 'kettle  bag', 6, 30.00);
 
 -- --------------------------------------------------------
 
@@ -564,7 +563,7 @@ ALTER TABLE `inventory`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`invoice_id`),
-  ADD UNIQUE KEY `unique_invoice_item` (`invoice_number`,`item_name`);
+  ADD UNIQUE KEY `unique_invoice_item` (`invoice_number`);
 
 --
 -- Indexes for table `invoice_items`
@@ -626,10 +625,16 @@ ALTER TABLE `staffs`
 --
 
 --
+-- AUTO_INCREMENT for table `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
