@@ -10,31 +10,38 @@ session_start([
 require 'config.php'; // Include database connection script
 
 try {
-    // Ensure the user is logged in
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("User not logged in.");
-    }
-
+    // Check if the user is logged in
+    if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     $username = htmlspecialchars($_SESSION["username"]);
 
-    // Retrieve user details
-    $userQuery = "SELECT id, username, email, date, phone, location, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($userQuery);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+        $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+        $stmt = $connection->prepare($user_query);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user) {
-        throw new Exception("User details not found.");
+        if ($user_info) {
+            // Set user data and sanitize
+            $email = htmlspecialchars($user_info['email']);
+            $date = date('d F, Y', strtotime($user_info['date']));
+            $location = htmlspecialchars($user_info['location']);
+            $user_id = htmlspecialchars($user_info['id']);
+            $image_to_display = !empty($user_info['user_image']) ? htmlspecialchars($user_info['user_image']) : 'uploads/user/default.png';
+
+            // Generate personalized greeting
+            $current_hour = (int)date('H');
+            $time_of_day = ($current_hour < 12) ? "Morning" : (($current_hour < 18) ? "Afternoon" : "Evening");
+            $greeting = "Hi " . $username . ", Good " . $time_of_day;
+        } else {
+            $greeting = "Hello, Guest";
+            $image_to_display = 'uploads/user/default.png';
+        }
+    } catch (Exception $e) {
+        exit("Error: " . $e->getMessage());
     }
+}
 
-    // Set default image if not set
-    $userImage = !empty($user['user_image']) ? $user['user_image'] : 'uploads/user/default.png';
-
-    // Personalized greeting logic
-    $current_hour = (int)date('H');
-    $time_of_day = $current_hour < 12 ? "Morning" : ($current_hour < 18 ? "Afternoon" : "Evening");
-    $greeting = "Hi " . $username . ", Good " . $time_of_day;
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Get and sanitize form data for the main invoice
