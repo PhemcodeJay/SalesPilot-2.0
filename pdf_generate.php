@@ -32,8 +32,26 @@ function generatePDF($title, $data, $filename) {
     // Data
     $pdf->SetFont('Arial', '', 12);
     foreach ($data as $label => $value) {
-        $pdf->Cell(40, 10, "$label:", 0, 0);
-        $pdf->Cell(0, 10, $value, 0, 1);
+        if (is_array($value)) {
+            // If the value is an array, we need to format it differently
+            $pdf->Cell(40, 10, "$label:", 0, 0);
+            foreach ($value as $item) {
+                if (is_array($item)) {
+                    // If item is an array (for invoice items)
+                    $pdf->Ln(); // Move to the next line for item
+                    foreach ($item as $itemLabel => $itemValue) {
+                        $pdf->Cell(40, 10, "$itemLabel: $itemValue", 0, 1);
+                    }
+                } else {
+                    // If item is a string
+                    $pdf->Ln(); // Move to the next line for item
+                    $pdf->Cell(40, 10, $item, 0, 1);
+                }
+            }
+        } else {
+            $pdf->Cell(40, 10, "$label:", 0, 0);
+            $pdf->Cell(0, 10, $value, 0, 1);
+        }
     }
     
     $pdf->Output('D', $filename);
@@ -245,17 +263,37 @@ function displayError($message) {
 }
 
 // Process GET request
-if ($_GET) {
+if (!empty($_GET)) {
     foreach ($_GET as $key => $value) {
+        // Sanitize input to prevent injection or XSS
         $sanitizedValue = sanitizeInput($value);
+
+        // Check if the key ends with '_id' to identify relevant parameters
         if (strpos($key, '_id') !== false) {
+            // Determine the type (e.g., 'invoice', 'report') by removing '_id' suffix
             $type = str_replace('_id', '', $key);
-            handlePDFGeneration($type, $sanitizedValue);
-            exit;
+            
+            try {
+                // Call the PDF generation function based on the type and sanitized value
+                handlePDFGeneration($type, $sanitizedValue);
+                exit; // Exit after handling to prevent further output
+            } catch (Exception $e) {
+                // Log and handle exceptions gracefully
+                error_log("PDF Generation Error: " . $e->getMessage());
+                echo "An error occurred while generating the PDF. Please try again.";
+                exit; // Ensure no further output
+            }
         }
     }
 } else {
-    generateProductReport(); // Default action if no ID provided
+    // Default action if no specific ID is provided, ensuring no prior output
+    try {
+        generateProductReport();
+    } catch (Exception $e) {
+        // Log and handle any exceptions in report generation
+        error_log("Report Generation Error: " . $e->getMessage());
+        echo "An error occurred while generating the product report.";
+    }
 }
 
 // Generate product report PDF

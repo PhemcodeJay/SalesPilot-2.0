@@ -97,24 +97,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     switch ($action) {
         case 'view':
+            $invoice_id = $_POST['invoice_id'] ?? null; // Retrieve invoice ID from POST data
+        
             if ($invoice_id) {
-                $invoice = fetchInvoice($invoice_id);
+                $invoice = fetchInvoice($invoice_id); // Fetch invoice details
+        
                 if ($invoice) {
-                    // Debugging: log fetched invoice
-                    error_log("Fetched Invoice: " . json_encode($invoice));
+                    // Fetch associated invoice items
+                    $invoiceItems = fetchInvoiceItems($invoice_id);
+        
+                    // Validate and format the items
+                    if (!is_array($invoiceItems)) {
+                        error_log('Invoice items fetch returned unexpected type: ' . gettype($invoiceItems));
+                        $invoiceItems = []; // Set to empty array if not as expected
+                    }
+        
+                    // Return JSON response with invoice details and items
                     echo json_encode([
                         'success' => true,
                         'invoice_number' => $invoice['invoice_number'],
                         'customer_name' => $invoice['customer_name'],
                         'order_date' => $invoice['order_date'],
                         'total_amount' => $invoice['total_amount'],
-                        'items' => fetchInvoiceItems($invoice_id)
+                        'items' => array_map(function ($item) {
+                            return [
+                                'item_name' => $item['item_name'],
+                                'quantity' => $item['quantity'],
+                                'price' => $item['price'],
+                                'total' => $item['quantity'] * $item['price'] // Calculate total for each item
+                            ];
+                            
+                        }, $invoiceItems)
                     ]);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Invoice not found.']);
                 }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Invoice ID is missing.']);
             }
-            break;
+            break;        
 
 
         
@@ -145,7 +166,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle PDF generation (GET request for invoice)
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
-    $invoice_id = $_GET['invoice_id'];
+    // Sanitize the input
+    $invoice_id = filter_var($_GET['invoice_id'], FILTER_SANITIZE_NUMBER_INT);
+    
+    // Fetch the invoice details
+    $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':invoice_id', $invoice_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Handle PDF generation (GET request for invoice)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
+    // Sanitize the input
+    $invoice_id = filter_var($_GET['invoice_id'], FILTER_SANITIZE_NUMBER_INT);
     
     // Fetch the invoice details
     $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
@@ -166,16 +200,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
         // Initialize the PDF document
         $pdf = new FPDF();
         $pdf->AddPage();
+        
+        // Set up title and invoice details
         $pdf->SetFont('Arial', 'B', 16);
         $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
         $pdf->SetFont('Arial', 'I', 12);
-        $pdf->Cell(0, 10, 'Invoice Number: ' . $invoice['invoice_number'], 0, 1);
-        $pdf->Cell(0, 10, 'Customer Name: ' . $invoice['customer_name'], 0, 1);
-        $pdf->Cell(0, 10, 'Order Date: ' . $invoice['order_date'], 0, 1);
+        $pdf->Cell(0, 10, 'Invoice Number: ' . htmlspecialchars($invoice['invoice_number']), 0, 1);
+        $pdf->Cell(0, 10, 'Customer Name: ' . htmlspecialchars($invoice['customer_name']), 0, 1);
+        $pdf->Cell(0, 10, 'Order Date: ' . htmlspecialchars($invoice['order_date']), 0, 1);
         $pdf->Cell(0, 10, 'Total Amount: $' . number_format($invoice['total_amount'], 2), 0, 1);
         $pdf->Ln(10);
 
-        // Table header for items
+        // Set up table header for items
         $pdf->SetFont('Arial', 'B', 12);
         $pdf->Cell(80, 10, 'Item Name', 1);
         $pdf->Cell(30, 10, 'Quantity', 1);
@@ -183,26 +219,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
         $pdf->Cell(30, 10, 'Total', 1);
         $pdf->Ln();
 
-        // Table data for each item
+        // Set up table data for each item
         $pdf->SetFont('Arial', '', 12);
         foreach ($items as $item) {
-            $pdf->Cell(80, 10, $item['item_name'], 1);
-            $pdf->Cell(30, 10, $item['quantity'], 1);
-            $pdf->Cell(30, 10, '$' . number_format($item['price'], 2), 1);
-            $pdf->Cell(30, 10, '$' . number_format($item['total'], 2), 1);
+            $total = $item['quantity'] * $item['price']; // Calculate total for each item
+            $pdf->Cell(80, 10, htmlspecialchars($item['item_name']), 1);
+            $pdf->Cell(30, 10, number_format((float)$item['quantity']), 1);  // Format quantity
+            $pdf->Cell(30, 10, '$' . number_format((float)$item['price'], 2), 1);
+            $pdf->Cell(30, 10, '$' . number_format((float)$total, 2), 1);
             $pdf->Ln();
         }
 
         // Output the PDF as a download
-        $pdf->Output('D', 'Invoice_' . $invoice['invoice_number'] . '.pdf');
+        $pdf->Output('D', 'Invoice_' . htmlspecialchars($invoice['invoice_number']) . '.pdf');
         exit;
     } else {
         echo 'Invoice not found.';
         exit;
     }
-}
+} 
 
-
+} 
 
 
 // Fetch inventory notifications with product images
@@ -760,6 +797,7 @@ try {
                             <th>Item Name</th>
                             <th>Quantity</th>
                             <th>Price</th>
+                            <th>Total</th> <!-- Add a column for item total -->
                         </tr>
                     </thead>
                     <tbody id="itemsBody"></tbody>
@@ -772,17 +810,18 @@ try {
     </div>
 </div>
 
+
 <script>
 $(document).ready(function() {
-    // Event delegation for opening the invoice modal
+    // Event listener for opening the invoice modal
     $('tbody').on('click', '.view-btn', function() {
-        var invoiceId = $(this).closest('tr').data('invoice-id'); // Get the invoice ID from the closest row
+        var invoiceId = $(this).closest('tr').data('invoice-id'); // Get the invoice ID from the row
 
         // AJAX request to fetch invoice details
         $.ajax({
-            url: 'pages_invoice.php', // Your PHP script to fetch invoice data
-            type: 'POST', // Use POST for sending data
-            data: { action: 'view', invoice_id: invoiceId }, // Pass the action and invoice ID
+            url: 'pages-invoice.php', // Your PHP script to fetch invoice data
+            type: 'POST',
+            data: { action: 'view', invoice_id: invoiceId },
             dataType: 'json',
             success: function(data) {
                 // Check if the response is successful
@@ -793,17 +832,17 @@ $(document).ready(function() {
                     $('#modalOrderDate').text(data.order_date);
                     $('#modalTotalAmount').text('$' + parseFloat(data.total_amount).toFixed(2));
 
-
                     // Clear previous items in the invoice items table
                     $('#itemsBody').empty();
 
-                    // Append new invoice items to the table
+                    // Append each item to the invoice items table
                     $.each(data.items, function(index, item) {
                         $('#itemsBody').append(
                             '<tr>' +
                                 '<td>' + item.item_name + '</td>' +
                                 '<td>' + item.quantity + '</td>' +
-                                '<td>$' + item.price.toFixed(2) + '</td>' +
+                                '<td>$' + parseFloat(item.price).toFixed(2) + '</td>' +
+                                '<td>$' + parseFloat(item.total).toFixed(2) + '</td>' + // Display the total for each item
                             '</tr>'
                         );
                     });
@@ -811,22 +850,21 @@ $(document).ready(function() {
                     // Show the modal
                     $('#invoiceModal').modal('show');
                 } else {
-                    // Handle the case where fetching the invoice details failed
-                    $('#itemsBody').html('<tr><td colspan="3" class="text-danger">Error fetching invoice details.</td></tr>');
-                    $('#invoiceModal').modal('show'); // Show modal to display the error message
+                    // Display an error message if the invoice details could not be fetched
+                    $('#itemsBody').html('<tr><td colspan="4" class="text-danger">Error fetching invoice details.</td></tr>');
+                    $('#invoiceModal').modal('show');
                 }
             },
             error: function(xhr, status, error) {
-            console.error('Error:', xhr.responseText); // Log the full error response
-            $('#itemsBody').html('<tr><td colspan="3" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
-            $('#invoiceModal').modal('show');
-        }
-
+                console.error('Error:', xhr.responseText);
+                $('#itemsBody').html('<tr><td colspan="4" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
+                $('#invoiceModal').modal('show');
+            }
         });
     });
 });
 
-console.log('View button clicked, invoiceId:', invoiceId);
+
 
 </script>
 
