@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 02, 2024 at 04:25 AM
+-- Generation Time: Nov 02, 2024 at 05:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `project`
+-- Database: `project1`
 --
 
 -- --------------------------------------------------------
@@ -48,7 +48,6 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -64,7 +63,6 @@ CREATE TABLE `customers` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -78,7 +76,6 @@ CREATE TABLE `expenses` (
   `expense_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -97,7 +94,6 @@ CREATE TABLE `inventory` (
   `inventory_qty` int(11) GENERATED ALWAYS AS (`stock_qty` + `supply_qty`) STORED,
   `product_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -121,7 +117,6 @@ CREATE TABLE `invoices` (
   `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` - `subtotal` * (`discount` / 100)) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -136,7 +131,6 @@ CREATE TABLE `invoice_items` (
   `price` decimal(10,2) NOT NULL,
   `total` decimal(10,2) GENERATED ALWAYS AS (`qty` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -199,7 +193,6 @@ CREATE TABLE `products` (
   `profit` decimal(10,2) GENERATED ALWAYS AS (`price` - `cost`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -229,7 +222,6 @@ CREATE TABLE `reports` (
   `net_profit` decimal(2,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -253,7 +245,6 @@ CREATE TABLE `sales` (
   `sales_price` decimal(10,2) NOT NULL,
   `total_price` decimal(10,2) GENERATED ALWAYS AS (`sales_qty` * `sales_price`) VIRTUAL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -285,7 +276,6 @@ CREATE TABLE `sales_analytics` (
   `most_sold_product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -300,7 +290,6 @@ CREATE TABLE `staffs` (
   `position` enum('manager','sales') NOT NULL DEFAULT 'sales',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -319,7 +308,6 @@ CREATE TABLE `suppliers` (
   `supply_qty` int(11) NOT NULL,
   `note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -340,7 +328,6 @@ CREATE TABLE `users` (
   `phone` varchar(20) NOT NULL,
   `location` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 --
 -- Indexes for dumped tables
@@ -442,8 +429,50 @@ ALTER TABLE `staffs`
   ADD PRIMARY KEY (`staff_id`);
 
 --
+-- Indexes for table `suppliers`
+--
+ALTER TABLE `suppliers`
+  ADD PRIMARY KEY (`supplier_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `activation_codes`
+--
+ALTER TABLE `activation_codes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `customers`
+--
+ALTER TABLE `customers`
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `expenses`
+--
+ALTER TABLE `expenses`
+  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `inventory`
+--
+ALTER TABLE `inventory`
+  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -456,6 +485,60 @@ ALTER TABLE `invoices`
 --
 ALTER TABLE `invoice_items`
   MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `products`
+--
+ALTER TABLE `products`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `reports`
+--
+ALTER TABLE `reports`
+  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `sales`
+--
+ALTER TABLE `sales`
+  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `sales_analytics`
+--
+ALTER TABLE `sales_analytics`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `staffs`
+--
+ALTER TABLE `staffs`
+  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `suppliers`
+--
+ALTER TABLE `suppliers`
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
