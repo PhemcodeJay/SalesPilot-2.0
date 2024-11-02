@@ -52,8 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->Port = 587; // TCP port to connect to
 
             // Set email sender and recipient
-            $mail->setFrom('pphemcodejay@gmail.com', 'SalesPilot'); // Replace with your email and name
-            $mail->addAddress($to); // Add a recipient
+            $mail->setFrom('phemcodejay@gmail.com', 'SalesPilot'); // Replace with your email and name
+            $mail->addAddress($to) ; // Add a recipient
 
             // Email subject and body
             $mail->Subject = "New Contact Form Submission: $subject";

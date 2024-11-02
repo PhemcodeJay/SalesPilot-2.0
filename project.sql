@@ -35,6 +35,12 @@ CREATE TABLE `activation_codes` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `activation_codes`
+--
+
+INSERT INTO `activation_codes` (`id`, `user_id`, `activation_code`, `expires_at`, `created_at`) VALUES
+(1, 1, '67261b704fe59', '2024-11-03 10:30:40', '2024-11-02 12:30:40');
 
 -- --------------------------------------------------------
 
@@ -49,6 +55,17 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `category_name`, `description`, `created_at`) VALUES
+(1, 'Phones', NULL, '2024-11-02 12:34:34'),
+(2, 'Foods', NULL, '2024-11-02 12:45:11'),
+(3, 'Cosmetic', NULL, '2024-11-02 12:55:36'),
+(4, 'Fashion', NULL, '2024-11-02 13:00:14'),
+(5, 'Devices', NULL, '2024-11-02 15:51:21'),
+(7, 'Auto', NULL, '2024-11-02 16:03:56');
 
 -- --------------------------------------------------------
 
@@ -65,6 +82,17 @@ CREATE TABLE `customers` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `customers`
+--
+
+INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_location`, `created_at`) VALUES
+(8, 'kyle', '', '', '', '2024-11-02 15:31:53'),
+(9, 'jim', '', '', '', '2024-11-02 15:35:28'),
+(10, 'joe', '', '', '', '2024-11-02 15:39:44'),
+(11, 'kimolee', '', '', '', '2024-11-02 15:41:12'),
+(12, 'gina', '', '', '', '2024-11-02 15:54:01'),
+(14, 'chris', 'chris@gmail.com', '45678923', 'Texas', '2024-11-02 16:05:10');
 
 -- --------------------------------------------------------
 
@@ -80,6 +108,14 @@ CREATE TABLE `expenses` (
   `created_by` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `expenses`
+--
+
+INSERT INTO `expenses` (`expense_id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
+(1, 'Rent', 800.00, '2024-10-31 21:00:00', 'sam'),
+(2, 'Renovation', 400.00, '2024-10-02 21:00:00', 'collins'),
+(3, 'Loans', 3000.00, '2024-09-10 21:00:00', 'Luke');
 
 -- --------------------------------------------------------
 
@@ -99,6 +135,15 @@ CREATE TABLE `inventory` (
   `product_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `inventory`
+--
+
+INSERT INTO `inventory` (`inventory_id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
+(1, 1, 3, '2024-11-02 15:48:06', 20, 27, 'Samsung Galaxy'),
+(2, 2, 5, '2024-11-02 15:48:06', 100, 200, 'Pilsner'),
+(3, 7, 3, '2024-11-02 15:48:06', 20, 12, 'Apple iPhone'),
+(4, 6, 20, '2024-11-02 15:48:06', 100, 80, 'Vitamin Water');
 
 -- --------------------------------------------------------
 
@@ -122,6 +167,12 @@ CREATE TABLE `invoices` (
   `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` - `subtotal` * (`discount` / 100)) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `invoices`
+--
+
+INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `delivery_address`, `mode_of_payment`, `due_date`, `subtotal`, `discount`) VALUES
+(11, '435657', 'joe  2', 'delivery', '2024-10-11', 'Paid', '5678', 'Madrid ', 'Mpesa', '2024-11-01', 910.00, 10.00);
 
 -- --------------------------------------------------------
 
@@ -138,6 +189,13 @@ CREATE TABLE `invoice_items` (
   `total` decimal(10,2) GENERATED ALWAYS AS (`qty` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `invoice_items`
+--
+
+INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
+(21, 11, 'Dell laptop', 2, 215.00),
+(22, 11, 'Mens shoes', 3, 160.00);
 
 -- --------------------------------------------------------
 
@@ -200,6 +258,19 @@ CREATE TABLE `products` (
   `profit` decimal(10,2) GENERATED ALWAYS AS (`price` - `cost`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `cost`, `category_id`, `created_at`, `stock_qty`, `supply_qty`, `image_path`, `product_type`, `staff_name`, `category`) VALUES
+(1, 'Samsung Galaxy', 'A10s', 150.00, 100.00, 1, '2024-11-02 12:34:34', 20, 27, 'uploads/products/samsung-galaxy-a10s.jpg', 'Goods', 'kim', 'Phones'),
+(2, 'Pilsner', 'Premium Beer', 40.00, 35.00, 2, '2024-11-02 12:45:11', 100, 200, 'uploads/products/beer.jpg', 'Goods', 'john', 'Foods'),
+(4, 'Beauty Soap', 'Skin care soap', 21.00, 15.00, 3, '2024-11-02 12:55:37', 40, 25, 'uploads/products/soap.jpg', 'Goods', 'stacey', 'Cosmetic'),
+(5, 'Floral Dress', 'Pleated Woven Dress', 35.00, 20.00, 4, '2024-11-02 13:00:14', 50, 25, 'uploads/products/floral-pleated-weave-dress.jpg', 'Goods', 'james', 'Fashion'),
+(6, 'Vitamin Water', 'Premium Spring Water', 15.00, 10.00, 2, '2024-11-02 13:04:22', 100, 80, 'uploads/products/water.jpg', 'Goods', 'chris', 'Foods'),
+(7, 'Apple iPhone', 'Apple IPhone 15 128GB', 1200.00, 900.00, 1, '2024-11-02 13:06:04', 20, 12, 'uploads/products/iphone-15-128gb.jpg', 'Goods', 'john', 'Phones'),
+(8, 'Sony Camera', 'AI Digital camera', 105.00, 85.00, 5, '2024-11-02 15:51:21', 20, 12, 'uploads/products/camera.jpg', 'Goods', 'kim', 'Devices'),
+(9, 'Nike Sneakers', 'Air Jordan Sneakers', 75.00, 50.00, 6, '2024-11-02 16:01:53', 30, 45, 'uploads/products/nike-sneakers.jpg', 'Goods', 'james', 'Fashion');
 
 -- --------------------------------------------------------
 
@@ -230,6 +301,12 @@ CREATE TABLE `reports` (
   `net_profit` decimal(2,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reports`
+--
+
+INSERT INTO `reports` (`reports_id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
+(1, '2024-11-02', 69215.00, 22.17, '[{\"product_id\":1,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"3\",\"total_sales\":\"450.00\",\"total_cost\":\"300.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":2,\"product_name\":\"Pilsner\",\"total_quantity\":\"5\",\"total_sales\":\"200.00\",\"total_cost\":\"175.00\",\"total_profit\":\"25.00\",\"inventory_turnover_rate\":\"0.0500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":4,\"product_name\":\"Beauty Soap\",\"total_quantity\":\"5\",\"total_sales\":\"105.00\",\"total_cost\":\"75.00\",\"total_profit\":\"30.00\",\"inventory_turnover_rate\":\"0.1250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":5,\"product_name\":\"Floral Dress\",\"total_quantity\":\"4\",\"total_sales\":\"140.00\",\"total_cost\":\"80.00\",\"total_profit\":\"60.00\",\"inventory_turnover_rate\":\"0.0800\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":6,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"20\",\"total_sales\":\"300.00\",\"total_cost\":\"200.00\",\"total_profit\":\"100.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":7,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"3\",\"total_sales\":\"3600.00\",\"total_cost\":\"2700.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":8,\"product_name\":\"Sony Camera\",\"total_quantity\":\"4\",\"total_sales\":\"420.00\",\"total_cost\":\"340.00\",\"total_profit\":\"80.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":10,\"product_name\":\"Chevrolet\",\"total_quantity\":\"2\",\"total_sales\":\"64000.00\",\"total_cost\":\"50000.00\",\"total_profit\":\"14000.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 15345.00, -38525.00, '2024-11-02 16:13:14', 69215, 46, 99, 99, -99);
 
 -- --------------------------------------------------------
 
@@ -254,6 +331,18 @@ CREATE TABLE `sales` (
   `total_price` decimal(10,2) GENERATED ALWAYS AS (`sales_qty` * `sales_price`) VIRTUAL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `sales`
+--
+
+INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `sales_price`) VALUES
+(1, 1, 1, 8, 8, 10, '2024-01-16 15:31:53', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 150.00),
+(2, 2, 1, 9, 9, 60, '2024-02-02 15:35:28', 'completed', 'paid', 'Pilsner', 'Goods', 'sold', 40.00),
+(3, 7, 1, 10, 10, 12, '2024-03-22 15:39:44', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 1200.00),
+(4, 6, 1, 11, 11, 40, '2024-04-11 15:41:12', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 15.00),
+(5, 5, 1, 12, 12, 25, '2024-05-02 15:54:01', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 35.00),
+(6, 4, 1, 8, 8, 18, '2024-06-15 15:54:54', 'completed', 'paid', 'Beauty Soap', 'Goods', '', 21.00),
+(7, 8, 1, 13, 9, 12, '2024-07-02 15:57:34', 'completed', 'paid', 'Sony Camera', 'Goods', '', 105.00);
 
 -- --------------------------------------------------------
 
@@ -285,6 +374,14 @@ CREATE TABLE `sales_analytics` (
   `most_sold_product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `sales_analytics`
+--
+
+INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
+(1, '2024-11-02', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, '2024-11-02 13:26:02', 0, 0, 0, 0, 0, 0, 0),
+(2, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:07:46', 69215, 46, 99, 0, 0, 0, 0),
+(3, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:12:53', 69215, 46, 99, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -301,6 +398,16 @@ CREATE TABLE `staffs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `staffs`
+--
+
+INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `position`, `created_at`) VALUES
+(8, 'james', '', '', 'sales', '2024-11-02 15:31:53'),
+(9, 'chris', '', '', 'sales', '2024-11-02 15:35:28'),
+(10, 'john', '', '', 'sales', '2024-11-02 15:39:44'),
+(11, 'jack', 'jack@gmail.com', '123456789', 'sales', '2024-11-02 15:41:12'),
+(12, 'mark', '', '', 'sales', '2024-11-02 15:54:01');
 
 -- --------------------------------------------------------
 
@@ -320,6 +427,12 @@ CREATE TABLE `suppliers` (
   `note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `suppliers`
+--
+
+INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
+(1, 'East Africa Distillery', 'eadl@gmail.com', '0101674356', 'Madrid', '2024-11-02 16:28:43', 'Premium Beer', 200, 'good');
 
 -- --------------------------------------------------------
 
@@ -341,6 +454,12 @@ CREATE TABLE `users` (
   `location` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `is_active`, `role`, `date`, `confirmpassword`, `user_image`, `phone`, `location`) VALUES
+(1, 'superstores', 'olphemie@hotmail.com', '$2y$10$17c6i5VDkwQ0on0RqW3FX.qcmRKCIYzokQOrcP7LRFQzGQY5u6dl.', NULL, NULL, '2024-11-02 12:30:40', 'super1234', 'uploads/user/1730551257_1730520358_1726523112_20230712_130458.jpg', '', 'Texas');
 
 --
 -- Indexes for dumped tables

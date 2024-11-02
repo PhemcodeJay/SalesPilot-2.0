@@ -41,43 +41,20 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         // Sanitize and validate form inputs
         $name = htmlspecialchars(trim($_POST['name']));
         $sale_status = htmlspecialchars(trim($_POST['sale_status']));
+        $sales_price = filter_var($_POST['sales_price'], FILTER_VALIDATE_FLOAT);
         $total_price = filter_var($_POST['total_price'], FILTER_VALIDATE_FLOAT);
         $sales_qty = filter_var($_POST['sales_qty'], FILTER_VALIDATE_INT);
         $payment_status = htmlspecialchars(trim($_POST['payment_status']));
         $sale_note = htmlspecialchars(trim($_POST['sale_note']));
         $staff_name = htmlspecialchars(trim($_POST['staff_name']));
         $customer_name = htmlspecialchars(trim($_POST['customer_name']));
-        $image_path = null; // Default for image path
 
         // Validate required fields
         if (empty($name) || empty($sale_status) || empty($staff_name) || empty($customer_name)) {
             die("Required fields are missing.");
         }
 
-        // Handle file upload
-        if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
-            if ($_FILES['document']['size'] > 0) {
-                $upload_dir = 'uploads/products/';
-                $image_name = basename($_FILES['document']['name']);
-                $image_tmp = $_FILES['document']['tmp_name'];
-                $image_path = $upload_dir . $image_name;
-
-                // Check if upload directory is writable
-                if (!is_writable($upload_dir)) {
-                    die("Upload directory is not writable.");
-                }
-
-                if (!move_uploaded_file($image_tmp, $image_path)) {
-                    die("File upload failed.");
-                }
-            } else {
-                die("Uploaded file size is zero.");
-            }
-        } else {
-            if ($_FILES['document']['error'] !== UPLOAD_ERR_NO_FILE) {
-                die("File upload error: " . $_FILES['document']['error']);
-            }
-        }
+        
 
         try {
             $connection->beginTransaction();
@@ -135,8 +112,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             }
 
             // SQL query for inserting into sales table
-            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_price, sales_qty, sale_note, image_path, sale_status, payment_status, user_id)
-                                  VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_price, :sales_qty, :sale_note, :image_path, :sale_status, :payment_status, :user_id)";
+            $insert_sale_query = "INSERT INTO sales (product_id, name, staff_id, customer_id, total_price, sales_price, sales_qty, sale_note, sale_status, payment_status, user_id)
+                                  VALUES (:product_id, :name, :staff_id, :customer_id, :total_price, :sales_price, :sales_qty, :sale_note, :sale_status, :payment_status, :user_id)";
             $stmt = $connection->prepare($insert_sale_query);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':name', $name);
@@ -146,7 +123,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             $stmt->bindParam(':sales_price', $sales_price);
             $stmt->bindParam(':sales_qty', $sales_qty);
             $stmt->bindParam(':sale_note', $sale_note);
-            $stmt->bindParam(':image_path', $image_path);
             $stmt->bindParam(':sale_status', $sale_status);
             $stmt->bindParam(':payment_status', $payment_status);
             $stmt->bindParam(':user_id', $user_id);
@@ -692,8 +668,8 @@ try {
                     <!-- Price -->
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="total_price">Price *</label>
-                            <input type="number" id="total_price" name="total_price" class="form-control" placeholder="Enter Price" required step="0.01" min="0">
+                            <label for="total_price">Sales Price *</label>
+                            <input type="number" id="sales_price" name="sales_price" class="form-control" placeholder="Enter Unit Price" required step="0.01" min="0">
                             <div class="help-block with-errors"></div>
                         </div>
                     </div>
@@ -726,18 +702,12 @@ try {
                     <!-- Sales Price -->
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="sales_price">Sales Price</label>
-                            <input type="number" id="sales_price" name="sales_price" class="form-control" placeholder="Unit Price" min="0" required>
+                            <label for="sales_price">Total Price</label>
+                            <input type="number" id="total_price" name="total_price" class="form-control" placeholder="Total Price" min="0" required>
                         </div>
                     </div>
 
-                    <!-- File Upload -->
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label for="document">Image *</label>
-                            <input type="file" id="document" name="document" class="form-control" accept="image/*" required>
-                        </div>
-                    </div>
+                    
 
                     <!-- Sale Status -->
                     <div class="col-md-6">

@@ -633,7 +633,7 @@ try {
             <th>Date</th>
             <th>Name</th>
             <th>Unit</th>
-            <th>Price</th>
+            <th>Total</th>
             <th>Quantity</th>
             <th>Sales</th>
             <th>Payment</th>

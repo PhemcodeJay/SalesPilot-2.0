@@ -548,16 +548,7 @@ try {
                      </div>
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
-                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
-                                </div>
-                            </div>
+                            
                         </div>
 
                    <div class="card-body">
@@ -572,16 +563,7 @@ try {
                      </div>
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002" data-toggle="dropdown">
-                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
-                                </div>
-                            </div>
+                            
                         </div>
                   <div class="card-body">
                      <div id="apex-line-area" style="height: 400px;"></div>
@@ -597,16 +579,7 @@ try {
                      </div>
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
-                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
-                                </div>
-                            </div>
+                            
                         </div>
                   <div class="card-body">
                      <div id="am-3dpie-chart" style="height: 400px;"></div>
@@ -619,16 +592,7 @@ try {
                      </div>
                   </div>
                   <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
-                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                    <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
-                                </div>
-                            </div>
+                            
                         </div>
                   <div class="card-body">
                      <div id="apex-column" style="height: 400px;"></div>
@@ -692,103 +656,6 @@ document.getElementById('createButton').addEventListener('click', function() {
     
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
-});
-</script>
-<script>
-// Chart instances
-let charts = {
-    basic: null,
-    lineArea: null,
-    pie: null,
-    column: null
-};
-
-// Function to create or update charts based on type and data
-function updateChart(chartType, data) {
-    const options = {
-        basic: {
-            type: 'bar',
-            series: [{ name: 'Total Sales', data: data.map(item => item.total_sales) }],
-            xaxis: { categories: data.map(item => item.date) }
-        },
-        lineArea: {
-            type: 'area',
-            series: [
-                { name: 'Sell Through Rate', data: data.map(item => item.avg_sell_through_rate) },
-                { name: 'Inventory Turnover Rate', data: data.map(item => item.avg_inventory_turnover_rate) }
-            ],
-            xaxis: { categories: data.map(item => item.date) }
-        },
-        pie: {
-            type: 'pie',
-            series: Object.values(data),
-            labels: Object.keys(data)
-        },
-        column: {
-            type: 'bar',
-            series: [
-                { name: 'Revenue', data: data.map(item => parseFloat(item.revenue)) },
-                { name: 'Total Expenses', data: data.map(item => parseFloat(item.total_expenses)) },
-                { name: 'Profit', data: data.map(item => parseFloat(item.profit)) }
-            ],
-            xaxis: { categories: data.map(item => item.date) }
-        }
-    };
-
-    if (!charts[chartType]) {
-        charts[chartType] = new ApexCharts(document.querySelector(`#${chartType}Chart`), options[chartType]);
-        charts[chartType].render();
-    } else {
-        charts[chartType].updateSeries(options[chartType].series);
-        charts[chartType].updateOptions(options[chartType].xaxis ? { xaxis: options[chartType].xaxis } : {});
-    }
-}
-
-// Function to fetch data and update all charts
-async function fetchAndUpdateCharts(range) {
-    try {
-        const response = await fetch(`your_php_script.php?range=${range}`);
-        const data = await response.json();
-
-        if (data.error) {
-            console.error("Error:", data.error);
-            return;
-        }
-
-        updateChart('basic', data['apex-basic']);
-        updateChart('lineArea', data['apex-line-area']);
-        updateChart('pie', data['am-3dpie-chart']);
-        updateChart('column', data['apex-column']);
-    } catch (error) {
-        console.error("Failed to fetch chart data:", error);
-    }
-}
-
-// Event listeners for buttons
-document.getElementById("weeklyBtn").addEventListener("click", () => fetchAndUpdateCharts("weekly"));
-document.getElementById("monthlyBtn").addEventListener("click", () => fetchAndUpdateCharts("monthly"));
-document.getElementById("yearlyBtn").addEventListener("click", () => fetchAndUpdateCharts("yearly"));
-
-// Initial load for yearly data
-fetchAndUpdateCharts("yearly");
-
-// Dropdown event listener
-document.addEventListener("DOMContentLoaded", function () {
-    const periodDropdownItems = document.querySelectorAll(".dropdown-item");
-    const selectedPeriodText = document.getElementById("selectedPeriod");
-
-    periodDropdownItems.forEach(item => {
-        item.addEventListener("click", (event) => {
-            event.preventDefault();
-            const period = item.getAttribute("data-period");
-            
-            // Update dropdown text to show selected period
-            selectedPeriodText.textContent = item.textContent;
-
-            // Update charts based on the selected period
-            fetchAndUpdateCharts(period);
-        });
-    });
 });
 </script>
 
