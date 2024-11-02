@@ -5,13 +5,13 @@ require 'config.php'; // Include your database configuration file
 // Sample product details (fetch from your database)
 $plans = [
     'starter' => [
-        'monthly' => 9,  // Monthly price for Starter Plan
+        'monthly' => 5,  // Monthly price for Starter Plan
     ],
     'growth' => [
-        'monthly' => 29, // Monthly price for Growth Plan
+        'monthly' => 15, // Monthly price for Growth Plan
     ],
     'enterprise' => [
-        'monthly' => 49, // Monthly price for Enterprise Plan
+        'monthly' => 25, // Monthly price for Enterprise Plan
     ],
 ];
 
@@ -552,7 +552,10 @@ function savePayment($amount, $method, $status, $extraData = []) {
         <input type="hidden" name="plan" id="selected-plan" value="<?php echo $selected_plan; ?>">
         <input type="hidden" name="cycle" id="selected-cycle" value="<?php echo $selected_cycle; ?>">
         <button type="submit" class="pay-button">Proceed to Payment</button>
+        <button type="button" class="pay-button" onclick="window.location.href='home.html';">Home</button>
+
     </form>
+  
 </main>
 
 
