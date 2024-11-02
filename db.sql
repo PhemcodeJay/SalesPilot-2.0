@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 30, 2024 at 07:50 PM
+-- Generation Time: Nov 02, 2024 at 04:25 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -110,22 +110,15 @@ CREATE TABLE `invoices` (
   `invoice_number` varchar(50) NOT NULL,
   `customer_name` varchar(255) NOT NULL,
   `invoice_description` text DEFAULT NULL,
-  `order_date` date DEFAULT NULL,
-  `order_status` varchar(50) DEFAULT NULL,
-  `order_id` varchar(50) DEFAULT NULL,
-  `billing_address` text DEFAULT NULL,
-  `shipping_address` text DEFAULT NULL,
-  `bank` varchar(255) DEFAULT NULL,
-  `account_no` varchar(50) DEFAULT NULL,
-  `due_date` date DEFAULT NULL,
-  `subtotal` decimal(10,2) DEFAULT NULL,
-  `discount` decimal(5,2) DEFAULT NULL,
-  `total_amount` decimal(10,2) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `item_name` varchar(255) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL,
-  `total` decimal(10,2) DEFAULT NULL
+  `order_date` date NOT NULL,
+  `order_status` enum('Paid','Unpaid') NOT NULL,
+  `order_id` varchar(50) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `mode_of_payment` varchar(255) NOT NULL,
+  `due_date` date NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL,
+  `discount` decimal(5,2) NOT NULL,
+  `total_amount` decimal(10,2) GENERATED ALWAYS AS (`subtotal` - `subtotal` * (`discount` / 100)) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -327,6 +320,7 @@ CREATE TABLE `suppliers` (
   `note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
 -- --------------------------------------------------------
 
 --
@@ -390,7 +384,7 @@ ALTER TABLE `inventory`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`invoice_id`),
-  ADD UNIQUE KEY `unique_invoice_item` (`invoice_number`,`item_name`);
+  ADD UNIQUE KEY `unique_invoice_item` (`invoice_number`);
 
 --
 -- Indexes for table `invoice_items`
@@ -452,10 +446,16 @@ ALTER TABLE `staffs`
 --
 
 --
+-- AUTO_INCREMENT for table `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

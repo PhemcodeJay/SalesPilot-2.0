@@ -526,9 +526,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `is_active`, `role`, `date`, `confirmpassword`, `user_image`, `phone`, `location`) VALUES
 (7, 'megastores', 'olphemie@hotmail.com', '$2y$10$6Xat/Bu6Vh7RJ/0P/OMi7e6Gdw9GbrE8F.DiRYZnwZu4eslLWigja', 1, 'sales', '2024-09-16 21:57:51', 'mega1234', 'uploads/user/1727918824_1726523112_20230712_130458.jpg', '', 'Texas'),
-(7, 'megastores', 'olphemie@hotmail.com', '$2y$10$6Xat/Bu6Vh7RJ/0P/OMi7e6Gdw9GbrE8F.DiRYZnwZu4eslLWigja', 1, 'sales', '2024-09-16 21:57:51', 'mega1234', 'uploads/user/1727918824_1726523112_20230712_130458.jpg', '', 'Texas');
 
---
 -- Indexes for dumped tables
 --
 
