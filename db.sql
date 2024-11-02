@@ -165,15 +165,9 @@ CREATE TABLE `payments` (
   `method` varchar(50) NOT NULL,
   `status` varchar(50) NOT NULL,
   `paypal_email` varchar(255) DEFAULT NULL,
-  `bitcoin_address` varchar(255) DEFAULT NULL,
-  `usdt_address` varchar(255) DEFAULT NULL,
-  `usdt_network` varchar(50) DEFAULT NULL,
-  `matic_address` varchar(255) DEFAULT NULL,
-  `tron_address` varchar(255) DEFAULT NULL,
   `binance_pay_email` varchar(255) DEFAULT NULL,
-  `bybit_pay_email` varchar(255) DEFAULT NULL,
-  `okx_pay_email` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `payment_proof` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

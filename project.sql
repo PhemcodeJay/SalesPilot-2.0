@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 02, 2024 at 05:34 PM
+-- Generation Time: Nov 02, 2024 at 10:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -140,10 +140,13 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`inventory_id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
-(1, 1, 3, '2024-11-02 15:48:06', 20, 27, 'Samsung Galaxy'),
-(2, 2, 5, '2024-11-02 15:48:06', 100, 200, 'Pilsner'),
-(3, 7, 3, '2024-11-02 15:48:06', 20, 12, 'Apple iPhone'),
-(4, 6, 20, '2024-11-02 15:48:06', 100, 80, 'Vitamin Water');
+(1, 1, 10, '2024-11-02 19:44:16', 20, 27, 'Samsung Galaxy'),
+(2, 2, 60, '2024-11-02 19:44:16', 100, 200, 'Pilsner'),
+(3, 7, 12, '2024-11-02 19:44:16', 20, 12, 'Apple iPhone'),
+(4, 6, 40, '2024-11-02 19:44:16', 100, 80, 'Vitamin Water'),
+(5, 5, 25, '2024-11-02 19:44:16', 50, 25, 'Floral Dress'),
+(6, 4, 18, '2024-11-02 19:44:16', 40, 25, 'Beauty Soap'),
+(7, 8, 12, '2024-11-02 19:44:16', 20, 12, 'Sony Camera');
 
 -- --------------------------------------------------------
 
@@ -172,7 +175,7 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `delivery_address`, `mode_of_payment`, `due_date`, `subtotal`, `discount`) VALUES
-(11, '435657', 'joe  2', 'delivery', '2024-10-11', 'Paid', '5678', 'Madrid ', 'Mpesa', '2024-11-01', 910.00, 10.00);
+(11, '435657', 'joe  23', 'delivery', '2024-10-11', 'Paid', '5678', 'Madrid ', 'Mpesa', '2024-11-01', 910.00, 10.00);
 
 -- --------------------------------------------------------
 
@@ -194,8 +197,8 @@ CREATE TABLE `invoice_items` (
 --
 
 INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
-(21, 11, 'Dell laptop', 2, 215.00),
-(22, 11, 'Mens shoes', 3, 160.00);
+(23, 11, 'Dell laptop', 2, 215.00),
+(24, 11, 'Mens shoes', 3, 160.00);
 
 -- --------------------------------------------------------
 
@@ -223,15 +226,9 @@ CREATE TABLE `payments` (
   `method` varchar(50) NOT NULL,
   `status` varchar(50) NOT NULL,
   `paypal_email` varchar(255) DEFAULT NULL,
-  `bitcoin_address` varchar(255) DEFAULT NULL,
-  `usdt_address` varchar(255) DEFAULT NULL,
-  `usdt_network` varchar(50) DEFAULT NULL,
-  `matic_address` varchar(255) DEFAULT NULL,
-  `tron_address` varchar(255) DEFAULT NULL,
   `binance_pay_email` varchar(255) DEFAULT NULL,
-  `bybit_pay_email` varchar(255) DEFAULT NULL,
-  `okx_pay_email` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `payment_proof` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -306,7 +303,7 @@ CREATE TABLE `reports` (
 --
 
 INSERT INTO `reports` (`reports_id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
-(1, '2024-11-02', 69215.00, 22.17, '[{\"product_id\":1,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"3\",\"total_sales\":\"450.00\",\"total_cost\":\"300.00\",\"total_profit\":\"150.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":2,\"product_name\":\"Pilsner\",\"total_quantity\":\"5\",\"total_sales\":\"200.00\",\"total_cost\":\"175.00\",\"total_profit\":\"25.00\",\"inventory_turnover_rate\":\"0.0500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":4,\"product_name\":\"Beauty Soap\",\"total_quantity\":\"5\",\"total_sales\":\"105.00\",\"total_cost\":\"75.00\",\"total_profit\":\"30.00\",\"inventory_turnover_rate\":\"0.1250\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":5,\"product_name\":\"Floral Dress\",\"total_quantity\":\"4\",\"total_sales\":\"140.00\",\"total_cost\":\"80.00\",\"total_profit\":\"60.00\",\"inventory_turnover_rate\":\"0.0800\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":6,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"20\",\"total_sales\":\"300.00\",\"total_cost\":\"200.00\",\"total_profit\":\"100.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":7,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"3\",\"total_sales\":\"3600.00\",\"total_cost\":\"2700.00\",\"total_profit\":\"900.00\",\"inventory_turnover_rate\":\"0.1500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":8,\"product_name\":\"Sony Camera\",\"total_quantity\":\"4\",\"total_sales\":\"420.00\",\"total_cost\":\"340.00\",\"total_profit\":\"80.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":10,\"product_name\":\"Chevrolet\",\"total_quantity\":\"2\",\"total_sales\":\"64000.00\",\"total_cost\":\"50000.00\",\"total_profit\":\"14000.00\",\"inventory_turnover_rate\":\"0.3333\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 15345.00, -38525.00, '2024-11-02 16:13:14', 69215, 46, 99, 99, -99);
+(1, '2024-11-02', 21413.00, 24.86, '[{\"product_id\":1,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"10\",\"total_sales\":\"1500.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":2,\"product_name\":\"Pilsner\",\"total_quantity\":\"60\",\"total_sales\":\"2400.00\",\"total_cost\":\"2100.00\",\"total_profit\":\"300.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":4,\"product_name\":\"Beauty Soap\",\"total_quantity\":\"18\",\"total_sales\":\"378.00\",\"total_cost\":\"270.00\",\"total_profit\":\"108.00\",\"inventory_turnover_rate\":\"0.4500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":5,\"product_name\":\"Floral Dress\",\"total_quantity\":\"25\",\"total_sales\":\"875.00\",\"total_cost\":\"500.00\",\"total_profit\":\"375.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":6,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"40\",\"total_sales\":\"600.00\",\"total_cost\":\"400.00\",\"total_profit\":\"200.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":7,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"12\",\"total_sales\":\"14400.00\",\"total_cost\":\"10800.00\",\"total_profit\":\"3600.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":8,\"product_name\":\"Sony Camera\",\"total_quantity\":\"12\",\"total_sales\":\"1260.00\",\"total_cost\":\"1020.00\",\"total_profit\":\"240.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 5323.00, -10767.00, '2024-11-02 16:13:14', 21413, 177, 99, 99, -99);
 
 -- --------------------------------------------------------
 
@@ -381,7 +378,14 @@ CREATE TABLE `sales_analytics` (
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
 (1, '2024-11-02', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, '2024-11-02 13:26:02', 0, 0, 0, 0, 0, 0, 0),
 (2, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:07:46', 69215, 46, 99, 0, 0, 0, 0),
-(3, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:12:53', 69215, 46, 99, 0, 0, 0, 0);
+(3, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:12:53', 69215, 46, 99, 0, 0, 0, 0),
+(4, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:50:12', 21413, 177, 99, 0, 0, 0, 0),
+(5, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:50:56', 21413, 177, 99, 0, 0, 0, 0),
+(6, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:53:46', 21413, 177, 99, 0, 0, 0, 0),
+(7, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:54:32', 21413, 177, 99, 0, 0, 0, 0),
+(8, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:55:23', 21413, 177, 99, 0, 0, 0, 0),
+(9, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:55:55', 21413, 177, 99, 0, 0, 0, 0),
+(10, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 20:03:11', 21413, 177, 99, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -604,7 +608,7 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -616,7 +620,7 @@ ALTER TABLE `invoices`
 -- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -652,7 +656,7 @@ ALTER TABLE `sales`
 -- AUTO_INCREMENT for table `sales_analytics`
 --
 ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `staffs`
