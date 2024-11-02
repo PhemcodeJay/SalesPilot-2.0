@@ -606,7 +606,7 @@ try {
                         <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
                             <i class="las la-print"></i> View Invoice
                         </a>
-                        <button type="button" class="btn btn-primary-dark"><i class="las la-file-download"></i> PDF</button>
+                        
                     </div>
                 </div>
                 <div class="card-body">
@@ -615,7 +615,7 @@ try {
                             <img src="http://localhost/project/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Logo">
                             <h5 class="mb-0">Hello, <?php echo $username; ?></h5>
                             <input type="text" class="form-control" name="customer_name" placeholder="Customer Name" required>
-                            <textarea name="invoice_description" class="form-control mt-2" placeholder="Product or Services Details" required></textarea>
+                            <textarea name="invoice_description" class="form-control mt-2" placeholder="Invoice Details" required></textarea>
                         </div>
                     </div>
                     <div class="row">
