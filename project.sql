@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 01, 2024 at 01:37 PM
+-- Generation Time: Nov 02, 2024 at 04:25 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -196,9 +196,9 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `delivery_address`, `mode_of_payment`, `due_date`, `subtotal`, `discount`) VALUES
-(1, '123456', 'kimo 2', 'proforma invoice', '2024-10-18', 'Paid', '1245', '112 Freeway NYC NY', 'Paypal', '2024-11-02', 0.00, 0.00),
 (2, '435657', 'Mini stores', 'delivery', '2024-10-26', 'Paid', '1234', '112 Freeway Ohio', 'Mpesa', '2024-10-31', 880.00, 5.00),
-(3, '003', 'Kyle stores 4', 'delivery ', '2024-10-04', 'Paid', '1245', '146 highway london', 'Binance Pay', '2024-10-30', 360.00, 6.00);
+(3, '003', 'Kyle stores 4', 'delivery ', '2024-10-04', 'Paid', '1245', '146 highway london', 'Binance Pay', '2024-10-30', 360.00, 6.00),
+(9, '765345', 'Super stores', 'service delivery', '2024-11-01', 'Paid', '43', '567 Helmsdale Arizona', 'MasterCard ', '2024-11-08', 750.00, 5.00);
 
 -- --------------------------------------------------------
 
@@ -220,12 +220,16 @@ CREATE TABLE `invoice_items` (
 --
 
 INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
-(3, 0, 'Dell laptop', 2, 215.00),
-(4, 0, 'HP laptop', 2, 220.00),
+(3, 2, 'Dell laptop', 2, 215.00),
+(4, 3, 'HP laptop', 2, 220.00),
 (5, 2, 'Mens shoes', 4, 160.00),
 (6, 2, 'Bag', 2, 120.00),
 (7, 3, 'kettle ', 4, 45.00),
-(8, 3, 'kettle  bag', 6, 30.00);
+(8, 3, 'kettle  bag', 6, 30.00),
+(13, 9, 'software installation ', 1, 350.00),
+(14, 9, 'hardware services', 1, 400.00),
+(17, 10, 'stationeries', 100, 3.50),
+(18, 10, 'paper A4', 50, 7.50);
 
 -- --------------------------------------------------------
 
@@ -492,6 +496,8 @@ CREATE TABLE `suppliers` (
 
 INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
 (6, 'East Africa Distillery', 'ead@gmail.com', '0106784356', 'Nairobi', '2024-10-24 10:45:03', 'Premium Beer', 40, 'ok'),
+(7, 'Gordons', 'gordons@gmail.com', '0106784356', 'Accra', '2024-10-26 14:59:55', 'Apple Iphone', 20, ''),
+(6, 'East Africa Distillery', 'ead@gmail.com', '0106784356', 'Nairobi', '2024-10-24 10:45:03', 'Premium Beer', 40, 'ok'),
 (7, 'Gordons', 'gordons@gmail.com', '0106784356', 'Accra', '2024-10-26 14:59:55', 'Apple Iphone', 20, '');
 
 -- --------------------------------------------------------
@@ -519,6 +525,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `is_active`, `role`, `date`, `confirmpassword`, `user_image`, `phone`, `location`) VALUES
+(7, 'megastores', 'olphemie@hotmail.com', '$2y$10$6Xat/Bu6Vh7RJ/0P/OMi7e6Gdw9GbrE8F.DiRYZnwZu4eslLWigja', 1, 'sales', '2024-09-16 21:57:51', 'mega1234', 'uploads/user/1727918824_1726523112_20230712_130458.jpg', '', 'Texas'),
 (7, 'megastores', 'olphemie@hotmail.com', '$2y$10$6Xat/Bu6Vh7RJ/0P/OMi7e6Gdw9GbrE8F.DiRYZnwZu4eslLWigja', 1, 'sales', '2024-09-16 21:57:51', 'mega1234', 'uploads/user/1727918824_1726523112_20230712_130458.jpg', '', 'Texas');
 
 --
@@ -628,13 +635,13 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `invoice_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
