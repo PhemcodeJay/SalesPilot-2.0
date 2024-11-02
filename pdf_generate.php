@@ -126,12 +126,12 @@ function handlePDFGeneration($type, $id) {
             
                 if ($invoice_id) {
                     // Fetch the invoice details
-                    $invoice = fetchData('invoices', 'invoice_id', $id);
+                    $invoice = fetchData('invoices', 'invoice_id', $invoice_id);
             
                     // Check if the invoice was found
                     if ($invoice) {
                         // Fetch the items associated with the invoice
-                        $invoiceItems = fetchData('invoice_items', 'invoice_id', $id);
+                        $invoiceItems = fetchData('invoice_items', 'invoice_id', $invoice_id);
             
                         // Validate the type of $invoiceItems to ensure it's an array
                         if (!is_array($invoiceItems)) {
@@ -150,13 +150,13 @@ function handlePDFGeneration($type, $id) {
                             'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
                         ];
             
-                        // Prepare the items data for the PDF, if available
+                        // Prepare the items data for the PDF
+                        $itemsData = [];
                         if (!empty($invoiceItems)) {
-                            $itemsData = [];
                             foreach ($invoiceItems as $item) {
                                 if (is_array($item)) { // Ensure each item is an array
                                     $itemsData[] = [
-                                        'Item Name' => $item['item_name'],
+                                        'Item Name' => htmlspecialchars($item['item_name']),
                                         'Quantity' => $item['quantity'],
                                         'Price' => '$' . number_format($item['price'], 2),
                                         'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
@@ -165,13 +165,12 @@ function handlePDFGeneration($type, $id) {
                                     error_log('Unexpected item type: ' . gettype($item));
                                 }
                             }
-                            $data['Items'] = $itemsData;
                         } else {
-                            $data['Items'] = 'No items found for this invoice.';
+                            $itemsData[] = ['Item Name' => 'No items found for this invoice.', 'Quantity' => '', 'Price' => '', 'Total' => ''];
                         }
             
                         // Generate the PDF using the gathered invoice details and items
-                        generatePDF('Invoice Details', $data, "invoice_$id.pdf");
+                        generatePDF('Invoice Details', $data, $itemsData, "invoice_$invoice_id.pdf");
                     } else {
                         displayError('Invoice not found.');
                     }
@@ -296,7 +295,7 @@ if (!empty($_GET)) {
     }
 }
 
-// Generate product report PDF
+// Function to generate product report PDF
 function generateProductReport() {
     global $connection;
 
@@ -312,7 +311,7 @@ function generateProductReport() {
 
         // Table Header
         $pdf->SetFont('Arial', 'B', 12);
-        $header = ['ID', 'Product Name', 'Price', 'Cost', 'Stock Qty'];
+        $header = ['ID', 'Product Name', 'Price', 'Cost', 'Inventory Qty'];
         $widths = [30, 60, 30, 30, 30];
         
         foreach ($header as $i => $col) {
@@ -324,16 +323,25 @@ function generateProductReport() {
         $pdf->SetFont('Arial', '', 12);
         while ($product = $stmt->fetch()) {
             $pdf->Cell(30, 10, $product['id'], 1);
-            $pdf->Cell(60, 10, $product['name'], 1);
+            $pdf->Cell(60, 10, htmlspecialchars($product['name']), 1);
             $pdf->Cell(30, 10, '$' . number_format($product['price'], 2), 1);
             $pdf->Cell(30, 10, '$' . number_format($product['cost'], 2), 1);
-            $pdf->Cell(30, 10, $product['stock_qty'], 1);
+            $pdf->Cell(30, 10, $product['inventory_qty'], 1);
             $pdf->Ln();
         }
 
+        // Output the PDF
         $pdf->Output('D', 'product_report.pdf');
+        exit; // Ensure script stops after generating the PDF
     } else {
         displayError('No product data found.');
     }
 }
+
+// Check for the action parameter
+if (isset($_GET['action']) && $_GET['action'] === 'generate_product_report') {
+    generateProductReport();
+}
+
+
 ?>

@@ -659,6 +659,9 @@ try {
                     <p class="mb-0">The product records effectively dictates product presentation and provides space<br> to list your products and offering in the most appealing way.</p>
                 </div>
                 <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
+                <a href="pdf_generate.php?action=generate_product_report" class="btn btn-primary add-list">
+    <i class="las la-plus mr-3"></i>Save as PDF</a>
+
             </div>
         </div>
         <div class="container-fluid">
