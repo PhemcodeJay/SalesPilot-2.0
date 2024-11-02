@@ -1035,165 +1035,154 @@ $connection = null;
     <script src="http://localhost/project/assets/js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-    // Function to fetch data from the server
-    async function fetchChartData() {
+   
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    // Function to fetch data from the server for a specified range
+    async function fetchChartData(range = "monthly") {
         try {
-            const response = await fetch('/chart-dash.php'); // Path to your chart-dash.php file
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+            const response = await fetch(`/chart-dash.php?range=${range}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
             const data = await response.json();
-
-            // Initialize charts with fetched data
-            initializeCharts(data);
+            updateCharts(data);
         } catch (error) {
             console.error('Error fetching chart data:', error);
         }
     }
 
-    // Function to initialize charts
-    function initializeCharts(data) {
-        // Example data extraction from the response
-        const netProfitData = data.netProfit; // Assuming this is an array of values
-        const expensesData = data.expenses; // Assuming this is an array of values
-        const netProfitVsExpenditureData = data.netProfitVsExpenditure; // Assuming this is an array of objects
-        const newChart1Data = data.newChart1; // Assuming this is an array of values
-        const newChart2Data = data.newChart2; // Assuming this is an array of values
-
-        // Net Profit Chart
-        const ctx1 = document.getElementById('layout1-chart-3').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line', // Example type
-            data: {
-                labels: data.labels, // Assuming your data includes labels
-                datasets: [{
-                    label: 'Net Profit',
-                    data: netProfitData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
+    // Function to initialize or update all charts with the fetched data
+    function updateCharts(data) {
+        const chartConfigs = [
+            {
+                id: 'apexLayeredColumnChart',
+                type: 'bar',
+                label: 'Revenue by Top 6 Categories',
+                dataKey: 'apexLayeredColumnChart',
+                dataConfig: item => ({ label: item.category_name, value: item.revenue }),
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Expenses Chart
-        const ctx2 = document.getElementById('layout1-chart-4').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar', // Example type
-            data: {
-                labels: data.labels, // Assuming your data includes labels
-                datasets: [{
-                    label: 'Expenses',
-                    data: expensesData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
+            {
+                id: 'apexColumnLineChart',
+                type: 'line',
+                label: 'Revenue vs Profit',
+                dataKey: 'apexColumnLineChart',
+                dataConfig: item => ({ date: item.date, revenue: item.revenue, profit: item.profit }),
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Net Profit vs Expenditure Chart
-        const ctx3 = document.getElementById('layout1-chart-5').getContext('2d');
-        new Chart(ctx3, {
-            type: 'line', // Example type
-            data: {
-                labels: data.labels, // Assuming your data includes labels
-                datasets: [
-                    {
-                        label: 'Net Profit',
-                        data: netProfitVsExpenditureData.map(item => item.netProfit), // Adjust as needed
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        fill: false
-                    },
-                    {
-                        label: 'Expenses',
-                        data: netProfitVsExpenditureData.map(item => item.expenses), // Adjust as needed
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        fill: false
-                    }
-                ]
+            {
+                id: 'layout1-chart-3',
+                type: 'line',
+                label: 'Profit',
+                dataKey: 'layout1-chart-3',
+                dataConfig: item => ({ date: item.date, profit: item.profit }),
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // New Chart 1
-        const ctx4 = document.getElementById('layout1-chart-6').getContext('2d'); // Assuming you create a new div for this
-        new Chart(ctx4, {
-            type: 'bar', // Example type
-            data: {
-                labels: data.newChart1Labels, // Assuming this comes from your data
-                datasets: [{
-                    label: 'New Chart 1',
-                    data: newChart1Data,
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
+            {
+                id: 'layout1-chart-4',
+                type: 'bar',
+                label: 'Expenses',
+                dataKey: 'layout1-chart-4',
+                dataConfig: item => ({ date: item.date, expenses: item.expenses }),
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+            {
+                id: 'layout1-chart-5',
+                type: 'line',
+                label: 'Profit vs Expenses',
+                dataKey: 'layout1-chart-5',
+                dataConfig: item => ({ date: item.date, profit: item.profit, expenses: item.expenses }),
             }
-        });
+        ];
 
-        // New Chart 2
-        const ctx5 = document.getElementById('layout1-chart-7').getContext('2d'); // Assuming you create a new div for this
-        new Chart(ctx5, {
-            type: 'line', // Example type
-            data: {
-                labels: data.newChart2Labels, // Assuming this comes from your data
-                datasets: [{
-                    label: 'New Chart 2',
-                    data: newChart2Data,
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
+        // Iterate through each chart configuration
+        chartConfigs.forEach(config => {
+            const chartElement = document.getElementById(config.id);
+            if (!chartElement) return;
+
+            const rawData = data[config.dataKey] || [];
+            const labels = rawData.map(item => item.date || item.category_name || ''); // Use date or category_name as labels
+            const datasets = buildDatasets(rawData, config);
+
+            new Chart(chartElement, {
+                type: config.type,
+                data: { labels, datasets },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
         });
     }
 
-    // Call the fetch function to load data
+    // Helper to build datasets for each chart
+    function buildDatasets(rawData, config) {
+        switch (config.label) {
+            case 'Revenue by Top 6 Categories':
+                return [{
+                    label: config.label,
+                    data: rawData.map(config.dataConfig).map(item => item.value),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                }];
+            case 'Revenue vs Profit':
+                return [
+                    {
+                        label: 'Revenue',
+                        data: rawData.map(config.dataConfig).map(item => item.revenue),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                    },
+                    {
+                        label: 'Profit',
+                        data: rawData.map(config.dataConfig).map(item => item.profit),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                    }
+                ];
+            case 'Profit':
+                return [{
+                    label: 'Profit',
+                    data: rawData.map(config.dataConfig).map(item => item.profit),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                }];
+            case 'Expenses':
+                return [{
+                    label: 'Expenses',
+                    data: rawData.map(config.dataConfig).map(item => item.expenses),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                }];
+            case 'Profit vs Expenses':
+                return [
+                    {
+                        label: 'Profit',
+                        data: rawData.map(config.dataConfig).map(item => item.profit),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                    },
+                    {
+                        label: 'Expenses',
+                        data: rawData.map(config.dataConfig).map(item => item.expenses),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                    }
+                ];
+            default:
+                return [];
+        }
+    }
+
+    // Event listeners for dropdown timeframes
+    document.querySelectorAll(".dropdown-item").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            const timeframe = this.getAttribute("data-timeframe");
+            const dropdownButton = this.closest(".dropdown").querySelector(".dropdown-toggle");
+            dropdownButton.innerHTML = `${timeframe} <i class="ri-arrow-down-s-line ml-1"></i>`;
+            fetchChartData(timeframe); // Fetch data for the selected timeframe
+        });
+    });
+
+    // Load initial data
     fetchChartData();
 });
 
-</script>
+    </script>
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
