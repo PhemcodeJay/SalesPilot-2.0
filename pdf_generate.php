@@ -28,35 +28,36 @@ function generatePDF($title, $data, $filename) {
     // Title
     $pdf->SetFont('Arial', 'B', 16);
     $pdf->Cell(0, 10, $title, 0, 1, 'C');
+    $pdf->Ln(10); // Add a line break after the title
 
-    // Data
+    // Main invoice data
     $pdf->SetFont('Arial', '', 12);
     foreach ($data as $label => $value) {
         if (is_array($value)) {
-            // If the value is an array, we need to format it differently
+            // If the value is an array (for invoice items)
             $pdf->Cell(40, 10, "$label:", 0, 0);
+            $pdf->Ln(); // Move to the next line
+            // Format each item in the items array
             foreach ($value as $item) {
                 if (is_array($item)) {
-                    // If item is an array (for invoice items)
-                    $pdf->Ln(); // Move to the next line for item
-                    foreach ($item as $itemLabel => $itemValue) {
-                        $pdf->Cell(40, 10, "$itemLabel: $itemValue", 0, 1);
-                    }
-                } else {
-                    // If item is a string
-                    $pdf->Ln(); // Move to the next line for item
-                    $pdf->Cell(40, 10, $item, 0, 1);
+                    // Print item details
+                    $pdf->Cell(40, 10, 'Item Name: ' . htmlspecialchars($item['item_name']), 0, 1);
+                    $pdf->Cell(40, 10, 'Quantity: ' . intval($item['qty']), 0, 1);
+                    $pdf->Cell(40, 10, 'Price: $' . number_format(floatval($item['price']), 2), 0, 1);
+                    $pdf->Cell(40, 10, 'Total: $' . number_format(floatval($item['total']), 2), 0, 1);
+                    $pdf->Ln(5); // Add space between items
                 }
             }
         } else {
+            // Print the invoice details
             $pdf->Cell(40, 10, "$label:", 0, 0);
-            $pdf->Cell(0, 10, $value, 0, 1);
+            $pdf->Cell(0, 10, htmlspecialchars($value), 0, 1);
         }
     }
 
-    $pdf->Output('D', $filename); // Correct this to only accept the filename
+    // Output the PDF
+    $pdf->Output('D', $filename);
 }
-
 
 // Fetch data from specified table
 function fetchData($table, $idColumn, $id) {
@@ -65,8 +66,85 @@ function fetchData($table, $idColumn, $id) {
     
     $stmt = $connection->prepare("SELECT * FROM $table WHERE $idColumn = :id");
     $stmt->execute(['id' => $id]);
-    return $stmt->fetch();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+// Function to generate an invoice PDF
+function generateInvoicePDF($invoice, $invoiceItems, $invoiceId) {
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    
+    // Title
+    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->Cell(0, 10, 'Invoice Details', 0, 1, 'C');
+    $pdf->Ln(10);
+
+    // Invoice details
+$pdf->SetFont('Arial', '', 12);
+
+// Invoice ID
+$pdf->Cell(40, 10, 'Invoice ID:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['invoice_id']), 0, 1);
+
+// Invoice Number
+$pdf->Cell(40, 10, 'Invoice Number:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['invoice_number']), 0, 1);
+
+// Customer Name
+$pdf->Cell(40, 10, 'Customer Name:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['customer_name']), 0, 1);
+
+// Invoice Description
+$pdf->Cell(40, 10, 'Description:', 0, 0);
+$pdf->MultiCell(0, 10, htmlspecialchars($invoice['invoice_description']), 0, 1);
+
+// Order Date
+$pdf->Cell(40, 10, 'Order Date:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['order_date']), 0, 1);
+
+// Delivery Address
+$pdf->Cell(40, 10, 'Delivery Address:', 0, 0);
+$pdf->MultiCell(0, 10, htmlspecialchars($invoice['delivery_address']), 0, 1);
+
+// Mode of Payment
+$pdf->Cell(40, 10, 'Mode of Payment:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['mode_of_payment']), 0, 1);
+
+// Due Date
+$pdf->Cell(40, 10, 'Due Date:', 0, 0);
+$pdf->Cell(0, 10, htmlspecialchars($invoice['due_date']), 0, 1);
+
+// Subtotal
+$pdf->Cell(40, 10, 'Subtotal:', 0, 0);
+$pdf->Cell(0, 10, '$' . number_format(floatval($invoice['subtotal']), 2), 0, 1);
+
+// Total Amount
+$pdf->Cell(40, 10, 'Total Amount:', 0, 0);
+$pdf->Cell(0, 10, '$' . number_format(floatval($invoice['total_amount']), 2), 0, 1);
+
+$pdf->Ln(10); // Add a line break before items
+
+
+    // Invoice items header
+    $pdf->Cell(40, 10, 'Item Name', 1);
+    $pdf->Cell(30, 10, 'Quantity', 1);
+    $pdf->Cell(30, 10, 'Price', 1);
+    $pdf->Cell(30, 10, 'Total', 1);
+    $pdf->Ln();
+
+    // Loop through each item and add to PDF
+    foreach ($invoiceItems as $item) {
+        $pdf->Cell(40, 10, htmlspecialchars($item['item_name']), 1);
+        $pdf->Cell(30, 10, intval($item['qty']), 1);
+        $pdf->Cell(30, 10, '$' . number_format(floatval($item['price']), 2), 1);
+        $pdf->Cell(30, 10, '$' . number_format(floatval($item['total']), 2), 1);
+        $pdf->Ln();
+    }
+
+    // Output the PDF
+    $pdf->Output('D', "invoice_$invoiceId.pdf");
+}
+
 
 // Handle PDF generation based on type
 function handlePDFGeneration($type, $id) {
@@ -76,10 +154,10 @@ function handlePDFGeneration($type, $id) {
             $customer = fetchData('customers', 'customer_id', $id);
             if ($customer) {
                 $data = [
-                    'Name' => $customer['customer_name'],
-                    'Email' => $customer['customer_email'] ?? 'N/A',
-                    'Phone' => $customer['customer_phone'] ?? 'N/A',
-                    'Location' => $customer['customer_location'] ?? 'N/A',
+                    'Name' => htmlspecialchars($customer['customer_name']),
+                    'Email' => htmlspecialchars($customer['customer_email'] ?? 'N/A'),
+                    'Phone' => htmlspecialchars($customer['customer_phone'] ?? 'N/A'),
+                    'Location' => htmlspecialchars($customer['customer_location'] ?? 'N/A'),
                 ];
                 generatePDF('Customer Information', $data, "customer_$id.pdf");
             } else {
@@ -91,10 +169,10 @@ function handlePDFGeneration($type, $id) {
             $expense = fetchData('expenses', 'expense_id', $id);
             if ($expense) {
                 $data = [
-                    'Description' => $expense['description'],
-                    'Amount' => '$' . number_format($expense['amount'], 2),
-                    'Date' => $expense['expense_date'],
-                    'Created by' => $expense['created_by'],
+                    'Description' => htmlspecialchars($expense['description']),
+                    'Amount' => '$' . number_format(floatval($expense['amount']), 2),
+                    'Date' => htmlspecialchars($expense['expense_date']),
+                    'Created by' => htmlspecialchars($expense['created_by']),
                 ];
                 generatePDF('Expense Information', $data, "expense_$id.pdf");
             } else {
@@ -102,84 +180,44 @@ function handlePDFGeneration($type, $id) {
             }
             break;
 
-        case 'inventory':
-            $inventory = fetchData('inventory', 'inventory_id', $id);
-            if ($inventory) {
-                $data = [
-                    'Product Name' => $inventory['product_name'],
-                    'Product ID' => $inventory['product_id'],
-                    'Sales Quantity' => $inventory['sales_qty'],
-                    'Stock Quantity' => $inventory['stock_qty'],
-                    'Supply Quantity' => $inventory['supply_qty'],
-                    'Available Stock' => $inventory['available_stock'],
-                    'Inventory Quantity' => $inventory['inventory_qty'],
-                    'Last Updated' => $inventory['last_updated'],
-                ];
-                generatePDF('Inventory Information', $data, "inventory_$id.pdf");
+        case 'invoice':
+            // Check if invoice_id is provided
+            if (validateId($id)) {
+                // Fetch invoice details
+                $invoiceQuery = "SELECT * FROM invoices WHERE invoice_id = :id";
+                $stmt = $GLOBALS['connection']->prepare($invoiceQuery);
+                $stmt->execute(['id' => $id]);
+                $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Fetch associated invoice items
+                $itemsQuery = "SELECT * FROM invoice_items WHERE invoice_id = :id";
+                $itemStmt = $GLOBALS['connection']->prepare($itemsQuery);
+                $itemStmt->execute(['id' => $id]);
+                $invoiceItems = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Check if invoice exists
+                if ($invoice) {
+                    generateInvoicePDF($invoice, $invoiceItems, $id);
+                } else {
+                    displayError('Invoice not found.');
+                }
             } else {
-                displayError('Inventory record not found.');
+                displayError('Invalid invoice ID.');
             }
             break;
-
-            case 'invoice':
-                $invoice_id = $_GET['invoice_id'] ?? null;
-            
-                if ($invoice_id) {
-                    $invoice = fetchData('invoices', 'invoice_id', $invoice_id);
-                    
-                    if ($invoice) {
-                        $invoiceItems = fetchData('invoice_items', 'invoice_id', $invoice_id);
-            
-                        // Ensure invoice items is an array
-                        $itemsData = [];
-                        if (is_array($invoiceItems)) {
-                            foreach ($invoiceItems as $item) {
-                                if (is_array($item)) {
-                                    $itemsData[] = [
-                                        'Item Name' => htmlspecialchars($item['item_name']),
-                                        'Quantity' => $item['quantity'],
-                                        'Price' => '$' . number_format($item['price'], 2),
-                                        'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
-                                    ];
-                                }
-                            }
-                        }
-            
-                        // Prepare the main invoice data
-                        $data = [
-                            'Invoice Number' => $invoice['invoice_number'],
-                            'Customer Name' => $invoice['customer_name'],
-                            'Order Date' => $invoice['order_date'],
-                            'Due Date' => $invoice['due_date'],
-                            'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
-                            'Discount' => '$' . number_format($invoice['discount'], 2),
-                            'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
-                            'Items' => $itemsData // Include items data here
-                        ];
-            
-                        generatePDF('Invoice Details', $data, "invoice_$invoice_id.pdf");
-                    } else {
-                        displayError('Invoice not found.');
-                    }
-                } else {
-                    displayError('Invoice ID not provided.');
-                }
-                break;
-            
-            
 
         case 'product':
             $product = fetchData('products', 'id', $id);
             if ($product) {
                 $data = [
-                    'Product Name' => $product['name'],
-                    'Description' => $product['description'],
-                    'Price' => '$' . number_format($product['price'], 2),
-                    'Cost' => '$' . number_format($product['cost'], 2),
-                    'Stock Quantity' => $product['stock_qty'],
-                    'Supply Quantity' => $product['supply_qty'],
-                    'Inventory Quantity' => $product['inventory_qty'],
-                    'Profit' => '$' . number_format($product['profit'], 2),
+                    'Product Name' => htmlspecialchars($product['name']),
+                    'Description' => htmlspecialchars($product['description']),
+                    'Price' => '$' . number_format(floatval($product['price']), 2),
+                    'Cost' => '$' . number_format(floatval($product['cost']), 2),
+                    'Stock Quantity' => intval($product['stock_qty']),
+                    'Supply Quantity' => intval($product['supply_qty']),
+                    'Inventory Quantity' => intval($product['inventory_qty']),
+                    'Profit' => '$' . number_format(floatval($product['profit']), 2),
                 ];
                 generatePDF('Product Details', $data, "product_$id.pdf");
             } else {
@@ -191,10 +229,10 @@ function handlePDFGeneration($type, $id) {
             $staff = fetchData('staffs', 'staff_id', $id);
             if ($staff) {
                 $data = [
-                    'Staff Name' => $staff['staff_name'],
-                    'Staff Email' => $staff['staff_email'] ?? 'N/A',
-                    'Position' => $staff['position'] ?? 'N/A',
-                    'Phone' => $staff['staff_phone'] ?? 'N/A',
+                    'Staff Name' => htmlspecialchars($staff['staff_name']),
+                    'Staff Email' => htmlspecialchars($staff['staff_email'] ?? 'N/A'),
+                    'Position' => htmlspecialchars($staff['position'] ?? 'N/A'),
+                    'Phone' => htmlspecialchars($staff['staff_phone'] ?? 'N/A'),
                 ];
                 generatePDF('Staff Details', $data, "staff_$id.pdf");
             } else {
@@ -206,32 +244,17 @@ function handlePDFGeneration($type, $id) {
             $sales = fetchData('sales', 'sales_id', $id);
             if ($sales) {
                 $data = [
-                    'Sales ID' => $sales['sales_id'],
-                    'Product' => $sales['name'],
-                    'Payment Status' => $sales['payment_status'],
-                    'Staff ID' => $sales['staff_id'],
-                    'Sales Quantity' => $sales['sales_qty'],
-                    'Sales Date' => $sales['sale_date'],
-                    'Total Amount' => '$' . number_format($sales['total_price'], 2),
+                    'Sales ID' => intval($sales['sales_id']),
+                    'Product' => htmlspecialchars($sales['name']),
+                    'Payment Status' => htmlspecialchars($sales['payment_status']),
+                    'Staff ID' => intval($sales['staff_id']),
+                    'Sales Quantity' => intval($sales['sales_qty']),
+                    'Sales Date' => htmlspecialchars($sales['sale_date']),
+                    'Total Amount' => '$' . number_format(floatval($sales['total_price']), 2),
                 ];
                 generatePDF('Sales Information', $data, "sales_$id.pdf");
             } else {
                 displayError('Sales record not found.');
-            }
-            break;
-
-        case 'supplier':
-            $supplier = fetchData('suppliers', 'supplier_id', $id);
-            if ($supplier) {
-                $data = [
-                    'Supplier Name' => $supplier['supplier_name'],
-                    'Supplier Email' => $supplier['supplier_email'] ?? 'N/A',
-                    'Phone' => $supplier['supplier_phone'] ?? 'N/A',
-                    'Address' => $supplier['supplier_location'] ?? 'N/A',
-                ];
-                generatePDF('Supplier Information', $data, "supplier_$id.pdf");
-            } else {
-                displayError('Supplier record not found.');
             }
             break;
 
@@ -286,49 +309,38 @@ if (!empty($_GET)) {
 function generateProductReport() {
     global $connection;
 
-    $stmt = $connection->query("SELECT * FROM products");
-    if ($stmt->rowCount() > 0) {
-        $pdf = new FPDF();
-        $pdf->AddPage();
+    $stmt = $connection->prepare("SELECT * FROM products");
+    $stmt->execute();
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Title
-        $pdf->SetFont('Arial', 'B', 16);
-        $pdf->Cell(0, 10, 'Product Report', 0, 1, 'C');
-        $pdf->Ln(10);
-
-        // Table Header
-        $pdf->SetFont('Arial', 'B', 12);
-        $header = ['ID', 'Product Name', 'Price', 'Cost', 'Inventory Qty'];
-        $widths = [30, 60, 30, 30, 30];
-        
-        foreach ($header as $i => $col) {
-            $pdf->Cell($widths[$i], 10, $col, 1);
-        }
-        $pdf->Ln();
-
-        // Table Content
-        $pdf->SetFont('Arial', '', 12);
-        while ($product = $stmt->fetch()) {
-            $pdf->Cell(30, 10, $product['id'], 1);
-            $pdf->Cell(60, 10, htmlspecialchars($product['name']), 1);
-            $pdf->Cell(30, 10, '$' . number_format($product['price'], 2), 1);
-            $pdf->Cell(30, 10, '$' . number_format($product['cost'], 2), 1);
-            $pdf->Cell(30, 10, $product['inventory_qty'], 1);
-            $pdf->Ln();
-        }
-
-        // Output the PDF
-        $pdf->Output('D', 'product_report.pdf');
-        exit; // Ensure script stops after generating the PDF
-    } else {
-        displayError('No product data found.');
+    if (!$products) {
+        displayError('No products found for report generation.');
     }
+
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->Cell(0, 10, 'Product Report', 0, 1, 'C');
+    $pdf->Ln(10); // Add line break
+
+    // Table header
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(30, 10, 'ID', 1);
+    $pdf->Cell(80, 10, 'Name', 1);
+    $pdf->Cell(30, 10, 'Price', 1);
+    $pdf->Cell(30, 10, 'Stock', 1);
+    $pdf->Ln();
+
+    // Table rows
+    $pdf->SetFont('Arial', '', 12);
+    foreach ($products as $product) {
+        $pdf->Cell(30, 10, $product['id'], 1);
+        $pdf->Cell(80, 10, htmlspecialchars($product['name']), 1);
+        $pdf->Cell(30, 10, '$' . number_format(floatval($product['price']), 2), 1);
+        $pdf->Cell(30, 10, intval($product['stock_qty']), 1);
+        $pdf->Ln();
+    }
+
+    $pdf->Output('D', 'product_report.pdf'); // Download the report
 }
-
-// Check for the action parameter
-if (isset($_GET['action']) && $_GET['action'] === 'generate_product_report') {
-    generateProductReport();
-}
-
-
 ?>

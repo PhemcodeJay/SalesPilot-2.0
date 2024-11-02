@@ -68,6 +68,67 @@ try {
     echo "Error fetching invoice items: " . $e->getMessage();
 }
 
+if (isset($_GET['invoice_id'])) {
+    $invoiceId = $_GET['invoice_id'];
+
+    // Fetch invoice details
+    $invoiceQuery = "SELECT * FROM invoices WHERE invoice_id = ?";
+    $stmt = $connection->prepare($invoiceQuery);
+    $stmt->execute([$invoiceId]);
+    $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Fetch associated invoice items
+    $itemsQuery = "SELECT * FROM invoice_items WHERE invoice_id = ?";
+    $itemStmt = $connection->prepare($itemsQuery);
+    $itemStmt->execute([$invoiceId]);
+    $invoiceItems = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Check if invoice exists
+    if ($invoice) {
+        // Create instance of FPDF
+        $pdf = new FPDF();
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
+        
+        // Add invoice details
+        $pdf->SetFont('Arial', '', 12);
+        $pdf->Cell(0, 10, 'Invoice Number: ' . $invoice['invoice_number'], 0, 1);
+        $pdf->Cell(0, 10, 'Customer Name: ' . $invoice['customer_name'], 0, 1);
+        $pdf->Cell(0, 10, 'Order Date: ' . $invoice['order_date'], 0, 1);
+        $pdf->Cell(0, 10, 'Due Date: ' . $invoice['due_date'], 0, 1);
+        $pdf->Cell(0, 10, 'Subtotal: ' . $invoice['subtotal'], 0, 1);
+        $pdf->Cell(0, 10, 'Discount: ' . $invoice['discount'], 0, 1);
+        $pdf->Cell(0, 10, 'Total Amount: ' . $invoice['total_amount'], 0, 1);
+        
+        // Add invoice items header
+        $pdf->Cell(0, 10, 'Invoice Items:', 0, 1);
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(50, 10, 'Item Name', 1);
+        $pdf->Cell(30, 10, 'Quantity', 1);
+        $pdf->Cell(30, 10, 'Price', 1);
+        $pdf->Cell(30, 10, 'Total', 1);
+        $pdf->Ln();
+        
+        // Add invoice items
+        $pdf->SetFont('Arial', '', 12);
+        foreach ($invoiceItems as $item) {
+            $pdf->Cell(50, 10, $item['item_name'], 1);
+            $pdf->Cell(30, 10, $item['qty'], 1);
+            $pdf->Cell(30, 10, $item['price'], 1);
+            $pdf->Cell(30, 10, $item['total'], 1);
+            $pdf->Ln();
+        }
+
+        // Output the PDF
+        $pdf->Output('D', 'invoice_' . $invoiceId . '.pdf'); // Download the file
+    } else {
+        echo "Invoice not found.";
+    }
+} 
+
 
 // Fetch invoice function
 function fetchInvoice($invoice_id) {
