@@ -550,12 +550,12 @@ try {
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
                                 <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
+                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -574,12 +574,12 @@ try {
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
                                 <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002" data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
+                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -599,12 +599,12 @@ try {
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
                                 <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
+                                <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -621,12 +621,12 @@ try {
                   <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
                                 <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                    Select Period<i class="ri-arrow-down-s-line ml-1"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-                                    <a class="dropdown-item" href="#" data-period="year">Year</a>
-                                    <a class="dropdown-item" href="#" data-period="month">Month</a>
-                                    <a class="dropdown-item" href="#" data-period="week">Week</a>
+                                    <a button id="yearlyBtn" class="dropdown-item" href="#" data-period="year">Year</a>
+                                    <a button id="monthlyBtn" class="dropdown-item" href="#" data-period="month">Month</a>
+                                    <a button id="weeklyBtn" class="dropdown-item" href="#" data-period="week">Week</a>
                                 </div>
                             </div>
                         </div>
@@ -694,143 +694,103 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
-
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Function to fetch chart data based on the selected period
-    async function fetchChartData(period) {
-        try {
-            const response = await fetch(`/chart-dash.php?period=${period}`); // Pass the selected period to the PHP script
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            return null; // Return null on error
+// Chart instances
+let charts = {
+    basic: null,
+    lineArea: null,
+    pie: null,
+    column: null
+};
+
+// Function to create or update charts based on type and data
+function updateChart(chartType, data) {
+    const options = {
+        basic: {
+            type: 'bar',
+            series: [{ name: 'Total Sales', data: data.map(item => item.total_sales) }],
+            xaxis: { categories: data.map(item => item.date) }
+        },
+        lineArea: {
+            type: 'area',
+            series: [
+                { name: 'Sell Through Rate', data: data.map(item => item.avg_sell_through_rate) },
+                { name: 'Inventory Turnover Rate', data: data.map(item => item.avg_inventory_turnover_rate) }
+            ],
+            xaxis: { categories: data.map(item => item.date) }
+        },
+        pie: {
+            type: 'pie',
+            series: Object.values(data),
+            labels: Object.keys(data)
+        },
+        column: {
+            type: 'bar',
+            series: [
+                { name: 'Revenue', data: data.map(item => parseFloat(item.revenue)) },
+                { name: 'Total Expenses', data: data.map(item => parseFloat(item.total_expenses)) },
+                { name: 'Profit', data: data.map(item => parseFloat(item.profit)) }
+            ],
+            xaxis: { categories: data.map(item => item.date) }
         }
+    };
+
+    if (!charts[chartType]) {
+        charts[chartType] = new ApexCharts(document.querySelector(`#${chartType}Chart`), options[chartType]);
+        charts[chartType].render();
+    } else {
+        charts[chartType].updateSeries(options[chartType].series);
+        charts[chartType].updateOptions(options[chartType].xaxis ? { xaxis: options[chartType].xaxis } : {});
     }
+}
 
-    // Function to initialize charts with data
-    function initializeCharts(data) {
-        if (!data) return; // Return if there's no data
+// Function to fetch data and update all charts
+async function fetchAndUpdateCharts(range) {
+    try {
+        const response = await fetch(`your_php_script.php?range=${range}`);
+        const data = await response.json();
 
-        // Extract data for each chart
-        const productMetricsData = data.productMetrics; // Assuming your data structure
-        const inventoryMetricsData = data.inventoryMetrics; // Assuming your data structure
-        const revenueByProductData = data.revenueByProduct; // Assuming your data structure
-        const expenditureData = data.expenditure; // Assuming your data structure
-        const labels = data.labels; // Assuming your data includes labels
+        if (data.error) {
+            console.error("Error:", data.error);
+            return;
+        }
 
-        // Update Product Metrics Chart
-        const ctx1 = document.getElementById('apex-basic').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line', // Example type
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Product Metrics',
-                    data: productMetricsData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Update Inventory Metrics Chart
-        const ctx2 = document.getElementById('apex-line-area').getContext('2d');
-        new Chart(ctx2, {
-            type: 'line', // Example type
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Inventory Metrics',
-                    data: inventoryMetricsData,
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Update Revenue by Product Chart
-        const ctx3 = document.getElementById('am-3dpie-chart').getContext('2d');
-        new Chart(ctx3, {
-            type: 'pie', // Example type
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Revenue by Product',
-                    data: revenueByProductData,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'], // Sample colors
-                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
-
-        // Update Expenditure Chart
-        const ctx4 = document.getElementById('apex-column').getContext('2d');
-        new Chart(ctx4, {
-            type: 'bar', // Example type
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Expenditure',
-                    data: expenditureData,
-                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        updateChart('basic', data['apex-basic']);
+        updateChart('lineArea', data['apex-line-area']);
+        updateChart('pie', data['am-3dpie-chart']);
+        updateChart('column', data['apex-column']);
+    } catch (error) {
+        console.error("Failed to fetch chart data:", error);
     }
+}
 
-    // Event listener for dropdown items
-    document.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', async function (event) {
+// Event listeners for buttons
+document.getElementById("weeklyBtn").addEventListener("click", () => fetchAndUpdateCharts("weekly"));
+document.getElementById("monthlyBtn").addEventListener("click", () => fetchAndUpdateCharts("monthly"));
+document.getElementById("yearlyBtn").addEventListener("click", () => fetchAndUpdateCharts("yearly"));
+
+// Initial load for yearly data
+fetchAndUpdateCharts("yearly");
+
+// Dropdown event listener
+document.addEventListener("DOMContentLoaded", function () {
+    const periodDropdownItems = document.querySelectorAll(".dropdown-item");
+    const selectedPeriodText = document.getElementById("selectedPeriod");
+
+    periodDropdownItems.forEach(item => {
+        item.addEventListener("click", (event) => {
             event.preventDefault();
-            const period = this.getAttribute('data-period'); // Get the selected period
+            const period = item.getAttribute("data-period");
+            
+            // Update dropdown text to show selected period
+            selectedPeriodText.textContent = item.textContent;
 
-            // Fetch data for the selected period
-            const data = await fetchChartData(period);
-
-            // Initialize charts with the fetched data
-            initializeCharts(data);
+            // Update charts based on the selected period
+            fetchAndUpdateCharts(period);
         });
     });
-
-    // Initial fetch for default period (e.g., Month)
-    fetchChartData('month').then(data => initializeCharts(data));
 });
-
 </script>
+
 </body>
 </html>
