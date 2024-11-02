@@ -24,11 +24,11 @@ function validateId($id) {
 function generatePDF($title, $data, $filename) {
     $pdf = new FPDF();
     $pdf->AddPage();
-    
+
     // Title
     $pdf->SetFont('Arial', 'B', 16);
     $pdf->Cell(0, 10, $title, 0, 1, 'C');
-    
+
     // Data
     $pdf->SetFont('Arial', '', 12);
     foreach ($data as $label => $value) {
@@ -53,9 +53,10 @@ function generatePDF($title, $data, $filename) {
             $pdf->Cell(0, 10, $value, 0, 1);
         }
     }
-    
-    $pdf->Output('D', $filename);
+
+    $pdf->Output('D', $filename); // Correct this to only accept the filename
 }
+
 
 // Fetch data from specified table
 function fetchData($table, $idColumn, $id) {
@@ -121,25 +122,30 @@ function handlePDFGeneration($type, $id) {
             break;
 
             case 'invoice':
-                // Retrieve the invoice ID from the URL parameters
                 $invoice_id = $_GET['invoice_id'] ?? null;
             
                 if ($invoice_id) {
-                    // Fetch the invoice details
                     $invoice = fetchData('invoices', 'invoice_id', $invoice_id);
-            
-                    // Check if the invoice was found
+                    
                     if ($invoice) {
-                        // Fetch the items associated with the invoice
                         $invoiceItems = fetchData('invoice_items', 'invoice_id', $invoice_id);
             
-                        // Validate the type of $invoiceItems to ensure it's an array
-                        if (!is_array($invoiceItems)) {
-                            error_log('Invoice items fetch returned unexpected type: ' . gettype($invoiceItems));
-                            $invoiceItems = []; // Set to empty array if the data type is incorrect
+                        // Ensure invoice items is an array
+                        $itemsData = [];
+                        if (is_array($invoiceItems)) {
+                            foreach ($invoiceItems as $item) {
+                                if (is_array($item)) {
+                                    $itemsData[] = [
+                                        'Item Name' => htmlspecialchars($item['item_name']),
+                                        'Quantity' => $item['quantity'],
+                                        'Price' => '$' . number_format($item['price'], 2),
+                                        'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
+                                    ];
+                                }
+                            }
                         }
             
-                        // Prepare the main invoice data for the PDF
+                        // Prepare the main invoice data
                         $data = [
                             'Invoice Number' => $invoice['invoice_number'],
                             'Customer Name' => $invoice['customer_name'],
@@ -148,29 +154,10 @@ function handlePDFGeneration($type, $id) {
                             'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
                             'Discount' => '$' . number_format($invoice['discount'], 2),
                             'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
+                            'Items' => $itemsData // Include items data here
                         ];
             
-                        // Prepare the items data for the PDF
-                        $itemsData = [];
-                        if (!empty($invoiceItems)) {
-                            foreach ($invoiceItems as $item) {
-                                if (is_array($item)) { // Ensure each item is an array
-                                    $itemsData[] = [
-                                        'Item Name' => htmlspecialchars($item['item_name']),
-                                        'Quantity' => $item['quantity'],
-                                        'Price' => '$' . number_format($item['price'], 2),
-                                        'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
-                                    ];
-                                } else {
-                                    error_log('Unexpected item type: ' . gettype($item));
-                                }
-                            }
-                        } else {
-                            $itemsData[] = ['Item Name' => 'No items found for this invoice.', 'Quantity' => '', 'Price' => '', 'Total' => ''];
-                        }
-            
-                        // Generate the PDF using the gathered invoice details and items
-                        generatePDF('Invoice Details', $data, $itemsData, "invoice_$invoice_id.pdf");
+                        generatePDF('Invoice Details', $data, "invoice_$invoice_id.pdf");
                     } else {
                         displayError('Invoice not found.');
                     }
