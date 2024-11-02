@@ -237,68 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
     $stmt->execute();
     $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Handle PDF generation (GET request for invoice)
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['invoice_id'])) {
-    // Sanitize the input
-    $invoice_id = filter_var($_GET['invoice_id'], FILTER_SANITIZE_NUMBER_INT);
     
-    // Fetch the invoice details
-    $query = "SELECT * FROM invoices WHERE invoice_id = :invoice_id";
-    $stmt = $connection->prepare($query);
-    $stmt->bindParam(':invoice_id', $invoice_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Check if the invoice was found
-    if ($invoice) {
-        // Fetch the invoice items
-        $queryItems = "SELECT * FROM invoice_items WHERE invoice_id = :invoice_id";
-        $stmtItems = $connection->prepare($queryItems);
-        $stmtItems->bindParam(':invoice_id', $invoice_id, PDO::PARAM_INT);
-        $stmtItems->execute();
-        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-        // Initialize the PDF document
-        $pdf = new FPDF();
-        $pdf->AddPage();
-        
-        // Set up title and invoice details
-        $pdf->SetFont('Arial', 'B', 16);
-        $pdf->Cell(0, 10, 'Invoice', 0, 1, 'C');
-        $pdf->SetFont('Arial', 'I', 12);
-        $pdf->Cell(0, 10, 'Invoice Number: ' . htmlspecialchars($invoice['invoice_number']), 0, 1);
-        $pdf->Cell(0, 10, 'Customer Name: ' . htmlspecialchars($invoice['customer_name']), 0, 1);
-        $pdf->Cell(0, 10, 'Order Date: ' . htmlspecialchars($invoice['order_date']), 0, 1);
-        $pdf->Cell(0, 10, 'Total Amount: $' . number_format($invoice['total_amount'], 2), 0, 1);
-        $pdf->Ln(10);
-
-        // Set up table header for items
-        $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(80, 10, 'Item Name', 1);
-        $pdf->Cell(30, 10, 'Quantity', 1);
-        $pdf->Cell(30, 10, 'Price', 1);
-        $pdf->Cell(30, 10, 'Total', 1);
-        $pdf->Ln();
-
-        // Set up table data for each item
-        $pdf->SetFont('Arial', '', 12);
-        foreach ($items as $item) {
-            $total = $item['quantity'] * $item['price']; // Calculate total for each item
-            $pdf->Cell(80, 10, htmlspecialchars($item['item_name']), 1);
-            $pdf->Cell(30, 10, number_format((float)$item['quantity']), 1);  // Format quantity
-            $pdf->Cell(30, 10, '$' . number_format((float)$item['price'], 2), 1);
-            $pdf->Cell(30, 10, '$' . number_format((float)$total, 2), 1);
-            $pdf->Ln();
-        }
-
-        // Output the PDF as a download
-        $pdf->Output('D', 'Invoice_' . htmlspecialchars($invoice['invoice_number']) . '.pdf');
-        exit;
-    } else {
-        echo 'Invoice not found.';
-        exit;
-    }
-} 
 
 } 
 
@@ -808,9 +747,7 @@ try {
                     <td><?php echo htmlspecialchars($invoice['total_amount']); ?></td>
                     <td>
                         <div class="d-flex align-items-center list-action">
-                            <button class="action-btn badge badge-info mr-2" data-action="view" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="View" data-toggle="modal" data-target="#invoiceModal">
-                                <i class="ri-eye-line mr-0"></i>
-                            </button>
+                            
                             <button class="action-btn badge badge-info mr-2" data-action="save-pdf" data-invoice-id="<?php echo htmlspecialchars($invoice['invoice_id']); ?>" title="Save as PDF">
                                 <i class="ri-download-line mr-0"></i>
                             </button>
@@ -836,99 +773,6 @@ try {
     </div>
 </div>
 
-<!-- Invoice Modal -->
-<div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog" aria-labelledby="invoiceModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="invoiceModalLabel">Invoice Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <h6>Invoice Number: <span id="modal-invoice-number"></span></h6>
-                <h6>Customer Name: <span id="modal-customer-name"></span></h6>
-                <h6>Order Date: <span id="modal-order-date"></span></h6>
-                <h6>Total Amount: $<span id="modal-total-amount"></span></h6>
-                <h6>Items:</h6>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-invoice-items">
-                        <!-- Invoice items will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <a id="edit-invoice-btn" class="btn btn-primary" href="#">Edit Invoice</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<script>
-$(document).ready(function() {
-    // Function to fetch and display invoice details
-    function fetchInvoiceDetails(invoiceId) {
-        $.ajax({
-            type: "POST",
-            url: "pages-invoice.php",
-            data: { action: 'view', invoice_id: invoiceId },
-            dataType: "json",
-            success: function(response) {
-                if (response.success) {
-                    // Populate modal with invoice data
-                    $('#modal-invoice-number').text(response.invoice_number);
-                    $('#modal-customer-name').text(response.customer_name);
-                    $('#modal-order-date').text(response.order_date);
-                    $('#modal-total-amount').text(parseFloat(response.total_amount).toFixed(2));
-                    
-                    // Clear existing items
-                    $('#modal-invoice-items').empty();
-
-                    // Populate items
-                    response.items.forEach(function(item) {
-                        $('#modal-invoice-items').append(`
-                            <tr>
-                                <td>${item.item_name}</td>
-                                <td>${item.quantity}</td>
-                                <td>$${parseFloat(item.price).toFixed(2)}</td>
-                                <td>$${parseFloat(item.total).toFixed(2)}</td>
-                            </tr>
-                        `);
-                    });
-
-                    // Show the modal
-                    $('#invoiceModal').modal('show');
-                    $('#edit-invoice-btn').attr('href', 'edit_invoice.php?invoice_id=' + invoiceId);
-                   
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("AJAX Error: ", status, error);
-                alert('Error fetching invoice details. Please try again later.');
-            }
-        });
-    }
-
-    // Event listener for the view button (assuming it's on your invoices list)
-    $('.view-invoice-btn').on('click', function() {
-        const invoiceId = $(this).data('invoice-id'); // Assuming each button has data-invoice-id
-        fetchInvoiceDetails(invoiceId);
-    });
-});
-</script>
 
 <!-- Footer-->
     <footer class="iq-footer">
