@@ -13,6 +13,9 @@ include('config.php');
 $name = $email = $subject = $message = '';
 $errors = [];
 
+// Define the recipient email address (your email address to receive feedback)
+$to = 'phemcodejay@gmail.com'; // Set your email address here
+
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Sanitize input
@@ -53,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Set email sender and recipient
             $mail->setFrom('phemcodejay@gmail.com', 'SalesPilot'); // Replace with your email and name
-            $mail->addAddress($to) ; // Add a recipient
+            $mail->addAddress($to); // Add your email as the recipient
 
             // Email subject and body
             $mail->Subject = "New Contact Form Submission: $subject";
