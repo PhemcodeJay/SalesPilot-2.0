@@ -869,9 +869,6 @@ $(document).ready(function() {
 });
 </script>
 
-
-
-
 <!-- Footer-->
     <footer class="iq-footer">
             <div class="container-fluid">
