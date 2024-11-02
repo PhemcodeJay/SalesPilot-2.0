@@ -626,8 +626,7 @@ try {
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
                         <h4 class="mb-3">Expense Records</h4>
-                        <p class="mb-0">A expense dashboard enables purchasing manager to efficiently track, evaluate, <br>
-                        and optimize all acquisition processes within a company.</p>
+                        <p class="mb-0">An expense dashboard enables efficient tracking, evaluation, and optimization of all acquisition and purchasing processes.</p>
                     </div>
                     <a href="page-add-expense.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Expense</a>
                 </div>

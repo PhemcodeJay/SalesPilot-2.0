@@ -619,8 +619,7 @@ try {
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
                         <h4 class="mb-3">Sale Records</h4>
-                        <p class="mb-0">Sales enables you to effectively control sales KPIs and monitor them in one central<br>
-                         place while helping teams to reach sales goals. </p>
+                        <p class="mb-0">Sales Records allows you to manage key performance indicators (KPIs) and track them in one central location, supporting teams in achieving their sales objectives. </p>
                     </div>
                     <a href="page-add-sale.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Sale</a>
                 </div>

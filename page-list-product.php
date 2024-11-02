@@ -656,7 +656,7 @@ try {
             <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                 <div>
                     <h4 class="mb-3">Product Records</h4>
-                    <p class="mb-0">The product records effectively dictates product presentation and provides space<br> to list your products and offering in the most appealing way.</p>
+                    <p class="mb-0">Product records effectively showcase your products and services, allowing for organized listings that include price, quantity, and category to enhance presentation and management.</p>
                 </div>
                 <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
                 <a href="pdf_generate.php?action=generate_product_report" class="btn btn-primary add-list">

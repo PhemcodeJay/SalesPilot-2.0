@@ -665,8 +665,7 @@ try {
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
                         <h4 class="mb-3">Staffs Records</h4>
-                        <p class="mb-0">A dashboard provides you an overview of staff list with access to the most important data,<br>
-                         functions and controls. </p>
+                        <p class="mb-0">A dashboard offers an overview of the staff list, granting access to essential data, functions, and controls for managing staff sales. </p>
                     </div>
                     <a href="page-add-staffs.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Staff</a>
                 </div>

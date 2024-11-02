@@ -592,9 +592,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-lg-12">
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
-                        <h4 class="mb-3">Customers</h4>
-                        <p class="mb-0">A customer dashboard lets you easily gather and visualize customer data from optimizing <br>
-                         the customer experience, ensuring customer retention. </p>
+                        <h4 class="mb-3">Customer Records</h4>
+                        <p class="mb-0">A customer dashboard allows you to efficiently collect and analyze customer data to enhance the customer experience and improve retention. </p>
                     </div>
                     <a href="page-add-customers.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Customer</a>
                 </div>

@@ -687,7 +687,7 @@ $connection = null;
                 <div class="card card-transparent card-block card-stretch card-height border-none">
                     <div class="card-body p-0 mt-lg-2 mt-0">
                         <h3 class="mb-3"><?php echo $greeting; ?></h3>
-                        <p class="mb-0 mr-4">Your dashboard gives you views of key performance or business process.</p>
+                        <p class="mb-0 mr-4">Your dashboard delivers KPI for sales and inventory management, highlighting sales & income, net profit, and expenditures, which comprises of costs and expenses.</p>
                     </div>
                 </div>
             </div>
@@ -756,20 +756,11 @@ $connection = null;
                 <div class="card card-block card-stretch card-height">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Revenue</h4>
+                            <h4 class="card-title">Sales</h4>
                            
                         </div>                        
                         <div class="card-header-toolbar d-flex align-items-center">
-    <div class="dropdown">
-        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton001" data-toggle="dropdown">
-            This Month<i class="ri-arrow-down-s-line ml-1"></i>
-        </span>
-        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton001">
-            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-        </div>
-    </div>
+    
 </div>
 
                     </div>                    
@@ -786,18 +777,7 @@ $connection = null;
                             <h4 class="card-title">Income</h4>
                         </div>
                         <div class="card-header-toolbar d-flex align-items-center">
-                            <div class="dropdown">
-                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton002"
-                                    data-toggle="dropdown">
-                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                    aria-labelledby="dropdownMenuButton002">
-                                    <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                                    <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                                    <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                     <div class="card-body">
@@ -813,16 +793,7 @@ $connection = null;
                         <h4 class="card-title">Top Products</h4>
                     </div>
                     <div class="card-header-toolbar d-flex align-items-center">
-                        <div class="dropdown">
-                            <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006" data-toggle="dropdown">
-                                This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                            </span>
-                            <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton006">
-                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="card-body">
@@ -893,16 +864,7 @@ $connection = null;
                     <h5>$<?php echo $total_profit; ?></h5>
                 </div>
                 <div class="card-header-toolbar d-flex align-items-center">
-                    <div class="dropdown">
-                        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003" data-toggle="dropdown">
-                            This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                        </span>
-                        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton003">
-                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
             <div id="layout1-chart-3" class="layout-chart-1"></div>
@@ -916,16 +878,7 @@ $connection = null;
                     <h5>$<?php echo $total_expenses; ?></h5>
                 </div>
                 <div class="card-header-toolbar d-flex align-items-center">
-                    <div class="dropdown">
-                        <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004" data-toggle="dropdown">
-                            This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                        </span>
-                        <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton004">
-                            <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                            <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
             <div id="layout1-chart-4" class="layout-chart-2"></div>
@@ -939,16 +892,7 @@ $connection = null;
                 <h4 class="card-title">Net Profit vs Expenditure</h4>
             </div>                        
             <div class="card-header-toolbar d-flex align-items-center">
-                <div class="dropdown">
-                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton005" data-toggle="dropdown">
-                        This Month <i class="ri-arrow-down-s-line ml-1"></i>
-                    </span>
-                    <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButton005">
-                        <a class="dropdown-item" href="#" data-timeframe="Year">Year</a>
-                        <a class="dropdown-item" href="#" data-timeframe="Month">Month</a>
-                        <a class="dropdown-item" href="#" data-timeframe="Week">Week</a>
-                    </div>
-                </div>
+                
             </div>
         </div> 
         <div class="card-body">
@@ -1036,153 +980,6 @@ $connection = null;
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-    // Function to fetch data from the server for a specified range
-    async function fetchChartData(range = "monthly") {
-        try {
-            const response = await fetch(`/chart-dash.php?range=${range}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            updateCharts(data);
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-        }
-    }
-
-    // Function to initialize or update all charts with the fetched data
-    function updateCharts(data) {
-        const chartConfigs = [
-            {
-                id: 'apexLayeredColumnChart',
-                type: 'bar',
-                label: 'Revenue by Top 6 Categories',
-                dataKey: 'apexLayeredColumnChart',
-                dataConfig: item => ({ label: item.category_name, value: item.revenue }),
-            },
-            {
-                id: 'apexColumnLineChart',
-                type: 'line',
-                label: 'Revenue vs Profit',
-                dataKey: 'apexColumnLineChart',
-                dataConfig: item => ({ date: item.date, revenue: item.revenue, profit: item.profit }),
-            },
-            {
-                id: 'layout1-chart-3',
-                type: 'line',
-                label: 'Profit',
-                dataKey: 'layout1-chart-3',
-                dataConfig: item => ({ date: item.date, profit: item.profit }),
-            },
-            {
-                id: 'layout1-chart-4',
-                type: 'bar',
-                label: 'Expenses',
-                dataKey: 'layout1-chart-4',
-                dataConfig: item => ({ date: item.date, expenses: item.expenses }),
-            },
-            {
-                id: 'layout1-chart-5',
-                type: 'line',
-                label: 'Profit vs Expenses',
-                dataKey: 'layout1-chart-5',
-                dataConfig: item => ({ date: item.date, profit: item.profit, expenses: item.expenses }),
-            }
-        ];
-
-        // Iterate through each chart configuration
-        chartConfigs.forEach(config => {
-            const chartElement = document.getElementById(config.id);
-            if (!chartElement) return;
-
-            const rawData = data[config.dataKey] || [];
-            const labels = rawData.map(item => item.date || item.category_name || ''); // Use date or category_name as labels
-            const datasets = buildDatasets(rawData, config);
-
-            new Chart(chartElement, {
-                type: config.type,
-                data: { labels, datasets },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        });
-    }
-
-    // Helper to build datasets for each chart
-    function buildDatasets(rawData, config) {
-        switch (config.label) {
-            case 'Revenue by Top 6 Categories':
-                return [{
-                    label: config.label,
-                    data: rawData.map(config.dataConfig).map(item => item.value),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                }];
-            case 'Revenue vs Profit':
-                return [
-                    {
-                        label: 'Revenue',
-                        data: rawData.map(config.dataConfig).map(item => item.revenue),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                    },
-                    {
-                        label: 'Profit',
-                        data: rawData.map(config.dataConfig).map(item => item.profit),
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                    }
-                ];
-            case 'Profit':
-                return [{
-                    label: 'Profit',
-                    data: rawData.map(config.dataConfig).map(item => item.profit),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                }];
-            case 'Expenses':
-                return [{
-                    label: 'Expenses',
-                    data: rawData.map(config.dataConfig).map(item => item.expenses),
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                }];
-            case 'Profit vs Expenses':
-                return [
-                    {
-                        label: 'Profit',
-                        data: rawData.map(config.dataConfig).map(item => item.profit),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                    },
-                    {
-                        label: 'Expenses',
-                        data: rawData.map(config.dataConfig).map(item => item.expenses),
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                    }
-                ];
-            default:
-                return [];
-        }
-    }
-
-    // Event listeners for dropdown timeframes
-    document.querySelectorAll(".dropdown-item").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            const timeframe = this.getAttribute("data-timeframe");
-            const dropdownButton = this.closest(".dropdown").querySelector(".dropdown-toggle");
-            dropdownButton.innerHTML = `${timeframe} <i class="ri-arrow-down-s-line ml-1"></i>`;
-            fetchChartData(timeframe); // Fetch data for the selected timeframe
-        });
-    });
-
-    // Load initial data
-    fetchChartData();
-});
-
-    </script>
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here

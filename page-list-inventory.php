@@ -675,8 +675,7 @@ try {
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
                         <h4 class="mb-3">Inventory Records</h4>
-                        <p class="mb-0">Inventory dashboard shows the graphical representation of the channel
-                         and Reference <br>wise inventory with the comparison to the total units sold..</p>
+                        <p class="mb-0">The inventory dashboard displays inventory data by channel and reference, along with a comparison to total units sold.</p>
                     </div>
                     <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
                 </div>

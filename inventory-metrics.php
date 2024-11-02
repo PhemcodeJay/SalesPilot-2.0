@@ -112,7 +112,7 @@ if ($existing_report) {
             total_profit = :total_profit,
             total_expenses = :total_expenses,
             net_profit = :net_profit
-        WHERE id = :id";
+        WHERE reports_id = :reports_id";
     $stmt = $connection->prepare($update_query);
     $stmt->execute([
         ':revenue' => $total_sales,
@@ -128,7 +128,7 @@ if ($existing_report) {
         ':total_profit' => $total_profit,
         ':total_expenses' => $total_expenses,
         ':net_profit' => $net_margin,  // This should be net margin, which is profit - expenses
-        ':id' => $existing_report['id']
+        ':reports_id' => $existing_report['reports_id']
     ]);
 } else {
     // Insert new report
@@ -246,7 +246,7 @@ try {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Products Metrics</title>
+      <title>Products Analytics</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -677,13 +677,13 @@ try {
                <div class="card">
                   <div class="card-header d-flex justify-content-between">
                      <div class="header-title">
-                        <h4 class="card-title">Product Metrics</h4>
+                        <h4 class="card-title">Product Overview</h4>
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Product Metrics Report:</p>
+                     <p>Product Metrics</p>
 
-                     <p>The report generates product metrics by calculating key metrics from sales and products data. It computes product metrcis to compute key performance indicators. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `reports` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling..</p>
+                     <p>The report analyzes sales and product data to compute KPI, including revenue, profit margin, and revenue by product. </p>
                      <div class="table-responsive">
                      
 

@@ -605,8 +605,7 @@ try {
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                     <div>
                         <h4 class="mb-3">Category List</h4>
-                        <p class="mb-0">Use category list as to describe your overall core business from the provided list. <br>
-                        Click the name of the category where you want to add a list item. .</p>
+                        <p class="mb-0">Utilize the category list to classify your products and services. Click on the add product to add an item, including its product details.</p>
                     </div>
                     <a href="page-add-product.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Add Product</a>
                 </div>

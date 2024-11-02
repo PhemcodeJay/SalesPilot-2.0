@@ -257,7 +257,7 @@ try {
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Category Metrics</title>
+      <title>Category Analytics</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
@@ -688,13 +688,13 @@ try {
                <div class="card">
                   <div class="card-header d-flex justify-content-between">
                      <div class="header-title">
-                        <h4 class="card-title">Sales Metrics</h4>
+                        <h4 class="card-title">Category Overview</h4>
                      </div>
                   </div>
                   <div class="card-body">
-                     <p>Sales Metrics Report:</p>
+                     <p>Category Metrics</p>
 
-                     <p>The report generates Sales Metrics by calculating key metrics from sales and products data. It computes total sales, total quantity sold, total profit, and total expenses. The report also calculates revenue, profit margin, and revenue by product. This data is inserted into the `sales_analytics` table and displayed in a table format. Additionally, it provides a placeholder for year-over-year growth and cost of selling.</p>
+                     <p>This report analyzes key product and sales data to calculate total sales, quantity sold, profit, and expenses, along with revenue and profit margin based on category of products and services</p>
                      <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
                             <thead>
