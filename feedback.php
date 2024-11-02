@@ -9,31 +9,67 @@ use PHPMailer\PHPMailer\SMTP;
 // Include the database connection settings
 include('config.php');
 
+// Initialize variables
+$name = $email = $subject = $message = '';
+$errors = [];
+
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST["name"];
-    $email = $_POST["email"];
-    $subject = $_POST["subject"];
-    $message = $_POST["message"];
-    
-    // Add your email address where you want to receive messages
-    $to = "olphemie@gmail.com";
-    $email_subject = "New Contact Form Submission: $subject";
-    $headers = "From: $email";
+    // Sanitize input
+    $name = trim($_POST["name"]);
+    $email = trim($_POST["email"]);
+    $subject = trim($_POST["subject"]);
+    $message = trim($_POST["message"]);
 
-    // Construct the email message
-    $email_message = "Name: $name\n";
-    $email_message .= "Email: $email\n";
-    $email_message .= "Subject: $subject\n\n";
-    $email_message .= "Message:\n$message";
+    // Validate input
+    if (empty($name)) {
+        $errors[] = "Name is required.";
+    }
+    if (empty($email)) {
+        $errors[] = "Email is required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email format.";
+    }
+    if (empty($subject)) {
+        $errors[] = "Subject is required.";
+    }
+    if (empty($message)) {
+        $errors[] = "Message is required.";
+    }
 
-    // Send the email
-    if (mail($to, $email_subject, $email_message, $headers)) {
-        echo "Your message has been sent successfully!";
+    // If no validation errors, send the email
+    if (empty($errors)) {
+        $mail = new PHPMailer(true); // Create a new PHPMailer instance
+
+        try {
+            // SMTP configuration
+            $mail->isSMTP();
+            $mail->Host = 'smtp.ionos.com'; // Replace with your SMTP server
+            $mail->SMTPAuth = true;
+            $mail->Username = 'admin@cybertrendhub.store'; // Replace with your email
+            $mail->Password = 'kokochulo@1987#'; // Replace with your email password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
+            $mail->Port = 587; // TCP port to connect to
+
+            // Set email sender and recipient
+            $mail->setFrom('pphemcodejay@gmail.com', 'SalesPilot'); // Replace with your email and name
+            $mail->addAddress($to); // Add a recipient
+
+            // Email subject and body
+            $mail->Subject = "New Contact Form Submission: $subject";
+            $mail->Body = "Name: $name\nEmail: $email\nSubject: $subject\n\nMessage:\n$message";
+
+            // Send the email
+            $mail->send();
+            echo "Your message has been sent successfully!";
+        } catch (Exception $e) {
+            echo "Oops! Something went wrong. Mailer Error: {$mail->ErrorInfo}";
+        }
     } else {
-        echo "Oops! Something went wrong. Please try again later.";
+        // Display validation errors
+        foreach ($errors as $error) {
+            echo "<div class='text-danger'>$error</div>";
+        }
     }
 }
-
-
 ?>
