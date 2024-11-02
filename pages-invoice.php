@@ -117,11 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
 
-        case 'generate_pdf':
-            if ($invoice_id) {
-                generateInvoicePDF($invoice_id);
-            }
-            break;
+        
 
         case 'delete':
             if ($invoice_id) {
@@ -617,7 +613,7 @@ try {
                         <p class="text-center">No reports notifications available.</p>
                     <?php endif; ?>
                 </div>
-                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
+                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="page-list-inventory.php" role="button">
                     View All
                 </a>
             </div>
@@ -886,7 +882,7 @@ $(document).ready(function() {
 
         if (action === 'save-pdf') {
             // Redirect to pdf_generate.php to save PDF
-            window.location.href = 'pdf_generate.php?id=' + invoiceId;
+            window.location.href = 'pdf_generate.php?invoice_id=' + invoiceId;
         } else if (action === 'edit') {
             // Redirect to edit-invoice.php for editing the invoice
             window.location.href = 'edit_invoice.php?invoice_id=' + invoiceId;

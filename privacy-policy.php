@@ -469,9 +469,12 @@ try {
                         <p class="text-center">No reports notifications available.</p>
                     <?php endif; ?>
                 </div>
-                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
-                    View All
-                </a>
+                <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
+      <link rel="stylesheet" href="http://localhost/project/assets/css/backend-plugin.min.css">
+      <link rel="stylesheet" href="http://localhost/project/assets/css/backend.css?v=1.0.0">
+      <link rel="stylesheet" href="http://localhost/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+      <link rel="stylesheet" href="http://localhost/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+      <link rel="stylesheet" href="http://localhost/project/assets/vendor/remixicon/fonts/remixicon.css">  </head>
             </div>
         </div>
     </div>

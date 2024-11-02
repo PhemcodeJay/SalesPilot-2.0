@@ -598,7 +598,7 @@ try {
                         <p class="text-center">No reports notifications available.</p>
                     <?php endif; ?>
                 </div>
-                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
+                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="page-list-inventory.php" role="button">
                     View All
                 </a>
             </div>

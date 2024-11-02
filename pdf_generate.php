@@ -103,55 +103,62 @@ function handlePDFGeneration($type, $id) {
             break;
 
             case 'invoice':
-                $invoice = fetchData('invoices', 'invoice_id', $id); // Fetch the invoice
-                if ($invoice) {
-                    // Fetching invoice items associated with the invoice
-                    $invoiceItems = fetchData('invoice_items', 'invoice_id', $id); // Fetch invoice items
-                    
-                    // Check the type of $invoiceItems
-                    if (!is_array($invoiceItems)) {
-                        // If it's not an array, log an error
-                        error_log('Invoice items fetch returned unexpected type: ' . gettype($invoiceItems));
-                        $invoiceItems = []; // Set to empty array to prevent further errors
-                    }
+                // Retrieve the invoice ID from the URL parameters
+                $invoice_id = $_GET['invoice_id'] ?? null;
             
-                    // Prepare the invoice data
-                    $data = [
-                        'Invoice Number' => $invoice['invoice_number'],
-                        'Customer Name' => $invoice['customer_name'],
-                        'Order Date' => $invoice['order_date'],
-                        'Due Date' => $invoice['due_date'],
-                        'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
-                        'Discount' => '$' . number_format($invoice['discount'], 2),
-                        'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
-                    ];
+                if ($invoice_id) {
+                    // Fetch the invoice details
+                    $invoice = fetchData('invoices', 'invoice_id', $id);
             
-                    // Prepare the invoice items for the PDF
-                    if (!empty($invoiceItems) && is_array($invoiceItems)) {
-                        $itemsData = [];
-                        foreach ($invoiceItems as $item) {
-                            if (is_array($item)) {
-                                // Ensure $item is an array before accessing offsets
-                                $itemsData[] = [
-                                    'Item Name' => $item['item_name'],
-                                    'Quantity' => $item['quantity'],
-                                    'Price' => '$' . number_format($item['price'], 2),
-                                    'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
-                                ];
-                            } else {
-                                error_log('Unexpected item type: ' . gettype($item));
-                            }
+                    // Check if the invoice was found
+                    if ($invoice) {
+                        // Fetch the items associated with the invoice
+                        $invoiceItems = fetchData('invoice_items', 'invoice_id', $id);
+            
+                        // Validate the type of $invoiceItems to ensure it's an array
+                        if (!is_array($invoiceItems)) {
+                            error_log('Invoice items fetch returned unexpected type: ' . gettype($invoiceItems));
+                            $invoiceItems = []; // Set to empty array if the data type is incorrect
                         }
-                        // Add the items data to the PDF data
-                        $data['Items'] = $itemsData;
-                    } else {
-                        $data['Items'] = 'No items found for this invoice.';
-                    }
             
-                    // Generate the PDF with invoice details and items
-                    generatePDF('Invoice Details', $data, "invoice_$id.pdf");
+                        // Prepare the main invoice data for the PDF
+                        $data = [
+                            'Invoice Number' => $invoice['invoice_number'],
+                            'Customer Name' => $invoice['customer_name'],
+                            'Order Date' => $invoice['order_date'],
+                            'Due Date' => $invoice['due_date'],
+                            'Subtotal' => '$' . number_format($invoice['subtotal'], 2),
+                            'Discount' => '$' . number_format($invoice['discount'], 2),
+                            'Total Amount' => '$' . number_format($invoice['total_amount'], 2),
+                        ];
+            
+                        // Prepare the items data for the PDF, if available
+                        if (!empty($invoiceItems)) {
+                            $itemsData = [];
+                            foreach ($invoiceItems as $item) {
+                                if (is_array($item)) { // Ensure each item is an array
+                                    $itemsData[] = [
+                                        'Item Name' => $item['item_name'],
+                                        'Quantity' => $item['quantity'],
+                                        'Price' => '$' . number_format($item['price'], 2),
+                                        'Total' => '$' . number_format($item['quantity'] * $item['price'], 2),
+                                    ];
+                                } else {
+                                    error_log('Unexpected item type: ' . gettype($item));
+                                }
+                            }
+                            $data['Items'] = $itemsData;
+                        } else {
+                            $data['Items'] = 'No items found for this invoice.';
+                        }
+            
+                        // Generate the PDF using the gathered invoice details and items
+                        generatePDF('Invoice Details', $data, "invoice_$id.pdf");
+                    } else {
+                        displayError('Invoice not found.');
+                    }
                 } else {
-                    displayError('Invoice not found.');
+                    displayError('Invoice ID not provided.');
                 }
                 break;
             
