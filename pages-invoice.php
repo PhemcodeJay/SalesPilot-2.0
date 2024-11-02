@@ -775,8 +775,8 @@ try {
     </div>
 </div>
 
-<!-- Modal for displaying invoice details -->
-<div id="invoiceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+<!-- Invoice Modal -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog" aria-labelledby="invoiceModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -786,25 +786,28 @@ try {
                 </button>
             </div>
             <div class="modal-body">
-                <p><strong>Invoice Number:</strong> <span id="modalInvoiceNumber"></span></p>
-                <p><strong>Customer Name:</strong> <span id="modalCustomerName"></span></p>
-                <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
-                <p><strong>Total Amount:</strong> <span id="modalTotalAmount"></span></p>
-                <h4>Invoice Items:</h4>
-                <table id="itemsTable" class="table">
+                <h6>Invoice Number: <span id="modal-invoice-number"></span></h6>
+                <h6>Customer Name: <span id="modal-customer-name"></span></h6>
+                <h6>Order Date: <span id="modal-order-date"></span></h6>
+                <h6>Total Amount: $<span id="modal-total-amount"></span></h6>
+                <h6>Items:</h6>
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Item Name</th>
                             <th>Quantity</th>
                             <th>Price</th>
-                            <th>Total</th> <!-- Add a column for item total -->
+                            <th>Total</th>
                         </tr>
                     </thead>
-                    <tbody id="itemsBody"></tbody>
+                    <tbody id="modal-invoice-items">
+                        <!-- Invoice items will be populated here -->
+                    </tbody>
                 </table>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a id="edit-invoice-btn" class="btn btn-primary" href="#">Edit Invoice</a>
             </div>
         </div>
     </div>
@@ -813,60 +816,60 @@ try {
 
 <script>
 $(document).ready(function() {
-    // Event listener for opening the invoice modal
-    $('tbody').on('click', '.view-btn', function() {
-        var invoiceId = $(this).closest('tr').data('invoice-id'); // Get the invoice ID from the row
-
-        // AJAX request to fetch invoice details
+    // Function to fetch and display invoice details
+    function fetchInvoiceDetails(invoiceId) {
         $.ajax({
-            url: 'pages-invoice.php', // Your PHP script to fetch invoice data
-            type: 'POST',
+            type: "POST",
+            url: "pages-invoice.php",
             data: { action: 'view', invoice_id: invoiceId },
-            dataType: 'json',
-            success: function(data) {
-                // Check if the response is successful
-                if (data.success) {
-                    // Populate modal fields with the fetched data
-                    $('#modalInvoiceNumber').text(data.invoice_number);
-                    $('#modalCustomerName').text(data.customer_name);
-                    $('#modalOrderDate').text(data.order_date);
-                    $('#modalTotalAmount').text('$' + parseFloat(data.total_amount).toFixed(2));
+            dataType: "json",
+            success: function(response) {
+                if (response.success) {
+                    // Populate modal with invoice data
+                    $('#modal-invoice-number').text(response.invoice_number);
+                    $('#modal-customer-name').text(response.customer_name);
+                    $('#modal-order-date').text(response.order_date);
+                    $('#modal-total-amount').text(parseFloat(response.total_amount).toFixed(2));
+                    
+                    // Clear existing items
+                    $('#modal-invoice-items').empty();
 
-                    // Clear previous items in the invoice items table
-                    $('#itemsBody').empty();
-
-                    // Append each item to the invoice items table
-                    $.each(data.items, function(index, item) {
-                        $('#itemsBody').append(
-                            '<tr>' +
-                                '<td>' + item.item_name + '</td>' +
-                                '<td>' + item.quantity + '</td>' +
-                                '<td>$' + parseFloat(item.price).toFixed(2) + '</td>' +
-                                '<td>$' + parseFloat(item.total).toFixed(2) + '</td>' + // Display the total for each item
-                            '</tr>'
-                        );
+                    // Populate items
+                    response.items.forEach(function(item) {
+                        $('#modal-invoice-items').append(`
+                            <tr>
+                                <td>${item.item_name}</td>
+                                <td>${item.quantity}</td>
+                                <td>$${parseFloat(item.price).toFixed(2)}</td>
+                                <td>$${parseFloat(item.total).toFixed(2)}</td>
+                            </tr>
+                        `);
                     });
 
                     // Show the modal
                     $('#invoiceModal').modal('show');
+                    $('#edit-invoice-btn').attr('href', 'edit_invoice.php?invoice_id=' + invoiceId);
+                   
                 } else {
-                    // Display an error message if the invoice details could not be fetched
-                    $('#itemsBody').html('<tr><td colspan="4" class="text-danger">Error fetching invoice details.</td></tr>');
-                    $('#invoiceModal').modal('show');
+                    alert(response.message);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error:', xhr.responseText);
-                $('#itemsBody').html('<tr><td colspan="4" class="text-danger">An error occurred while fetching the invoice details.</td></tr>');
-                $('#invoiceModal').modal('show');
+                console.error("AJAX Error: ", status, error);
+                alert('Error fetching invoice details. Please try again later.');
             }
         });
+    }
+
+    // Event listener for the view button (assuming it's on your invoices list)
+    $('.view-invoice-btn').on('click', function() {
+        const invoiceId = $(this).data('invoice-id'); // Assuming each button has data-invoice-id
+        fetchInvoiceDetails(invoiceId);
     });
 });
-
-
-
 </script>
+
+
 
 
 <!-- Footer-->
