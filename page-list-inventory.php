@@ -1,8 +1,6 @@
 <?php
 
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
 
 // Start the session with specified settings
 session_start([
@@ -13,7 +11,6 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-echo "Session started.<br>";
 
 // Include database connection
 include('config.php'); // Includes database connection
@@ -169,7 +166,7 @@ try {
         }
     }
 
-    echo json_encode(['success' => true, 'message' => 'Inventory data updated successfully']);
+  
 
 } catch (PDOException $e) {
     // Handle database errors
