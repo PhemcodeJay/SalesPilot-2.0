@@ -76,8 +76,8 @@ function processPaypalPayment($data) {
     $postFields = json_encode([
         'intent' => 'sale',
         'redirect_urls' => [
-            'return_url' => 'https://yourwebsite.com/success',
-            'cancel_url' => 'https://yourwebsite.com/cancel',
+            'return_url' => 'https://salespilot.cybertrendhub.store/success',
+            'cancel_url' => 'https://salespilot.cybertrendhub.store/cancel',
         ],
         'payer' => [
             'payment_method' => 'paypal',
@@ -210,7 +210,7 @@ function processMpesaPayment($data) {
         'PartyA' => $data['phone_number'], // Using phone number
         'PartyB' => $lipaNaMpesaOnlineShortcode,
         'PhoneNumber' => $data['phone_number'],
-        'CallBackURL' => 'https://yourwebsite.com/callback',
+        'CallBackURL' => 'https://salespilot.cybertrendhub.store/callback',
         'AccountReference' => $data['order_id'],
         'TransactionDesc' => $data['description'],
     ]);
@@ -262,7 +262,7 @@ function getMpesaAccessToken($key) {
 function processBankTransferPayment($data) {
     // Check if the file was uploaded
     if (isset($_FILES['payment_proof'])) {
-        $uploadDir = 'uploads/payment_proofs/'; // Directory to save uploaded files
+        $uploadDir = 'https://salespilot.cybertrendhub.store/uploads/payment_proofs/'; // Directory to save uploaded files
         $uploadFile = $uploadDir . basename($_FILES['payment_proof']['name']);
         $fileType = strtolower(pathinfo($uploadFile, PATHINFO_EXTENSION));
 
