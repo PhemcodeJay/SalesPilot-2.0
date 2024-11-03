@@ -44,6 +44,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     } catch (Exception $e) {
         exit("Error: " . $e->getMessage());
     }
+    
 }
 
 
