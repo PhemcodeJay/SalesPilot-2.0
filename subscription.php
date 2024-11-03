@@ -689,13 +689,7 @@ try {
                 <label for="method">Payment Method:</label>
                 <select id="method" name="method" required>
                     <option value="PayPal">PayPal</option>
-                    <option value="Bitcoin">Bitcoin</option>
-                    <option value="USDT">USDT</option>
-                    <option value="Matic">Matic (Polygon)</option>
-                    <option value="TRON">TRON</option>
                     <option value="Binance Pay">Binance Pay</option>
-                    <option value="Bybit Pay">Bybit Pay</option>
-                    <option value="OKX Pay">OKX Pay</option>
                 </select>
             </div>
             
