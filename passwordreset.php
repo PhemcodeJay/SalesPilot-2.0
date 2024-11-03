@@ -64,12 +64,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
       <title>Password Recovery</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/project/assets/images/favicon.ico" />
-      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/css/backend-plugin.min.css">
-      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/css/backend.css?v=1.0.0">
-      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
-      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
-      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/remixicon/fonts/remixicon.css">  </head>
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/remixicon/fonts/remixicon.css">  </head>
   <body class=" ">
     <!-- loader Start -->
     <div id="loading">
@@ -101,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
                                     <button class="btn btn-primary mt-3" type="submit" name="reset_password">Reset Password</button>
                            </div>
                            <div class="col-lg-5 content-right">
-                              <img src="https://salespilot.cybertrendhub.store/project/assets/images/login/01.png" class="img-fluid image-right" alt="">
+                              <img src="https://salespilot.cybertrendhub.store/assets/images/login/01.png" class="img-fluid image-right" alt="">
                            </div>
                         </div>
                      </div>
@@ -113,12 +113,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
       </div>
     
     <!-- Backend Bundle JavaScript -->
-    <script src="https://salespilot.cybertrendhub.store/project/assets/js/backend-bundle.min.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/backend-bundle.min.js"></script>
     
     <!-- Table Treeview JavaScript -->
-    <script src="https://salespilot.cybertrendhub.store/project/assets/js/table-treeview.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/table-treeview.js"></script>
     
     <!-- app JavaScript -->
-    <script src="https://salespilot.cybertrendhub.store/project/assets/js/app.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/app.js"></script>
   </body>
 </html>
