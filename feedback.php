@@ -1,73 +1,96 @@
 <?php
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-include('config.php'); // Includes database connection
-require __DIR__ .  'vendor/autoload.php';
+// Include the database configuration and PHPMailer classes
+require 'config.php'; // Include the database configuration
+require '../PHPMailer/src/PHPMailer.php';
+require '../PHPMailer/src/SMTP.php';
+require '../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
 
-
-
-// Initialize variables
-$name = $email = $subject = $message = '';
+// Initialize variables and error array
+$name = $email = $phone = $message = '';
 $errors = [];
 
-// Define the recipient email address (your email address to receive feedback)
-$to = 'phemcodejay@gmail.com'; // Set your email address here
-
-// Check if the form is submitted
+// Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitize input
-    $name = trim($_POST["name"]);
-    $email = trim($_POST["email"]);
-    $subject = trim($_POST["subject"]);
-    $message = trim($_POST["message"]);
 
-    // Validate input
+    // Sanitize and validate input
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $message = trim($_POST['message']);
+
+    // Validate input fields
     if (empty($name)) {
-        $errors[] = "Name is required.";
+        $errors[] = 'Name is required.';
     }
     if (empty($email)) {
-        $errors[] = "Email is required.";
+        $errors[] = 'Email is required.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
+        $errors[] = 'Email is not valid.';
     }
-    if (empty($subject)) {
-        $errors[] = "Subject is required.";
+    if (empty($phone)) {
+        $errors[] = 'Phone number is required.';
     }
     if (empty($message)) {
-        $errors[] = "Message is required.";
+        $errors[] = 'Message is required.';
     }
 
-    // If no validation errors, send the email
+    // If no errors, insert data into the database and send email
     if (empty($errors)) {
-        $mail = new PHPMailer(true); // Create a new PHPMailer instance
-
-        try {
-            // SMTP configuration
-            $mail->isSMTP();
-            $mail->Host = 'smtp.ionos.com'; // Replace with your SMTP server
-            $mail->SMTPAuth = true;
-            $mail->Username = 'admin@cybertrendhub.store'; // Replace with your email
-            $mail->Password = 'kokochulo@1987#'; // Replace with your email password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
-            $mail->Port = 587; // TCP port to connect to
-
-            // Set email sender and recipient
-            $mail->setFrom('phemcodejay@gmail.com', 'SalesPilot'); // Replace with your email and name
-            $mail->addAddress($to); // Add your email as the recipient
-
-            // Email subject and body
-            $mail->Subject = "New Contact Form Submission: $subject";
-            $mail->Body = "Name: $name\nEmail: $email\nSubject: $subject\n\nMessage:\n$message";
-
-            // Send the email
-            $mail->send();
-            echo "Your message has been sent successfully!";
-        } catch (Exception $e) {
-            echo "Oops! Something went wrong. Mailer Error: {$mail->ErrorInfo}";
+        // Prepare SQL statement
+        $stmt = $conn->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)");
+        if ($stmt === false) {
+            die("Error preparing statement: " . $conn->error);
         }
+
+        $stmt->bind_param("ssss", $name, $email, $phone, $message);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            // Setup PHPMailer
+            $mail = new PHPMailer(true);
+            try {
+                $mail->isSMTP();
+$mail->Host = 'smtp.ionos.com';
+$mail->SMTPAuth = true;
+$mail->Username = 'admin@cybertrendhub.store';  // IONOS email address
+$mail->Password = 'Kokochulo@1987#';             // IONOS email password
+$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
+$mail->Port = 587;                               // Port 587 for TLS
+$mail->SMTPDebug = 0;                            // Enable debug output for troubleshooting
+
+                // Set email format and recipient details
+                $mail->setFrom('admin@cybertrendhub.store', 'CyberTrendHub');
+                $mail->addAddress('phemcodejay@gmail.com');       // Primary recipient
+                $mail->addReplyTo($email, $name);                 // Reply-to email and name
+
+                // Email content
+                $mail->Subject = 'New Feedback Message from ' . $name;
+                $mail->Body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage:\n$message";
+
+                // Send the email
+                $mail->send();
+                echo "Email sent successfully.<br>"; // Debug message
+
+                // Success message and page reload script
+                echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent and saved in our database.</div>";
+                echo "<script>setTimeout(function() { window.location.reload(); }, 2000);</script>"; // Refresh page after 2 seconds
+            } catch (Exception $e) {
+                echo "<div class='text-danger'>There was an error sending your message via email: {$mail->ErrorInfo}</div>";
+            }
+        } else {
+            echo "<div class='text-danger'>Error: " . $stmt->error . "</div>"; // Display SQL errors
+        }
+
+        // Close the statement
+        $stmt->close();
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -75,4 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+// Close the database connection
+$conn->close();
 ?>
