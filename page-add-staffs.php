@@ -121,10 +121,7 @@ try {
             error_log("Staff insertion/update failed: " . implode(" | ", $stmt->errorInfo()));
             throw new Exception("Staff insertion/update failed.");
         }
-    } else {
-        // Handle if the script is accessed directly or through another method
-        echo "Invalid request";
-    }
+    } 
 } catch (PDOException $e) {
     // Handle database errors
     error_log("PDO Error: " . $e->getMessage());

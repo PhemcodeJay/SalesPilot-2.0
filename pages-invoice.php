@@ -720,6 +720,7 @@ try {
 <div class="content-page">
     <div class="container-fluid">
         <div class="container">
+        <a href="invoice-formu.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>New Invoice</a>
             <h1>Invoice List</h1>
             <table class="table">
     <thead>

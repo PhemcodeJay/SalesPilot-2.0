@@ -4,7 +4,7 @@ require 'config.php'; // Include your database connection script
 
 try {
     // Retrieve the time range from the request
-    $range = $_GET['range'] ?? 'yearly';
+    $range = $_GET['range'] ?? 'monthly';
     $startDate = '';
     $endDate = '';
 

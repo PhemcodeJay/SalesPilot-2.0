@@ -152,9 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         error_log("Error: " . $e->getMessage());
         exit("Error: " . $e->getMessage());
     }
-} else {
-    echo "Invalid request.";
-}
+} 
 
 
 

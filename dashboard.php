@@ -12,8 +12,7 @@ include('config.php'); // Ensure this file sets up the $connection variable
 $email = $date = $greeting = "N/A";
 $total_products_sold = $total_sales = $total_cost = "0.00";
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
 
 // Default to monthly data
 $range = $_GET['range'] ?? 'month'; // Can be 'year', 'month', or 'week'
@@ -51,10 +50,7 @@ try {
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Return the total revenue as JSON
-    echo json_encode([
-        'total_revenue' => number_format($result['total_revenue'], 2)
-    ]);
+
 
 } catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);

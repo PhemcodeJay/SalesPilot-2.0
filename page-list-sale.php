@@ -117,9 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Invalid action response
-    echo json_encode(['error' => 'Invalid action.']);
-    exit;
+    
 }
 
 // Fetch inventory notifications with product images

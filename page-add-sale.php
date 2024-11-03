@@ -142,9 +142,7 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             die("Error: " . $e->getMessage());
         }
     }
-} else {
-    echo "Error: User not logged in.";
-}
+} 
 
 try {
     // Fetch inventory notifications with product images

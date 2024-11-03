@@ -9,11 +9,6 @@ session_start([
 
 include('config.php'); // Includes database connection
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-echo "Checkpoint 1"; // Debugging statement
 
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
@@ -29,7 +24,6 @@ $stmt->bindParam(':username', $username);
 $stmt->execute();
 $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
-echo "Checkpoint 2"; // Debugging statement
 
 if (!$user_info) {
     exit("Error: User not found.");
@@ -56,7 +50,7 @@ $product_metrics_query = "
 $stmt = $connection->query($product_metrics_query);
 $product_metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-echo "Checkpoint 3"; // Debugging statement
+
 
 // Initialize metrics for the entire report
 $total_sales = 0;
@@ -92,7 +86,6 @@ $stmt = $connection->prepare($check_report_query);
 $stmt->execute([':report_date' => $report_date]);
 $existing_report = $stmt->fetch(PDO::FETCH_ASSOC);
 
-echo "Checkpoint 4"; // Debugging statement
 
 if ($existing_report) {
     // Update existing report
@@ -161,7 +154,6 @@ if ($existing_report) {
     ]);
 }
 
-echo "Checkpoint 5"; // Debugging statement
 
 // Fetch metrics data from the `reports` table for the current date
 $metrics_query = "SELECT * FROM reports WHERE report_date = :report_date";
@@ -169,7 +161,6 @@ $stmt = $connection->prepare($metrics_query);
 $stmt->execute([':report_date' => $report_date]);
 $metrics_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-echo "Checkpoint 6"; // Debugging statement
 
 try {
     // Fetch inventory notifications with product images
