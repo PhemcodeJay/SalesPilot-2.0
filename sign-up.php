@@ -4,7 +4,8 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-require 'C:\xampp\htdocs\project\vendor\autoload.php'; // Include the Composer autoloader
+require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -108,7 +109,7 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
                     $mail->setFrom('olphemie@gmail.com', 'SalesPilot');
                     $mail->addAddress($email);
                     $mail->Subject = 'Activate Your Account';
-                    $mail->Body = 'Hello,<br>Click the link below to activate your account:<br><a href="http://localhost/project/activate.php?token=' . $activationCode . '">Activate Account</a>';
+                    $mail->Body = 'Hello,<br>Click the link below to activate your account:<br><a href="https://salespilot.cybertrendhub.store/project/activate.php?token=' . $activationCode . '">Activate Account</a>';
 
                     if ($mail->send()) {
                         header("Location: reg-success.html"); // Redirect after sending activation email
@@ -140,12 +141,12 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
       <title>Register</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
-      <link rel="stylesheet" href="http://localhost/project/assets/css/backend-plugin.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/css/backend.css?v=1.0.0">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/remixicon/fonts/remixicon.css">  </head>
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/project/assets/images/favicon.ico" />
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/css/backend-plugin.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/css/backend.css?v=1.0.0">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/project/assets/vendor/remixicon/fonts/remixicon.css">  </head>
   <body class=" ">
     <!-- loader Start -->
     <div id="loading">
@@ -191,13 +192,13 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
                                     </div>
                                   </form>
                                   <div class="text-center">
-                                  <button type="button" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='http://localhost/project/loginpage.php'">Login</button>
+                                  <button type="button" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='https://salespilot.cybertrendhub.store/project/loginpage.php'">Login</button>
 
                                     </div>
                               </div>
                            </div>
                            <div class="col-lg-5 content-right">
-                              <img src="http://localhost/project/assets/images/login/01.png" class="img-fluid image-right" alt="">
+                              <img src="https://salespilot.cybertrendhub.store/project/assets/images/login/01.png" class="img-fluid image-right" alt="">
                            </div>
                         </div>
                      </div>
@@ -209,12 +210,12 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
       </div>
     
     <!-- Backend Bundle JavaScript -->
-    <script src="http://localhost/project/assets/js/backend-bundle.min.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/project/assets/js/backend-bundle.min.js"></script>
     
     <!-- Table Treeview JavaScript -->
-    <script src="http://localhost/project/assets/js/table-treeview.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/project/assets/js/table-treeview.js"></script>
     
     <!-- app JavaScript -->
-    <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/project/assets/js/app.js"></script>
   </body>
 </html>

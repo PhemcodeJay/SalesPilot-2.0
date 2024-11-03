@@ -26,7 +26,7 @@ if (isset($_GET['Email'], $_GET['code'])) {
                     $deleteStmt->execute();
                 }
                 
-                echo 'Your account is now activated! You can now <a href="profile.php">login</a>!';
+                echo 'Your account is now activated! You can now <a href="loginpage.php">login</a>!';
             } else {
                 echo 'Database update error.';
             }
