@@ -10,9 +10,9 @@ session_start([
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require 'config.php'; // Include database connection script
-require 'vendor/autoload.php';
-require 'fpdf/fpdf.php';
+include  'config.php'; // Include database connection script
+require __DIR__ .  'vendor/autoload.php';
+require __DIR__ .  'fpdf/fpdf.php';
 
 // Check if the user is logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {

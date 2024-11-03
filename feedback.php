@@ -1,13 +1,13 @@
 <?php
 
-require 'C:\\xampp\\htdocs\\project\\vendor\\autoload.php'; // Include the Composer autoloader
+include('config.php'); // Includes database connection
+require __DIR__ .  'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-// Include the database connection settings
-include('config.php');
+
 
 // Initialize variables
 $name = $email = $subject = $message = '';
