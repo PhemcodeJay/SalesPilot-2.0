@@ -17,8 +17,8 @@ echo "Session started.<br>";
 
 // Include database connection
 include('config.php'); // Includes database connection
-require __DIR__ .  'vendor/autoload.php';
-require __DIR__ . ('fpdf/fpdf.php');
+require __DIR__ .  '/vendor/autoload.php';
+require __DIR__ . ('/fpdf/fpdf.php');
 
 
 // Check if username is set in session

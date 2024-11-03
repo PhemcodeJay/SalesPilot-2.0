@@ -76,8 +76,8 @@ function processPaypalPayment($data) {
     $postFields = json_encode([
         'intent' => 'sale',
         'redirect_urls' => [
-            'return_url' => 'https://salespilot.cybertrendhub.store/success',
-            'cancel_url' => 'https://salespilot.cybertrendhub.store/cancel',
+            'return_url' => 'https://yourwebsite.com/success',
+            'cancel_url' => 'https://yourwebsite.com/cancel',
         ],
         'payer' => [
             'payment_method' => 'paypal',
@@ -116,8 +116,8 @@ function processPaypalPayment($data) {
 }
 
 function getPaypalAccessToken() {
-    $clientId = 'Abq0Z652p0xd7LntfVIW3gTpX4buCF9UQUSnOH_EBcQzo0B2vrCRV_htZvOt-QCxb6kItlgT38pr1xPt'; // Your PayPal client ID
-    $secret = 'EFJotT-21CyvIuDvGfPKzsCk6g0iThtMfiaZmqnaW-FoPXTSBGpW1qm7t4iJX0yfhPFbEMBPMjKjAd_V'; // Your PayPal secret
+    $clientId = 'YOUR_PAYPAL_CLIENT_ID'; // Your PayPal client ID
+    $secret = 'YOUR_PAYPAL_SECRET'; // Your PayPal secret
     $url = 'https://api.paypal.com/v1/oauth2/token';
     
     $ch = curl_init($url);
@@ -210,7 +210,7 @@ function processMpesaPayment($data) {
         'PartyA' => $data['phone_number'], // Using phone number
         'PartyB' => $lipaNaMpesaOnlineShortcode,
         'PhoneNumber' => $data['phone_number'],
-        'CallBackURL' => 'https://salespilot.cybertrendhub.store/callback',
+        'CallBackURL' => 'https://yourwebsite.com/callback',
         'AccountReference' => $data['order_id'],
         'TransactionDesc' => $data['description'],
     ]);
@@ -262,7 +262,7 @@ function getMpesaAccessToken($key) {
 function processBankTransferPayment($data) {
     // Check if the file was uploaded
     if (isset($_FILES['payment_proof'])) {
-        $uploadDir = 'https://salespilot.cybertrendhub.store/uploads/payment_proofs/'; // Directory to save uploaded files
+        $uploadDir = 'uploads/payment_proofs/'; // Directory to save uploaded files
         $uploadFile = $uploadDir . basename($_FILES['payment_proof']['name']);
         $fileType = strtolower(pathinfo($uploadFile, PATHINFO_EXTENSION));
 
@@ -536,7 +536,7 @@ function savePayment($amount, $method, $status, $extraData = []) {
             ];
             foreach ($paymentMethods as $key => $method): ?>
                 <div class="payment-option" onclick="selectPaymentMethod('<?php echo $key; ?>')">
-                    <img src="uploads/images/<?php echo $key; ?>-logo.png" alt="<?php echo $method; ?>" class="payment-logo">
+                    <img src="https://salespilot.cybertrendhub.store/uploads/images/<?php echo $key; ?>-logo.png" alt="<?php echo $method; ?>" class="payment-logo">
                     <input type="radio" name="payment" value="<?php echo $key; ?>" required style="display: none;"> <?php echo $method; ?>
                 </div>
             <?php endforeach; ?>
@@ -552,7 +552,7 @@ function savePayment($amount, $method, $status, $extraData = []) {
         <input type="hidden" name="plan" id="selected-plan" value="<?php echo $selected_plan; ?>">
         <input type="hidden" name="cycle" id="selected-cycle" value="<?php echo $selected_cycle; ?>">
         <button type="submit" class="pay-button">Proceed to Payment</button>
-        <button type="button" class="pay-button" onclick="window.location.href='home.html';">Home</button>
+        <button type="button" class="pay-button" onclick="window.location.href='index.html';">Home</button>
 
     </form>
   

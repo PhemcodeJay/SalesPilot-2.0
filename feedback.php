@@ -5,10 +5,11 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Include the database configuration and PHPMailer classes
-require 'config.php'; // Include the database configuration
-require '../PHPMailer/src/PHPMailer.php';
-require '../PHPMailer/src/SMTP.php';
-require '../PHPMailer/src/Exception.php';
+include 'config.php'; // Include the database configuration
+require __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/../PHPMailer/src/SMTP.php';
+require __DIR__ . '/../PHPMailer/src/Exception.php';
+
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -80,9 +81,17 @@ $mail->SMTPDebug = 0;                            // Enable debug output for trou
                 echo "Email sent successfully.<br>"; // Debug message
 
                 // Success message and page reload script
-                echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent and saved in our database.</div>";
-                echo "<script>setTimeout(function() { window.location.reload(); }, 2000);</script>"; // Refresh page after 2 seconds
-            } catch (Exception $e) {
+                echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent</div>";
+               // Redirect to index.html after sending the email
+    echo "<script>
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 2000); // Redirect after 2 seconds
+          </script>";
+} catch (Exception $e) {
+    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+catch (Exception $e) {
                 echo "<div class='text-danger'>There was an error sending your message via email: {$mail->ErrorInfo}</div>";
             }
         } else {
