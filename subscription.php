@@ -678,26 +678,86 @@ try {
     </div>
 </div>
 <div class="container">
-        <h1>Renew Your Subscription</h1>
-        <form id="paymentForm" method="post" action="">
-            <div class="form-group">
-                <label for="amount">Amount:</label>
-                <input type="number" id="amount" name="amount" step="0.01" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="method">Payment Method:</label>
-                <select id="method" name="method" required>
-                    <option value="PayPal">PayPal</option>
-                    <option value="Binance Pay">Binance Pay</option>
-                </select>
-            </div>
-            
-            <div id="paymentDetails"></div>
+    <h1>Renew Your Subscription</h1>
+    <form id="paymentForm" method="post" action="">
+        <div class="form-group">
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="method">Payment Method:</label>
+            <select id="method" name="method" required>
+                <option value="PayPal">PayPal</option>
+                <option value="Binance Pay">Binance Pay</option>
+            </select>
+        </div>
 
-            <button type="submit">Pay Now</button>
-        </form>
-    </div>
+        <!-- Plan Selection for PayPal -->
+        <div class="form-group" id="planSelection">
+            <label for="planSelect">Choose Your Plan:</label>
+            <select id="planSelect" name="planSelect">
+                <option value="P-93L4325701954531KM4XJXTI">Enterprise</option>
+                <option value="P-6SV46253WD2252157M4XJS5I">Growth</option>
+                <option value="P-24W85808161823945M4XJJMY">Starter</option>
+            </select>
+        </div>
+
+        <!-- Payment Button Container -->
+        <div id="paypal-button-container"></div>
+
+        <button type="submit" id="payNowButton">Pay Now</button>
+    </form>
+</div>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const methodSelect = document.getElementById("method");
+      const planSelection = document.getElementById("planSelection");
+      const payNowButton = document.getElementById("payNowButton");
+      
+      // Toggle visibility of plan selection and PayPal button based on payment method
+      methodSelect.addEventListener("change", function() {
+          if (methodSelect.value === "PayPal") {
+              planSelection.style.display = "block";
+              document.getElementById("paypal-button-container").style.display = "block";
+              payNowButton.style.display = "none";
+          } else {
+              planSelection.style.display = "none";
+              document.getElementById("paypal-button-container").style.display = "none";
+              payNowButton.style.display = "block";
+          }
+      });
+      
+      // Initial state
+      planSelection.style.display = "none";
+      document.getElementById("paypal-button-container").style.display = "none";
+
+      // Initialize PayPal button
+      paypal.Buttons({
+          style: {
+              shape: 'pill',
+              color: 'silver',
+              layout: 'horizontal',
+              label: 'subscribe'
+          },
+          createSubscription: function(data, actions) {
+              const selectedPlan = document.getElementById('planSelect').value;
+              return actions.subscription.create({
+                  /* Creates the subscription based on selected plan */
+                  plan_id: selectedPlan
+              });
+          },
+          onApprove: function(data, actions) {
+              alert("Subscription successful! Your subscription ID is: " + data.subscriptionID);
+          }
+      }).render('#paypal-button-container');
+  });
+</script>
+
     </div>
       </div>
     </div>
