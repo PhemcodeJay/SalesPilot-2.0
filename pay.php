@@ -76,8 +76,8 @@ function processPaypalPayment($data) {
     $postFields = json_encode([
         'intent' => 'sale',
         'redirect_urls' => [
-            'return_url' => 'https://yourwebsite.com/success',
-            'cancel_url' => 'https://yourwebsite.com/cancel',
+            'return_url' => 'https://salespilot.cybertrendhub.store/success',
+            'cancel_url' => 'https://salespilot.cybertrendhub.store/cancel',
         ],
         'payer' => [
             'payment_method' => 'paypal',
@@ -116,8 +116,8 @@ function processPaypalPayment($data) {
 }
 
 function getPaypalAccessToken() {
-    $clientId = 'YOUR_PAYPAL_CLIENT_ID'; // Your PayPal client ID
-    $secret = 'YOUR_PAYPAL_SECRET'; // Your PayPal secret
+    $clientId = 'AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W'; // Your PayPal client ID
+    $secret = 'EDpaVPowMoKSoA_pyshhfkour_aIIMJC0kSHMjgyaXkxvmq9H4CNVrj-2afCZ_Zxf9wCjb9zBIcLOcez'; // Your PayPal secret
     $url = 'https://api.paypal.com/v1/oauth2/token';
     
     $ch = curl_init($url);
@@ -143,8 +143,9 @@ function processBinancePayment($data) {
     }
 
     // Binance Pay API credentials (replace with actual credentials)
-    $apiKey = 'YOUR_API_KEY';
-    $apiSecret = 'YOUR_API_SECRET';
+    $apiKey = 'oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl';
+    $apiSecret = 'anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi';
+
 
     // Setup Binance API endpoint (replace with actual endpoint)
     $endpoint = 'https://api.binance.com/v3/payments'; // Example endpoint
@@ -210,7 +211,7 @@ function processMpesaPayment($data) {
         'PartyA' => $data['phone_number'], // Using phone number
         'PartyB' => $lipaNaMpesaOnlineShortcode,
         'PhoneNumber' => $data['phone_number'],
-        'CallBackURL' => 'https://yourwebsite.com/callback',
+        'CallBackURL' => 'https://salespilot.cybertrendhub.store/callback',
         'AccountReference' => $data['order_id'],
         'TransactionDesc' => $data['description'],
     ]);
