@@ -689,7 +689,7 @@ try {
             <label for="method">Payment Method:</label>
             <select id="method" name="method" required>
                 <option value="PayPal">PayPal</option>
-                <option value="Binance Pay">Binance Pay</option>
+                <option value="BinancePay">Binance Pay</option>
             </select>
         </div>
 
@@ -703,10 +703,9 @@ try {
             </select>
         </div>
 
-        <!-- Payment Button Container -->
+        <!-- Payment Button Containers -->
         <div id="paypal-button-container"></div>
-
-        <button type="submit" id="payNowButton">Pay Now</button>
+        <button type="submit" id="binancePayButton" style="display: none;">Pay with Binance Pay</button>
     </form>
 </div>
 
@@ -717,26 +716,27 @@ try {
   document.addEventListener("DOMContentLoaded", function() {
       const methodSelect = document.getElementById("method");
       const planSelection = document.getElementById("planSelection");
-      const payNowButton = document.getElementById("payNowButton");
-      
-      // Toggle visibility of plan selection and PayPal button based on payment method
+      const paypalButtonContainer = document.getElementById("paypal-button-container");
+      const binancePayButton = document.getElementById("binancePayButton");
+
+      // Toggle payment options based on selected method
       methodSelect.addEventListener("change", function() {
           if (methodSelect.value === "PayPal") {
               planSelection.style.display = "block";
-              document.getElementById("paypal-button-container").style.display = "block";
-              payNowButton.style.display = "none";
-          } else {
+              paypalButtonContainer.style.display = "block";
+              binancePayButton.style.display = "none";
+          } else if (methodSelect.value === "BinancePay") {
               planSelection.style.display = "none";
-              document.getElementById("paypal-button-container").style.display = "none";
-              payNowButton.style.display = "block";
+              paypalButtonContainer.style.display = "none";
+              binancePayButton.style.display = "block";
           }
       });
-      
+
       // Initial state
       planSelection.style.display = "none";
-      document.getElementById("paypal-button-container").style.display = "none";
+      paypalButtonContainer.style.display = "none";
 
-      // Initialize PayPal button
+      // Initialize PayPal subscription button
       paypal.Buttons({
           style: {
               shape: 'pill',
@@ -747,7 +747,6 @@ try {
           createSubscription: function(data, actions) {
               const selectedPlan = document.getElementById('planSelect').value;
               return actions.subscription.create({
-                  /* Creates the subscription based on selected plan */
                   plan_id: selectedPlan
               });
           },
