@@ -710,7 +710,6 @@ try {
         </div>
         <!-- Page end  -->
     </div>
-  >
       </div>
     </div>
     <!-- Wrapper End-->
