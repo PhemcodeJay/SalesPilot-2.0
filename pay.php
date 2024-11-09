@@ -1,41 +1,6 @@
 <?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
-
-// Check if user is logged in
-if (!isset($_SESSION["username"])) {
-    // Redirect to login page if session is not set
-    header("Location: login.php");
-    exit;
-}
-
+session_start();
 require 'config.php'; // Include your database configuration file
-
-// Fetch the logged-in user's information
-$username = htmlspecialchars($_SESSION["username"]);
-
-$user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
-$stmt = $connection->prepare($user_query);
-$stmt->bindParam(':username', $username);
-$stmt->execute();
-$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user_info) {
-    throw new Exception("User not found.");
-}
-
-$email = htmlspecialchars($user_info['email']);
-$date = date('d F, Y', strtotime($user_info['date']));
-$location = htmlspecialchars($user_info['location']);
-$existing_image = htmlspecialchars($user_info['user_image']);
-$image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-
 
 // Sample product details (you can replace this with actual database queries)
 $plans = [
