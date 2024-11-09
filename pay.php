@@ -1,3 +1,247 @@
+<?php
+session_start();
+require 'config.php'; // Include your database configuration file
+
+// Define the plans and their corresponding prices for each cycle
+$plans = [
+    'starter' => ['monthly' => 5],
+    'growth' => ['monthly' => 15],
+    'enterprise' => ['monthly' => 25]
+];
+
+// Set default values for selected plan, cycle, and total price
+$selected_plan = 'starter';
+$selected_cycle = 'monthly';
+$total_price = $plans[$selected_plan][$selected_cycle];
+
+// Check if the form has been submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get selected payment method, plan, cycle, and other data
+    $payment_method = $_POST['payment'] ?? 'paypal';
+    $selected_plan = $_POST['plan'] ?? 'starter';
+    $selected_cycle = $_POST['cycle'] ?? 'monthly';
+    $total_price = $plans[$selected_plan][$selected_cycle];
+
+    // Prepare payment data
+    $paymentData = [
+        'amount' => $total_price,
+        'method' => $payment_method,
+        'description' => "Payment for " . ucfirst($selected_plan) . " Plan",
+        'order_id' => uniqid(),
+        'phone_number' => $_POST['phone_number'] ?? null
+    ];
+
+    // Handle payment based on the selected method
+    try {
+        if ($payment_method === 'bank-transfer') {
+            // If Bank Transfer is selected, trigger modal on frontend
+            echo '<script>document.addEventListener("DOMContentLoaded", function() { showBankTransferModal(); });</script>';
+        } else {
+            // For other payment methods, process the payment
+            processPayment($payment_method, $paymentData);
+        }
+    } catch (Exception $e) {
+        echo 'Payment Error: ' . $e->getMessage();
+    }
+}
+
+/**
+ * Process payment based on selected method.
+ *
+ * @param string $paymentMethod The payment method (e.g., PayPal, Binance)
+ * @param array $paymentData Payment data including amount, method, etc.
+ */
+function processPayment($paymentMethod, $paymentData) {
+    switch ($paymentMethod) {
+        case 'paypal':
+            processPaypalPayment($paymentData);
+            break;
+        case 'binance':
+            processBinancePayment($paymentData);
+            break;
+        case 'mpesa':
+            processMpesaPayment($paymentData);
+            break;
+        case 'bank-transfer':
+            // Handled by modal
+            break;
+        default:
+            throw new Exception("Unsupported payment method: " . $paymentMethod);
+    }
+}
+
+/**
+ * Process PayPal payment.
+ *
+ * @param array $data Payment data
+ */
+function processPaypalPayment($data) {
+    $paypalUrl = 'https://api.paypal.com/v1/payments/payment';
+    $ch = curl_init($paypalUrl);
+
+    $postFields = json_encode([
+        'intent' => 'sale',
+        'redirect_urls' => [
+            'return_url' => 'https://salespilot.cybertrendhub.store/success',
+            'cancel_url' => 'https://salespilot.cybertrendhub.store/cancel',
+        ],
+        'payer' => [
+            'payment_method' => 'paypal',
+        ],
+        'transactions' => [[
+            'amount' => [
+                'total' => $data['amount'],
+                'currency' => 'USD',
+            ],
+            'description' => $data['description'],
+        ]],
+    ]);
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . getPaypalAccessToken(),
+    ]);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $responseData = json_decode($response, true);
+    if (isset($responseData['links'])) {
+        foreach ($responseData['links'] as $link) {
+            if ($link['rel'] == 'approval_url') {
+                header('Location: ' . $link['href']);
+                exit;
+            }
+        }
+    } else {
+        throw new Exception("PayPal payment error: " . $responseData['message']);
+    }
+}
+
+/**
+ * Get PayPal access token.
+ *
+ * @return string PayPal access token
+ */
+function getPaypalAccessToken() {
+    $clientId = 'AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W';
+    $secret = 'EDpaVPowMoKSoA_pyshhfkour_aIIMJC0kSHMjgyaXkxvmq9H4CNVrj-2afCZ_Zxf9wCjb9zBIcLOcez';
+    $url = 'https://api.paypal.com/v1/oauth2/token';
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        'Accept-Language: en_US',
+    ]);
+    curl_setopt($ch, CURLOPT_USERPWD, $clientId . ':' . $secret);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+    $responseData = json_decode($response, true);
+
+    return $responseData['access_token'];
+}
+
+/**
+ * Process Binance payment.
+ *
+ * @param array $data Payment data
+ */
+function processBinancePayment($data) {
+    try {
+        $endpoint = 'https://api.binance.com/api/v3/order';
+        $apiKey = 'oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl';
+        $apiSecret = 'anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi';
+
+        $payload = [
+            'symbol' => 'USDTUSDT',
+            'side' => 'BUY',
+            'type' => 'MARKET',
+            'quantity' => $data['amount'],
+            'timestamp' => time() * 1000,
+        ];
+
+        $queryString = http_build_query($payload);
+        $signature = hash_hmac('sha256', $queryString, $apiSecret);
+        $payload['signature'] = $signature;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $endpoint . '?' . http_build_query($payload));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'X-MBX-APIKEY: ' . $apiKey,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200) {
+            $responseData = json_decode($response, true);
+            if (isset($responseData['status']) && $responseData['status'] === 'FILLED') {
+                savePayment($data['amount'], 'Binance', 'success', $data);
+                echo "Binance payment processed successfully.";
+            } else {
+                throw new Exception("Payment failed: " . ($responseData['msg'] ?? 'Unknown error'));
+            }
+        } else {
+            throw new Exception("API call failed with HTTP code: " . $httpCode);
+        }
+    } catch (Exception $e) {
+        echo "Error processing Binance payment: " . $e->getMessage();
+        savePayment($data['amount'], 'Binance', 'failed', ['error_message' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Process M-Pesa payment.
+ *
+ * @param array $data Payment data
+ */
+function processMpesaPayment($data) {
+    // Add the M-Pesa API payment handling code here
+    savePayment($data['amount'], 'M-Pesa', 'success', $data);
+}
+
+/**
+ * Save payment details to the database.
+ *
+ * @param float $amount Payment amount
+ * @param string $method Payment method used (e.g., PayPal, Binance)
+ * @param string $status Payment status (e.g., 'successful', 'failed')
+ * @param array $extraData Additional payment information (e.g., order_id, description)
+ */
+function savePayment($amount, $method, $status, $extraData = []) {
+    global $connection;
+
+    $sql = "INSERT INTO payments (amount, method, status, created_at, payment_proof, phone_number, error_message, order_id, description)
+            VALUES (:amount, :method, :status, NOW(), :payment_proof, :phone_number, :error_message, :order_id, :description)";
+
+    $stmt = $connection->prepare($sql);
+
+    $paymentProof = $extraData['payment_proof'] ?? null;
+    $phoneNumber = $extraData['phone_number'] ?? null;
+    $errorMessage = $extraData['error_message'] ?? null;
+    $orderId = $extraData['order_id'] ?? null;
+    $description = $extraData['description'] ?? null;
+
+    $stmt->bindParam(':amount', $amount);
+    $stmt->bindParam(':method', $method);
+    $stmt->bindParam(':status', $status);
+    $stmt->bindParam(':payment_proof', $paymentProof);
+    $stmt->bindParam(':phone_number', $phoneNumber);
+    $stmt->bindParam(':error_message', $errorMessage);
+    $stmt->bindParam(':order_id', $orderId);
+    $stmt->bindParam(':description', $description);
+
+    $stmt->execute();
+}
+?>
 
 
 <!DOCTYPE html>
@@ -215,6 +459,79 @@
     </form>
   
 </main>
+<!-- Bank Transfer Modal -->
+<div class="modal fade" id="bankTransferModal" tabindex="-1" role="dialog" aria-labelledby="bankTransferModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bankTransferModalLabel">Bank Transfer Instructions</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6>Please follow the instructions below to complete your bank transfer:</h6>
+        <ul>
+          <li><strong>Bank Name:</strong> STANBIC IBTC NIGERIA</li>
+          <li><strong>Account Name:</strong> SALES PILOT</li>
+          <li><strong>Account Number:</strong> 0010414317</li>
+          <li><strong>Amount to Transfer:</strong> <span id="bankAmountDisplay"></span></li>
+          <li><strong>Exchange Rate:</strong> <span id="Naira Equivalent">Loading...</span></li>
+        </ul>
+        <h6>Once you have completed the transfer, please upload your payment proof:</h6>
+        <form id="paymentProofForm" action="submit_payment_proof.php" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="paymentProof">Upload Payment Proof</label>
+            <input type="file" class="form-control" id="paymentProof" name="payment_proof" required>
+          </div>
+          <input type="hidden" name="order_id" id="order_id" value="">
+          <button type="submit" class="btn btn-primary">Submit Payment Proof</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Triggering Bank Transfer Modal -->
+<script>
+  // Function to show the Bank Transfer modal
+  function showBankTransferModal() {
+    // Set the total amount for the bank transfer in the modal
+    var amount = <?php echo json_encode($total_price); ?>;
+    document.getElementById("bankAmountDisplay").textContent = "$" + amount;
+
+    // Set order_id if available
+    var orderId = "<?php echo uniqid(); ?>";
+    document.getElementById("order_id").value = orderId;
+
+    // Show the modal
+    $('#bankTransferModal').modal('show');
+  }
+
+  // Listen for when the form is submitted
+  document.getElementById("paymentProofForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // Prevent default form submission
+
+    var formData = new FormData(this);
+
+    // AJAX request to submit the payment proof
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "pay.php", true);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        // Handle success, maybe notify the user and close the modal
+        alert("Payment proof submitted successfully!");
+        $('#bankTransferModal').modal('hide');
+      } else {
+        alert("Error submitting payment proof. Please try again.");
+      }
+    };
+    xhr.send(formData);
+  });
+</script>
 
 
     <footer>
@@ -282,5 +599,35 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
+<script>
+        async function getNairaEquivalent() {
+            try {
+                // Fetch the exchange rate from Exchangerate-API (you can replace this with another API if needed)
+                const apiKey = 'cc688057dc86274ff7958e5e';  // Replace with your Exchangerate-API key
+                const response = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`);
+                const data = await response.json();
+
+                if (data && data.conversion_rates && data.conversion_rates.NGN) {
+    const exchangeRate = data.conversion_rates.NGN;
+    const amountInUSD = 1;  // You can replace this with the dynamic amount if needed
+    const amountInNaira = (amountInUSD * exchangeRate).toFixed(2);  // Calculate Naira equivalent
+
+    // Format the amount with commas for thousands
+    const formattedAmountInNaira = parseFloat(amountInNaira).toLocaleString();
+
+    document.getElementById('Naira Equivalent').textContent = `${formattedAmountInNaira} NGN`;
+} else {
+    document.getElementById('Naira Equivalent').textContent = "Exchange rate unavailable.";
+}
+
+            } catch (error) {
+                console.error('Error fetching exchange rate:', error);
+                document.getElementById('Naira Equivalent').textContent = "Error fetching exchange rate.";
+            }
+        }
+
+        // Trigger the exchange rate conversion on page load
+        document.addEventListener('DOMContentLoaded', getNairaEquivalent);
+    </script>
 </body>
 </html>
