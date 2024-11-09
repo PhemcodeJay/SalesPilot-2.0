@@ -740,7 +740,7 @@ try {
       paypal.Buttons({
           style: {
               shape: 'pill',
-              color: 'silver',
+              color: 'gold',
               layout: 'horizontal',
               label: 'subscribe'
           },
