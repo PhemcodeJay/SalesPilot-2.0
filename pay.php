@@ -154,8 +154,10 @@ function getPaypalAccessToken() {
 function processBinancePayment($data) {
     try {
         $endpoint = 'https://api.binance.com/api/v3/order';  // Binance API endpoint for placing an order
-        $apiKey = 'YOUR_BINANCE_API_KEY';  // Replace with your actual Binance API Key
-        $apiSecret = 'YOUR_BINANCE_API_SECRET';  // Replace with your actual Binance API Secret
+        $apiKey = 'oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl
+        ';  // Replace with your actual Binance API Key
+        $apiSecret = 'anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi
+        ';  // Replace with your actual Binance API Secret
 
         // Define the order parameters
         $payload = [
