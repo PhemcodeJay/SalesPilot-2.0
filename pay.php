@@ -2,17 +2,11 @@
 session_start();
 require 'config.php'; // Include your database configuration file
 
-// Sample product details (fetch from your database)
+// Sample product details (you can replace this with actual database queries)
 $plans = [
-    'starter' => [
-        'monthly' => 5,  // Monthly price for Starter Plan
-    ],
-    'growth' => [
-        'monthly' => 15, // Monthly price for Growth Plan
-    ],
-    'enterprise' => [
-        'monthly' => 25, // Monthly price for Enterprise Plan
-    ],
+    'starter' => ['monthly' => 5], // Starter Plan monthly price
+    'growth' => ['monthly' => 15],  // Growth Plan monthly price
+    'enterprise' => ['monthly' => 25] // Enterprise Plan monthly price
 ];
 
 // Default selection
@@ -23,28 +17,35 @@ $total_price = $plans[$selected_plan][$selected_cycle];
 // Check if the form has been submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get selected payment method and plan details
-    $payment_method = $_POST['payment'];
-    $selected_plan = $_POST['plan'];
-    $selected_cycle = $_POST['cycle'];
+    $payment_method = $_POST['payment'] ?? 'paypal'; // Default to PayPal if no method is selected
+    $selected_plan = $_POST['plan'] ?? 'starter';
+    $selected_cycle = $_POST['cycle'] ?? 'monthly';
     $total_price = $plans[$selected_plan][$selected_cycle];
 
-    // Process payment based on selected method
-    try {
-        $paymentData = [
-            'amount' => $total_price,
-            'method' => $payment_method,
-            'description' => "Payment for " . ucfirst($selected_plan) . " Plan",
-            'order_id' => uniqid(), // Generate a unique order ID
-            'phone_number' => $_POST['phone_number'] ?? null, // For M-Pesa
-        ];
+    // Prepare payment data
+    $paymentData = [
+        'amount' => $total_price,
+        'method' => $payment_method,
+        'description' => "Payment for " . ucfirst($selected_plan) . " Plan",
+        'order_id' => uniqid(), // Generate a unique order ID
+        'phone_number' => $_POST['phone_number'] ?? null, // Optional phone number for M-Pesa
+    ];
 
-        // Call the payment processing function
+    // Call the payment processing function
+    try {
         processPayment($payment_method, $paymentData);
     } catch (Exception $e) {
         echo 'Payment Error: ' . $e->getMessage();
     }
 }
 
+/**
+ * Process payment based on selected method.
+ *
+ * @param string $paymentMethod
+ * @param array $paymentData
+ * @throws Exception
+ */
 function processPayment($paymentMethod, $paymentData) {
     switch ($paymentMethod) {
         case 'paypal':
@@ -68,8 +69,12 @@ function processPayment($paymentMethod, $paymentData) {
     }
 }
 
+/**
+ * Process PayPal payment.
+ *
+ * @param array $data
+ */
 function processPaypalPayment($data) {
-    // PayPal API credentials and processing logic
     $paypalUrl = 'https://api.paypal.com/v1/payments/payment'; // PayPal API URL
     $ch = curl_init($paypalUrl);
 
@@ -115,11 +120,16 @@ function processPaypalPayment($data) {
     }
 }
 
+/**
+ * Get PayPal access token.
+ *
+ * @return string
+ */
 function getPaypalAccessToken() {
-    $clientId = 'AU3PR4dxxPl4UaYl04X2YinE9GbgN82-89PZbDstEB30DmxbIFPgqjw4K-dpKqappXFcOVwdUKYyaRhz'; // Your PayPal client ID
-    $secret = 'EA_aw0qrjgpEWtvWF80sbo0dj-K2KVvyyGs6aorxTVbCEgpgBIhDhHN_ouzlib9DQdTDpWb1JlUgbEt_'; // Your PayPal secret
+    $clientId = 'YOUR_PAYPAL_CLIENT_ID'; // Your PayPal client ID
+    $secret = 'YOUR_PAYPAL_SECRET'; // Your PayPal secret
     $url = 'https://api.paypal.com/v1/oauth2/token';
-    
+
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Accept: application/json',
@@ -132,63 +142,85 @@ function getPaypalAccessToken() {
     $response = curl_exec($ch);
     curl_close($ch);
     $responseData = json_decode($response, true);
-    
+
     return $responseData['access_token'];
 }
 
+/**
+ * Process Binance payment.
+ *
+ * @param array $data
+ */
 function processBinancePayment($data) {
     try {
-        // Initialize cURL session for API call
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $endpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'X-MBX-APIKEY: ' . $apiKey,
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        $endpoint = 'https://api.binance.com/api/v3/order';  // Binance API endpoint for placing an order
+        $apiKey = 'YOUR_BINANCE_API_KEY';  // Replace with your actual Binance API Key
+        $apiSecret = 'YOUR_BINANCE_API_SECRET';  // Replace with your actual Binance API Secret
 
-        // Execute the cURL request
+        // Define the order parameters
+        $payload = [
+            'symbol' => 'USDTUSDT',  // Example pair: USDT/USDT, adjust as needed
+            'side' => 'BUY',  // For a payment, you could also consider 'SELL'
+            'type' => 'MARKET',  // Example: market order (adjust as needed)
+            'quantity' => $data['amount'],  // Amount to pay in terms of the cryptocurrency
+            'timestamp' => time() * 1000,  // Current time in milliseconds
+        ];
+
+        // Generate the signature
+        $queryString = http_build_query($payload);  // Query string format
+        $signature = hash_hmac('sha256', $queryString, $apiSecret);  // Generate HMAC SHA256 signature
+
+        // Add the signature to the payload
+        $payload['signature'] = $signature;
+
+        // Initialize cURL session
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $endpoint . '?' . http_build_query($payload));  // Append payload as query string
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'X-MBX-APIKEY: ' . $apiKey,  // Add API key to request headers
+        ]);
+
+        // Execute the request
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // Check for API response success
         if ($httpCode === 200) {
             $responseData = json_decode($response, true);
 
-            // Check for successful payment status in the response
-            if (isset($responseData['status']) && $responseData['status'] === 'success') {
-                echo "Binance payment processed successfully for amount: " . $data['amount'] . " USD.";
-                
-                // Save successful transaction to database (no payment proof here)
-                savePayment($data['amount'], 'Binance', 'success');
+            // Check if the response indicates success
+            if (isset($responseData['status']) && $responseData['status'] === 'FILLED') {
+                savePayment($data['amount'], 'Binance', 'success', $data);
+                echo "Binance payment processed successfully.";
             } else {
-                throw new Exception("Payment failed: " . ($responseData['message'] ?? 'Unknown error'));
+                throw new Exception("Payment failed: " . ($responseData['msg'] ?? 'Unknown error'));
             }
         } else {
             throw new Exception("API call failed with HTTP code: " . $httpCode);
         }
     } catch (Exception $e) {
-        // Handle errors gracefully
+        // Handle exceptions gracefully
         echo "Error processing Binance payment: " . $e->getMessage();
-        // Optionally save transaction with status 'failed' or log error
         savePayment($data['amount'], 'Binance', 'failed', ['error_message' => $e->getMessage()]);
     }
 }
 
 
+/**
+ * Process M-Pesa payment.
+ *
+ * @param array $data
+ */
 function processMpesaPayment($data) {
     $lipaNaMpesaOnlineShortcode = 'YOUR_SHORTCODE'; // Your M-Pesa Shortcode
     $lipaNaMpesaOnlineKey = 'YOUR_MPESA_KEY'; // Your M-Pesa Key
-    $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'; // Sandbox URL for testing
+    $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'; // M-Pesa sandbox URL
 
-    // Create the payment request payload using phone number
     $payload = json_encode([
         'BusinessShortCode' => $lipaNaMpesaOnlineShortcode,
         'Amount' => $data['amount'],
-        'PartyA' => $data['phone_number'], // Using phone number
+        'PartyA' => $data['phone_number'],
         'PartyB' => $lipaNaMpesaOnlineShortcode,
         'PhoneNumber' => $data['phone_number'],
         'CallBackURL' => 'https://yourwebsite.com/callback',
@@ -196,7 +228,6 @@ function processMpesaPayment($data) {
         'TransactionDesc' => $data['description'],
     ]);
 
-    // Send the payment request to M-Pesa
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json',
@@ -209,20 +240,21 @@ function processMpesaPayment($data) {
     $response = curl_exec($ch);
     curl_close($ch);
 
-    // Handle the response
     $responseData = json_decode($response, true);
     if ($responseData['ResponseCode'] == '0') {
-        // Payment initiated successfully
+        savePayment($data['amount'], $data['method'], 'success', ['phone_number' => $data['phone_number']]);
         echo "M-Pesa payment initiated successfully.";
-        // Save payment to database
-        savePayment($data['amount'], $data['method'], 'success', [
-            'phone_number' => $data['phone_number'],
-        ]);
     } else {
         throw new Exception("M-Pesa payment error: " . $responseData['ResponseDescription']);
     }
 }
 
+/**
+ * Get M-Pesa access token.
+ *
+ * @param string $key
+ * @return string
+ */
 function getMpesaAccessToken($key) {
     $url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
     $clientId = 'YOUR_CLIENT_ID'; // Your M-Pesa Client ID
@@ -236,50 +268,53 @@ function getMpesaAccessToken($key) {
     $response = curl_exec($ch);
     curl_close($ch);
     $responseData = json_decode($response, true);
-    
+
     return $responseData['access_token'];
 }
 
-function savePayment($amount, $method, $status, $extraData = []) {
-    global $connection; // Assuming $connection is your PDO instance
+/**
+ * Process bank transfer payment.
+ *
+ * @param array $data
+ */
+function processBankTransferPayment($data) {
+    // Logic to handle bank transfer payment
+    savePayment($data['amount'], 'Bank Transfer', 'pending');
+    echo "Bank transfer payment is being processed. Please complete the transfer.";
+}
 
-    // Prepare the SQL query to insert the payment data
-    $sql = "INSERT INTO payments (amount, method, status, created_at, payment_proof, phone_number, error_message, order_id, description) 
+/**
+ * Save payment details to the database.
+ *
+ * @param float $amount
+ * @param string $method
+ * @param string $status
+ * @param array $extraData
+ */
+function savePayment($amount, $method, $status, $extraData = []) {
+    global $connection; // Assuming you have a PDO instance called $connection
+
+    $sql = "INSERT INTO payments (amount, method, status, created_at, payment_proof, phone_number, error_message, order_id, description)
             VALUES (:amount, :method, :status, NOW(), :payment_proof, :phone_number, :error_message, :order_id, :description)";
-    
-    // Prepare the statement
+
     $stmt = $connection->prepare($sql);
 
-    // Bind the common parameters
     $stmt->bindParam(':amount', $amount);
     $stmt->bindParam(':method', $method);
     $stmt->bindParam(':status', $status);
 
-    // Bind extra data parameters (optional, depending on payment method)
-    $paymentProof = isset($extraData['proof_file']) ? $extraData['proof_file'] : null;
+    $paymentProof = $extraData['payment_proof'] ?? null;
     $stmt->bindParam(':payment_proof', $paymentProof);
+    
+    $stmt->bindParam(':phone_number', $extraData['phone_number'] ?? null);
+    $stmt->bindParam(':error_message', $extraData['error_message'] ?? null);
+    $stmt->bindParam(':order_id', $extraData['order_id']);
+    $stmt->bindParam(':description', $extraData['description']);
 
-    // Bind other optional fields
-    $phoneNumber = isset($extraData['phone_number']) ? $extraData['phone_number'] : null;
-    $errorMessage = isset($extraData['error_message']) ? $extraData['error_message'] : null;
-    $orderId = isset($extraData['order_id']) ? $extraData['order_id'] : null;
-    $description = isset($extraData['description']) ? $extraData['description'] : null;
-
-    $stmt->bindParam(':phone_number', $phoneNumber);
-    $stmt->bindParam(':error_message', $errorMessage);
-    $stmt->bindParam(':order_id', $orderId);
-    $stmt->bindParam(':description', $description);
-
-    // Execute the SQL statement
-    if ($stmt->execute()) {
-        echo "Transaction recorded successfully!";
-    } else {
-        echo "Error recording transaction.";
-    }
+    $stmt->execute();
 }
-
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
