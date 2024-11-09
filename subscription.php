@@ -1,37 +1,4 @@
 <?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
-
-// Check if user is logged in
-if (!isset($_SESSION["username"])) {
-    // Redirect to login page if session is not set
-    header("Location: loginpage.php");
-    exit;
-}
-
-// Fetch the logged-in user's information
-$username = htmlspecialchars($_SESSION["username"]);
-
-$user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
-$stmt = $connection->prepare($user_query);
-$stmt->bindParam(':username', $username);
-$stmt->execute();
-$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user_info) {
-    throw new Exception("User not found.");
-}
-
-$email = htmlspecialchars($user_info['email']);
-$date = date('d F, Y', strtotime($user_info['date']));
-$location = htmlspecialchars($user_info['location']);
-$existing_image = htmlspecialchars($user_info['user_image']);
-$image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
 
 // Include database connection and autoload files
@@ -638,12 +605,12 @@ try {
         <div class="form-group">
             <label for="method">Payment Method:</label>
             <select id="method" name="method" required>
-            <option value="BinancePay">Binance Pay</option>
+                <option value="BinancePay">Binance Pay</option>
                 <option value="PayPal">PayPal</option>
             </select>
         </div>
 
-        <!-- Plan Selection for PayPal -->
+        <!-- Plan Selection for Both Payment Methods -->
         <div class="form-group" id="planSelection">
             <label for="planSelect">Choose Your Plan:</label>
             <select id="planSelect" name="planSelect">
@@ -654,11 +621,57 @@ try {
         </div>
 
         <!-- Payment Button Containers -->
-        <div id="paypal-button-container"></div>
-        <button type="submit" id="binancePayButton">Pay with Binance Pay</button>
-
+        <div id="paypal-button-container" style="display: none;"></div>
+        <button type="submit" id="binancePayButton" style="display: none;">Pay with Binance Pay</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const methodSelect = document.getElementById('method');
+        const planSelection = document.getElementById('planSelection');
+        const paypalButtonContainer = document.getElementById('paypal-button-container');
+        const binancePayButton = document.getElementById('binancePayButton');
+
+        // Toggle payment options based on selected method
+        methodSelect.addEventListener("change", function() {
+            planSelection.style.display = "block";  // Always display plan selection for both methods
+            
+            if (methodSelect.value === "PayPal") {
+                paypalButtonContainer.style.display = "block";
+                binancePayButton.style.display = "none";
+            } else if (methodSelect.value === "BinancePay") {
+                paypalButtonContainer.style.display = "none";
+                binancePayButton.style.display = "block";
+            }
+        });
+
+        // Initial state
+        paypalButtonContainer.style.display = "none";
+        binancePayButton.style.display = "none";
+
+        // Initialize PayPal subscription button
+        paypal.Buttons({
+            style: {
+                shape: 'pill',
+                color: 'silver',
+                layout: 'horizontal',
+                label: 'subscribe'
+            },
+            createSubscription: function(data, actions) {
+                const selectedPlan = document.getElementById('planSelect').value;
+                return actions.subscription.create({
+                    plan_id: selectedPlan
+                });
+            },
+            onApprove: function(data, actions) {
+                alert("Subscription successful! Your subscription ID is: " + data.subscriptionID);
+            }
+        }).render('#paypal-button-container');
+    });
+</script>
+
+
 <!-- Modal for payment -->
 <div id="binanceModal" style="display: none;">
     <div class="modal-content">
@@ -670,50 +683,7 @@ try {
 <!-- PayPal SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-      const methodSelect = document.getElementById("method");
-      const planSelection = document.getElementById("planSelection");
-      const paypalButtonContainer = document.getElementById("paypal-button-container");
-      const binancePayButton = document.getElementById("binancePayButton");
 
-      // Toggle payment options based on selected method
-      methodSelect.addEventListener("change", function() {
-          if (methodSelect.value === "PayPal") {
-              planSelection.style.display = "block";
-              paypalButtonContainer.style.display = "block";
-              binancePayButton.style.display = "none";
-          } else if (methodSelect.value === "BinancePay") {
-              planSelection.style.display = "none";
-              paypalButtonContainer.style.display = "none";
-              binancePayButton.style.display = "block";
-          }
-      });
-
-      // Initial state
-      planSelection.style.display = "none";
-      paypalButtonContainer.style.display = "none";
-
-      // Initialize PayPal subscription button
-      paypal.Buttons({
-          style: {
-              shape: 'pill',
-              color: 'silver',
-              layout: 'horizontal',
-              label: 'subscribe'
-          },
-          createSubscription: function(data, actions) {
-              const selectedPlan = document.getElementById('planSelect').value;
-              return actions.subscription.create({
-                  plan_id: selectedPlan
-              });
-          },
-          onApprove: function(data, actions) {
-              alert("Subscription successful! Your subscription ID is: " + data.subscriptionID);
-          }
-      }).render('#paypal-button-container');
-  });
-</script>
 
     </div>
       </div>
