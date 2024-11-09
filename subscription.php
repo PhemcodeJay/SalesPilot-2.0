@@ -30,35 +30,12 @@ try {
                 // Integrate with PayPal API
                 echo "PayPal payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
                 break;
-            case 'Bitcoin':
-                // Integrate with Bitcoin API
-                echo "Bitcoin payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            case 'USDT':
-                // Integrate with USDT API
-                $network = $_POST['usdtNetwork'] ?? 'default_network'; // Use a default network if not provided
-                echo "USDT payment initiated on $network network. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            case 'Matic':
-                // Integrate with Matic (Polygon) API
-                echo "Matic payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            case 'TRON':
-                // Integrate with TRON API
-                echo "TRON payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
+            
             case 'Binance Pay':
                 // Integrate with Binance Pay API
                 echo "Binance Pay payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
                 break;
-            case 'Bybit Pay':
-                // Integrate with Bybit Pay API
-                echo "Bybit Pay payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            case 'OKX Pay':
-                // Integrate with OKX Pay API
-                echo "OKX Pay payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
+            
             default:
                 echo "Invalid payment method.";
         }
@@ -214,56 +191,14 @@ try {
                                '<input type="email" id="paypalEmail" name="paypalEmail">' +
                                '</div>';
                         break;
-                    case 'Bitcoin':
-                        html = '<div class="form-group">' +
-                               '<label for="bitcoinAddress">Bitcoin Address:</label>' +
-                               '<input type="text" id="bitcoinAddress" name="bitcoinAddress">' +
-                               '</div>';
-                        break;
-                    case 'USDT':
-                        html = '<div class="form-group">' +
-                               '<label for="usdtNetwork">USDT Network:</label>' +
-                               '<select id="usdtNetwork" name="usdtNetwork" required>' +
-                               '<option value="ERC20">ERC20</option>' +
-                               '<option value="TRC20">TRC20</option>' +
-                               '<option value="BEP20">BEP20</option>' +
-                               '</select>' +
-                               '</div>' +
-                               '<div class="form-group">' +
-                               '<label for="usdtAddress">USDT Address:</label>' +
-                               '<input type="text" id="usdtAddress" name="usdtAddress">' +
-                               '</div>';
-                        break;
-                    case 'Matic':
-                        html = '<div class="form-group">' +
-                               '<label for="maticAddress">Matic Address:</label>' +
-                               '<input type="text" id="maticAddress" name="maticAddress">' +
-                               '</div>';
-                        break;
-                    case 'TRON':
-                        html = '<div class="form-group">' +
-                               '<label for="tronAddress">TRON Address:</label>' +
-                               '<input type="text" id="tronAddress" name="tronAddress">' +
-                               '</div>';
-                        break;
+                    
                     case 'Binance Pay':
                         html = '<div class="form-group">' +
                                '<label for="binancePayEmail">Binance Pay Email:</label>' +
                                '<input type="email" id="binancePayEmail" name="binancePayEmail">' +
                                '</div>';
                         break;
-                    case 'Bybit Pay':
-                        html = '<div class="form-group">' +
-                               '<label for="bybitPayEmail">Bybit Pay Email:</label>' +
-                               '<input type="email" id="bybitPayEmail" name="bybitPayEmail">' +
-                               '</div>';
-                        break;
-                    case 'OKX Pay':
-                        html = '<div class="form-group">' +
-                               '<label for="okxPayEmail">OKX Pay Email:</label>' +
-                               '<input type="email" id="okxPayEmail" name="okxPayEmail">' +
-                               '</div>';
-                        break;
+
                 }
                 paymentDetails.innerHTML = html;
             });
@@ -688,8 +623,8 @@ try {
         <div class="form-group">
             <label for="method">Payment Method:</label>
             <select id="method" name="method" required>
+            <option value="BinancePay">Binance Pay</option>
                 <option value="PayPal">PayPal</option>
-                <option value="BinancePay">Binance Pay</option>
             </select>
         </div>
 
@@ -740,7 +675,7 @@ try {
       paypal.Buttons({
           style: {
               shape: 'pill',
-              color: 'gold',
+              color: 'silver',
               layout: 'horizontal',
               label: 'subscribe'
           },
