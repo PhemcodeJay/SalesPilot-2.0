@@ -126,8 +126,8 @@ function processPaypalPayment($data) {
  * @return string
  */
 function getPaypalAccessToken() {
-    $clientId = 'YOUR_PAYPAL_CLIENT_ID'; // Your PayPal client ID
-    $secret = 'YOUR_PAYPAL_SECRET'; // Your PayPal secret
+    $clientId = 'AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W'; // Your PayPal client ID
+    $secret = 'EDpaVPowMoKSoA_pyshhfkour_aIIMJC0kSHMjgyaXkxvmq9H4CNVrj-2afCZ_Zxf9wCjb9zBIcLOcez'; // Your PayPal secret
     $url = 'https://api.paypal.com/v1/oauth2/token';
 
     $ch = curl_init($url);

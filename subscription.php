@@ -40,10 +40,8 @@ require 'vendor/autoload.php';
 
 // Binance payment function
 function createBinancePayment($amount, $currency) {
-    $apiKey = getenv('oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl
-    ');
-    $apiSecret = getenv('anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi
-    ');
+    $apiKey = getenv('oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl');
+    $apiSecret = getenv('anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi');
 
     $url = "https://api.binance.com/binancepay/api/v3/order";
     $data = [
