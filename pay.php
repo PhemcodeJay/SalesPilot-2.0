@@ -473,7 +473,7 @@ function savePayment($amount, $method, $status, $extraData = []) {
         <h6>Please follow the instructions below to complete your bank transfer:</h6>
         <ul>
           <li><strong>Bank Name:</strong> STANBIC IBTC NIGERIA</li>
-          <li><strong>Account Name:</strong> SALES PILOT</li>
+          <li><strong>Account Name:</strong> OLUWAFEMI JEGEDE</li>
           <li><strong>Account Number:</strong> 0010414317</li>
           <li><strong>Amount to Transfer:</strong> <span id="bankAmountDisplay"></span></li>
           <li><strong>Exchange Rate:</strong> <span id="Naira Equivalent">Loading...</span></li>
