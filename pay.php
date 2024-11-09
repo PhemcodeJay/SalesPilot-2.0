@@ -76,8 +76,8 @@ function processPaypalPayment($data) {
     $postFields = json_encode([
         'intent' => 'sale',
         'redirect_urls' => [
-            'return_url' => 'https://yourwebsite.com/success',
-            'cancel_url' => 'https://yourwebsite.com/cancel',
+            'return_url' => 'https://salespilot.cybertrendhub.store/success',
+            'cancel_url' => 'https://salespilot.cybertrendhub.store/cancel',
         ],
         'payer' => [
             'payment_method' => 'paypal',
@@ -116,8 +116,8 @@ function processPaypalPayment($data) {
 }
 
 function getPaypalAccessToken() {
-    $clientId = 'YOUR_PAYPAL_CLIENT_ID'; // Your PayPal client ID
-    $secret = 'YOUR_PAYPAL_SECRET'; // Your PayPal secret
+    $clientId = 'AU3PR4dxxPl4UaYl04X2YinE9GbgN82-89PZbDstEB30DmxbIFPgqjw4K-dpKqappXFcOVwdUKYyaRhz'; // Your PayPal client ID
+    $secret = 'EA_aw0qrjgpEWtvWF80sbo0dj-K2KVvyyGs6aorxTVbCEgpgBIhDhHN_ouzlib9DQdTDpWb1JlUgbEt_'; // Your PayPal secret
     $url = 'https://api.paypal.com/v1/oauth2/token';
     
     $ch = curl_init($url);
@@ -137,24 +137,6 @@ function getPaypalAccessToken() {
 }
 
 function processBinancePayment($data) {
-    // Check if required data is available
-    if (empty($data['amount']) || empty($data['method'])) {
-        throw new Exception("Payment data is incomplete.");
-    }
-
-    // Binance Pay API credentials (replace with actual credentials)
-    $apiKey = 'YOUR_API_KEY';
-    $apiSecret = 'YOUR_API_SECRET';
-
-    // Setup Binance API endpoint (replace with actual endpoint)
-    $endpoint = 'https://api.binance.com/v3/payments'; // Example endpoint
-    $payload = [
-        'amount' => $data['amount'],
-        'currency' => 'USD', // Specify the currency
-        'method' => $data['method'],
-        // Additional parameters can be added here as required by Binance
-    ];
-
     try {
         // Initialize cURL session for API call
         $ch = curl_init();
@@ -174,15 +156,14 @@ function processBinancePayment($data) {
 
         // Check for API response success
         if ($httpCode === 200) {
-            // Process successful response
             $responseData = json_decode($response, true);
 
             // Check for successful payment status in the response
             if (isset($responseData['status']) && $responseData['status'] === 'success') {
                 echo "Binance payment processed successfully for amount: " . $data['amount'] . " USD.";
                 
-                // Save successful payment to database
-                savePayment($data['amount'], $data['method'], 'success');
+                // Save successful transaction to database (no payment proof here)
+                savePayment($data['amount'], 'Binance', 'success');
             } else {
                 throw new Exception("Payment failed: " . ($responseData['message'] ?? 'Unknown error'));
             }
@@ -192,8 +173,8 @@ function processBinancePayment($data) {
     } catch (Exception $e) {
         // Handle errors gracefully
         echo "Error processing Binance payment: " . $e->getMessage();
-        // Optionally save payment with status 'failed' or log error
-        savePayment($data['amount'], $data['method'], 'failed', ['error_message' => $e->getMessage()]);
+        // Optionally save transaction with status 'failed' or log error
+        savePayment($data['amount'], 'Binance', 'failed', ['error_message' => $e->getMessage()]);
     }
 }
 
@@ -259,83 +240,41 @@ function getMpesaAccessToken($key) {
     return $responseData['access_token'];
 }
 
-function processBankTransferPayment($data) {
-    // Check if the file was uploaded
-    if (isset($_FILES['payment_proof'])) {
-        $uploadDir = 'uploads/payment_proofs/'; // Directory to save uploaded files
-        $uploadFile = $uploadDir . basename($_FILES['payment_proof']['name']);
-        $fileType = strtolower(pathinfo($uploadFile, PATHINFO_EXTENSION));
-
-        // Validate file type
-        if (!in_array($fileType, ['pdf', 'jpg', 'jpeg', 'png'])) {
-            throw new Exception("Invalid file type. Only PDF, JPG, and PNG files are allowed.");
-        }
-
-        // Move the uploaded file to the specified directory
-        if (move_uploaded_file($_FILES['payment_proof']['tmp_name'], $uploadFile)) {
-            // Payment proof uploaded successfully
-            echo "Payment proof uploaded successfully!<br>";
-            // Save payment to database
-            savePayment($data['amount'], $data['method'], 'pending', [
-                'proof_file' => $uploadFile,
-            ]);
-        } else {
-            throw new Exception("Error uploading payment proof.");
-        }
-    } // Modal trigger button
-    echo '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#bankTransferModal">
-            Show Bank Transfer Payment Details
-          </button>';
-    
-    // Modal HTML structure
-    echo '<div class="modal fade" id="bankTransferModal" tabindex="-1" role="dialog" aria-labelledby="bankTransferModalLabel" aria-hidden="true">';
-    echo '  <div class="modal-dialog" role="document">';
-    echo '    <div class="modal-content">';
-    echo '      <div class="modal-header">';
-    echo '        <h5 class="modal-title" id="bankTransferModalLabel">Bank Transfer Payment Details</h5>';
-    echo '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">';
-    echo '          <span aria-hidden="true">&times;</span>';
-    echo '        </button>';
-    echo '      </div>';
-    echo '      <div class="modal-body">';
-    echo '        <p>Bank Name: Stanbic IBTC</p>';
-    echo '        <p>Account Number: 1234567890</p>';
-    echo '        <p>Account Name: Your Business Name</p>';
-    echo '        <p>Upload Payment Proof (PDF/Image):</p>';
-    echo '        <form method="post" enctype="multipart/form-data">';
-    echo '          <input type="file" name="payment_proof" required>';
-    echo '          <button type="submit" class="btn btn-primary mt-2">Upload</button>';
-    echo '        </form>';
-    echo '      </div>';
-    echo '    </div>';
-    echo '  </div>';
-    echo '</div>';
-    
-}
-
 function savePayment($amount, $method, $status, $extraData = []) {
-    global $connection; // Get the PDO instance from your config file
+    global $connection; // Assuming $connection is your PDO instance
 
-    // Prepare the SQL statement
-    $sql = "INSERT INTO payments (amount, method, status, created_at, payment_proof) VALUES (:amount, :method, :status, NOW(), :payment_proof)";
+    // Prepare the SQL query to insert the payment data
+    $sql = "INSERT INTO payments (amount, method, status, created_at, payment_proof, phone_number, error_message, order_id, description) 
+            VALUES (:amount, :method, :status, NOW(), :payment_proof, :phone_number, :error_message, :order_id, :description)";
     
-    // Prepare and execute the statement
+    // Prepare the statement
     $stmt = $connection->prepare($sql);
 
-    // Bind parameters
+    // Bind the common parameters
     $stmt->bindParam(':amount', $amount);
     $stmt->bindParam(':method', $method);
     $stmt->bindParam(':status', $status);
 
-    // Bind the payment proof if provided
+    // Bind extra data parameters (optional, depending on payment method)
     $paymentProof = isset($extraData['proof_file']) ? $extraData['proof_file'] : null;
     $stmt->bindParam(':payment_proof', $paymentProof);
 
+    // Bind other optional fields
+    $phoneNumber = isset($extraData['phone_number']) ? $extraData['phone_number'] : null;
+    $errorMessage = isset($extraData['error_message']) ? $extraData['error_message'] : null;
+    $orderId = isset($extraData['order_id']) ? $extraData['order_id'] : null;
+    $description = isset($extraData['description']) ? $extraData['description'] : null;
+
+    $stmt->bindParam(':phone_number', $phoneNumber);
+    $stmt->bindParam(':error_message', $errorMessage);
+    $stmt->bindParam(':order_id', $orderId);
+    $stmt->bindParam(':description', $description);
+
     // Execute the SQL statement
     if ($stmt->execute()) {
-        echo "Payment recorded successfully!";
+        echo "Transaction recorded successfully!";
     } else {
-        echo "Error recording payment.";
+        echo "Error recording transaction.";
     }
 }
 
@@ -616,6 +555,13 @@ function savePayment($amount, $method, $status, $extraData = []) {
         document.getElementById('total-price').textContent = '$' + totalPrice.toFixed(2);
     }
 </script>
-
+<script>
+document.getElementById('createButton').addEventListener('click', function() {
+    // Optional: Validate input or perform any additional checks here
+    
+    // Redirect to invoice-form.php
+    window.location.href = 'invoice-form.php';
+});
+</script>
 </body>
 </html>

@@ -1,113 +1,112 @@
 <?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
 
+
+// Include database connection and autoload files
 include('config.php'); // Includes database connection
+require 'vendor/autoload.php';
+
+// Binance payment function
+function createBinancePayment($amount, $currency) {
+    $apiKey = getenv('BINANCE_LIVE_API_KEY');
+    $apiSecret = getenv('BINANCE_LIVE_API_SECRET');
+
+    $url = "https://api.binance.com/binancepay/api/v3/order";
+    $data = [
+        "amount" => $amount,
+        "currency" => $currency,
+        // Additional payment data can be added here
+    ];
+
+    // Generate API signature
+    $signature = hash_hmac('sha256', json_encode($data), $apiSecret);
+
+    // Headers for the API request
+    $headers = [
+        "Content-Type: application/json",
+        "Binance-Api-Key: $apiKey",
+        "Binance-Api-Signature: $signature"
+    ];
+
+    // Setting up HTTP context for the API call
+    $options = [
+        "http" => [
+            "header" => $headers,
+            "method" => "POST",
+            "content" => json_encode($data)
+        ]
+    ];
+
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+
+    // Return the response from Binance API
+    return json_decode($result, true);
+}
+
+// Handle POST request for payment
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $amount = $_POST['amount'];
+    $currency = $_POST['currency'];
+    $response = createBinancePayment($amount, $currency);
+    echo json_encode($response);
+}
 
 try {
+    // Establish database connection
     $connection = new PDO($dsn, $username, $password, $options);
 
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Process payment form submission
         $amount = $_POST['amount'] ?? 0;
         $method = $_POST['method'] ?? 'Cash'; // Default to 'Cash' if not provided
-        $status = 'Pending'; // Default status
+        $status = 'Pending'; // Default status for the payment
 
-        // Prepare SQL query
+        // Prepare SQL query to insert payment record
         $stmt = $connection->prepare("INSERT INTO payments (amount, method, status) VALUES (?, ?, ?)");
         $stmt->execute([$amount, $method, $status]);
 
-        $paymentId = $connection->lastInsertId();
-
-        // Process payment based on method
-        switch ($method) {
-            case 'PayPal':
-                // Integrate with PayPal API
-                echo "PayPal payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            
-            case 'Binance Pay':
-                // Integrate with Binance Pay API
-                echo "Binance Pay payment initiated. Your payment ID is: " . htmlspecialchars($paymentId);
-                break;
-            
-            default:
-                echo "Invalid payment method.";
-        }
-    } else {
-        // Display payment form
-
-        // Fetch inventory notifications with product images
-        $inventoryQuery = $connection->prepare("
-            SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-            FROM inventory i
-            JOIN products p ON i.product_id = p.id
-            WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-            ORDER BY i.last_updated DESC
-        ");
-        $inventoryQuery->execute([
-            ':low_stock' => 10,
-            ':high_stock' => 1000,
-        ]);
-        $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
-
-        // Fetch reports notifications with product images
-        $reportsQuery = $connection->prepare("
-            SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-                   JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-                   p.image_path
-            FROM reports r
-            JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-            WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-               OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-            ORDER BY r.report_date DESC
-        ");
-        $reportsQuery->execute([
-            ':high_revenue' => 10000,
-            ':low_revenue' => 1000,
-        ]);
-        $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
+        $paymentId = $connection->lastInsertId(); // Get the last inserted payment ID
     }
 
-    // Check if user is logged in
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
+    // Fetch inventory notifications with product images
+    $inventoryQuery = $connection->prepare("
+        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
+        FROM inventory i
+        JOIN products p ON i.product_id = p.id
+        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
+        ORDER BY i.last_updated DESC
+    ");
+    $inventoryQuery->execute([
+        ':low_stock' => 10,
+        ':high_stock' => 1000,
+    ]);
+    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
 
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Fetch user information
-    $user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    $email = htmlspecialchars($user_info['email']);
-    $date = date('d F, Y', strtotime($user_info['date']));
-    $location = htmlspecialchars($user_info['location']);
-    $existing_image = htmlspecialchars($user_info['user_image']);
-    $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
+    // Fetch reports notifications with product images
+    $reportsQuery = $connection->prepare("
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
+               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
+               p.image_path
+        FROM reports r
+        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
+        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
+           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
+        ORDER BY r.report_date DESC
+    ");
+    $reportsQuery->execute([
+        ':high_revenue' => 10000,
+        ':low_revenue' => 1000,
+    ]);
+    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . htmlspecialchars($e->getMessage()));
-} catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . htmlspecialchars($e->getMessage()));
+    // Handle database connection errors
+    echo "Database connection failed: " . $e->getMessage();
+    exit;
 }
+
+
 ?>
-
-
 
 <!doctype html>
 <html lang="en">
@@ -157,6 +156,15 @@ try {
             border-radius: 4px;
             box-sizing: border-box;
         }
+
+        /* Modal styling */
+  .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 50%;
+      margin: auto;
+  }
         button {
             width: 100%;
             padding: 10px;
@@ -177,33 +185,7 @@ try {
             width: 100%;
         }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const methodSelect = document.getElementById('method');
-            const paymentDetails = document.getElementById('paymentDetails');
-
-            methodSelect.addEventListener('change', function() {
-                let html = '';
-                switch (methodSelect.value) {
-                    case 'PayPal':
-                        html = '<div class="form-group">' +
-                               '<label for="paypalEmail">PayPal Email:</label>' +
-                               '<input type="email" id="paypalEmail" name="paypalEmail">' +
-                               '</div>';
-                        break;
-                    
-                    case 'Binance Pay':
-                        html = '<div class="form-group">' +
-                               '<label for="binancePayEmail">Binance Pay Email:</label>' +
-                               '<input type="email" id="binancePayEmail" name="binancePayEmail">' +
-                               '</div>';
-                        break;
-
-                }
-                paymentDetails.innerHTML = html;
-            });
-        });
-    </script>
+    
       <body class="  ">
     
     <!-- Wrapper Start -->
@@ -640,10 +622,18 @@ try {
 
         <!-- Payment Button Containers -->
         <div id="paypal-button-container"></div>
-        <button type="submit" id="binancePayButton" style="display: none;">Pay with Binance Pay</button>
+        <button type="submit" id="binancePayButton">Pay with Binance Pay</button>
+
     </form>
 </div>
-
+<!-- Modal for payment -->
+<div id="binanceModal" style="display: none;">
+    <div class="modal-content">
+        <span id="closeModal">&times;</span>
+        <h2>Complete Your Payment</h2>
+        <p>Processing payment...</p>
+    </div>
+</div>
 <!-- PayPal SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
@@ -732,6 +722,33 @@ document.getElementById('createButton').addEventListener('click', function() {
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
 });
+
+document.getElementById('binancePayButton').addEventListener('click', () => {
+    // Open the modal
+    document.getElementById('binanceModal').style.display = 'block';
+    
+    // Call server to create a payment order
+    fetch('/binance/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 10, currency: 'USDT' }) // Example payload
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Open Binance Pay or display payment info in modal
+            window.open(data.payment_url, '_blank');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+});
+
+// Close the modal
+document.getElementById('closeModal').addEventListener('click', () => {
+    document.getElementById('binanceModal').style.display = 'none';
+});
+
 </script>
 </body>
 </html>
