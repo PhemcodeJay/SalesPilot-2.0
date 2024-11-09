@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 4.9.11
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Nov 02, 2024 at 10:23 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: db5016593580.hosting-data.io
+-- Generation Time: Nov 09, 2024 at 04:01 AM
+-- Server version: 10.11.7-MariaDB-log
+-- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -18,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `project`
+-- Database: `dbs13455438`
 --
 
 -- --------------------------------------------------------
@@ -40,7 +41,7 @@ CREATE TABLE `activation_codes` (
 --
 
 INSERT INTO `activation_codes` (`id`, `user_id`, `activation_code`, `expires_at`, `created_at`) VALUES
-(1, 1, '67261b704fe59', '2024-11-03 10:30:40', '2024-11-02 12:30:40');
+(2, 2, '6726e9481e942', '2024-11-04 04:08:56', '2024-11-03 03:08:56');
 
 -- --------------------------------------------------------
 
@@ -60,12 +61,26 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`category_id`, `category_name`, `description`, `created_at`) VALUES
-(1, 'Phones', NULL, '2024-11-02 12:34:34'),
-(2, 'Foods', NULL, '2024-11-02 12:45:11'),
-(3, 'Cosmetic', NULL, '2024-11-02 12:55:36'),
-(4, 'Fashion', NULL, '2024-11-02 13:00:14'),
-(5, 'Devices', NULL, '2024-11-02 15:51:21'),
-(7, 'Auto', NULL, '2024-11-02 16:03:56');
+(8, 'Devices', NULL, '2024-11-03 03:13:26'),
+(9, 'Foods', NULL, '2024-11-03 19:35:05'),
+(10, 'Auto', NULL, '2024-11-03 19:38:49'),
+(11, 'Fashion', NULL, '2024-11-03 19:40:54'),
+(12, 'Cosmetic', NULL, '2024-11-03 19:46:28');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contacts`
+--
+
+CREATE TABLE `contacts` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `phone` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -87,12 +102,10 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_location`, `created_at`) VALUES
-(8, 'kyle', '', '', '', '2024-11-02 15:31:53'),
-(9, 'jim', '', '', '', '2024-11-02 15:35:28'),
-(10, 'joe', '', '', '', '2024-11-02 15:39:44'),
-(11, 'kimolee', '', '', '', '2024-11-02 15:41:12'),
-(12, 'gina', '', '', '', '2024-11-02 15:54:01'),
-(14, 'chris', 'chris@gmail.com', '45678923', 'Texas', '2024-11-02 16:05:10');
+(15, 'james', 'james@gmail.com', '876543', 'Madrid', '2024-11-03 03:27:42'),
+(16, 'sam', '', '', '', '2024-11-03 19:49:49'),
+(17, 'neema', '', '', '', '2024-11-03 19:50:49'),
+(18, 'tom', '', '', '', '2024-11-03 19:52:34');
 
 -- --------------------------------------------------------
 
@@ -113,9 +126,10 @@ CREATE TABLE `expenses` (
 --
 
 INSERT INTO `expenses` (`expense_id`, `description`, `amount`, `expense_date`, `created_by`) VALUES
-(1, 'Rent', 800.00, '2024-10-31 21:00:00', 'sam'),
-(2, 'Renovation', 400.00, '2024-10-02 21:00:00', 'collins'),
-(3, 'Loans', 3000.00, '2024-09-10 21:00:00', 'Luke');
+(4, 'Rent', '500.00', '2024-11-02 04:00:00', 'Tom'),
+(5, 'Taxes and Levy', '800.00', '2024-10-03 04:00:00', 'karim'),
+(6, 'Renovation', '800.00', '2024-09-06 04:00:00', 'jerry'),
+(7, 'Marketing', '1000.00', '2024-07-19 04:00:00', 'john');
 
 -- --------------------------------------------------------
 
@@ -140,13 +154,15 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`inventory_id`, `product_id`, `sales_qty`, `last_updated`, `stock_qty`, `supply_qty`, `product_name`) VALUES
-(1, 1, 10, '2024-11-02 19:44:16', 20, 27, 'Samsung Galaxy'),
-(2, 2, 60, '2024-11-02 19:44:16', 100, 200, 'Pilsner'),
-(3, 7, 12, '2024-11-02 19:44:16', 20, 12, 'Apple iPhone'),
-(4, 6, 40, '2024-11-02 19:44:16', 100, 80, 'Vitamin Water'),
-(5, 5, 25, '2024-11-02 19:44:16', 50, 25, 'Floral Dress'),
-(6, 4, 18, '2024-11-02 19:44:16', 40, 25, 'Beauty Soap'),
-(7, 8, 12, '2024-11-02 19:44:16', 20, 12, 'Sony Camera');
+(5, 11, 20, '2024-11-03 03:33:41', 15, 12, 'Samsung Galaxy'),
+(6, 18, 20, '2024-11-03 20:02:26', 25, 50, 'Makeup kit'),
+(7, 17, 40, '2024-11-03 20:02:26', 40, 100, 'Beauty Soap'),
+(8, 16, 20, '2024-11-03 20:02:26', 49, 60, 'Nike Sneakers'),
+(9, 15, 15, '2024-11-03 20:02:26', 40, 50, 'Floral Dress'),
+(10, 14, 2, '2024-11-03 20:02:26', 5, 10, 'Chevrolet AWD'),
+(11, 13, 5, '2024-11-03 20:02:26', 25, 10, 'Sony Camera'),
+(12, 12, 20, '2024-11-03 20:02:26', 50, 20, 'Pilsner Beer'),
+(13, 19, 10, '2024-11-04 08:58:16', 20, 50, 'Apple IPhone 15');
 
 -- --------------------------------------------------------
 
@@ -175,7 +191,7 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`invoice_id`, `invoice_number`, `customer_name`, `invoice_description`, `order_date`, `order_status`, `order_id`, `delivery_address`, `mode_of_payment`, `due_date`, `subtotal`, `discount`) VALUES
-(11, '435657', 'joe  23', 'delivery', '2024-10-11', 'Paid', '5678', 'Madrid ', 'Mpesa', '2024-11-01', 910.00, 10.00);
+(12, '567', 'james', 'delivery', '2024-11-01', 'Paid', '4567', '112 freway oho', 'mpesa', '2024-11-05', '640.00', '2.00');
 
 -- --------------------------------------------------------
 
@@ -197,8 +213,8 @@ CREATE TABLE `invoice_items` (
 --
 
 INSERT INTO `invoice_items` (`invoice_items_id`, `invoice_id`, `item_name`, `qty`, `price`) VALUES
-(23, 11, 'Dell laptop', 2, 215.00),
-(24, 11, 'Mens shoes', 3, 160.00);
+(23, 12, 'laptop', 2, '200.00'),
+(24, 12, 'bag', 2, '120.00');
 
 -- --------------------------------------------------------
 
@@ -228,7 +244,11 @@ CREATE TABLE `payments` (
   `paypal_email` varchar(255) DEFAULT NULL,
   `binance_pay_email` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `payment_proof` varchar(255) NOT NULL
+  `payment_proof` varchar(255) DEFAULT NULL,
+  `order_id` varchar(100) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `error_message` text DEFAULT NULL,
+  `phone_number` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -260,14 +280,15 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `description`, `price`, `cost`, `category_id`, `created_at`, `stock_qty`, `supply_qty`, `image_path`, `product_type`, `staff_name`, `category`) VALUES
-(1, 'Samsung Galaxy', 'A10s', 150.00, 100.00, 1, '2024-11-02 12:34:34', 20, 27, 'uploads/products/samsung-galaxy-a10s.jpg', 'Goods', 'kim', 'Phones'),
-(2, 'Pilsner', 'Premium Beer', 40.00, 35.00, 2, '2024-11-02 12:45:11', 100, 200, 'uploads/products/beer.jpg', 'Goods', 'john', 'Foods'),
-(4, 'Beauty Soap', 'Skin care soap', 21.00, 15.00, 3, '2024-11-02 12:55:37', 40, 25, 'uploads/products/soap.jpg', 'Goods', 'stacey', 'Cosmetic'),
-(5, 'Floral Dress', 'Pleated Woven Dress', 35.00, 20.00, 4, '2024-11-02 13:00:14', 50, 25, 'uploads/products/floral-pleated-weave-dress.jpg', 'Goods', 'james', 'Fashion'),
-(6, 'Vitamin Water', 'Premium Spring Water', 15.00, 10.00, 2, '2024-11-02 13:04:22', 100, 80, 'uploads/products/water.jpg', 'Goods', 'chris', 'Foods'),
-(7, 'Apple iPhone', 'Apple IPhone 15 128GB', 1200.00, 900.00, 1, '2024-11-02 13:06:04', 20, 12, 'uploads/products/iphone-15-128gb.jpg', 'Goods', 'john', 'Phones'),
-(8, 'Sony Camera', 'AI Digital camera', 105.00, 85.00, 5, '2024-11-02 15:51:21', 20, 12, 'uploads/products/camera.jpg', 'Goods', 'kim', 'Devices'),
-(9, 'Nike Sneakers', 'Air Jordan Sneakers', 75.00, 50.00, 6, '2024-11-02 16:01:53', 30, 45, 'uploads/products/nike-sneakers.jpg', 'Goods', 'james', 'Fashion');
+(11, 'Samsung Galaxy', 'A10s', '150.00', '100.00', 8, '2024-11-03 03:13:26', 15, 12, 'uploads/products/samsung-galaxy-a10s.jpg', 'Goods', 'joe', 'Devices'),
+(12, 'Pilsner Beer', 'Premium Beer', '25.00', '20.00', 9, '2024-11-03 19:35:05', 50, 20, 'uploads/products/beer.jpg', 'Goods', 'kim', 'Food'),
+(13, 'Sony Camera', 'AI Digital Camera', '75.00', '50.00', 8, '2024-11-03 19:36:50', 25, 10, 'uploads/products/camera.jpg', 'Goods', 'mike', 'Devices'),
+(14, 'Chevrolet AWD', 'Chevrolet AWD 2024', '18000.00', '15000.00', 10, '2024-11-03 19:38:49', 5, 10, 'uploads/products/Chevrolet.jpg', 'Goods', 'james', 'Auto'),
+(15, 'Floral Dress', 'floral-pleated-weave-dress', '55.00', '40.00', 11, '2024-11-03 19:40:54', 40, 50, 'uploads/products/floral-pleated-weave-dress.jpg', 'Goods', 'joe', 'Fashon'),
+(16, 'Nike Sneakers', 'Nike Air Jordan', '95.00', '70.00', 11, '2024-11-03 19:42:47', 49, 60, 'uploads/products/nike-sneakers.jpg', 'Goods', 'mike', 'Fashion'),
+(17, 'Beauty Soap', 'Skincare Soap', '20.00', '10.00', 12, '2024-11-03 19:46:28', 40, 100, 'uploads/products/soap.jpg', 'Goods', 'james', 'Cosmetic'),
+(18, 'Makeup kit', 'Mary Kay Makeup kit', '25.00', '20.00', 12, '2024-11-03 19:48:20', 25, 50, 'uploads/products/make-up.jpg', 'Goods', 'kim', 'Cosmetic'),
+(19, 'Apple IPhone 15', 'Apple IPhone 15 128GB', '1500.00', '900.00', 8, '2024-11-03 20:19:50', 20, 50, 'uploads/products/iphone-15-128gb.jpg', 'Goods', 'james', 'Devices');
 
 -- --------------------------------------------------------
 
@@ -303,7 +324,8 @@ CREATE TABLE `reports` (
 --
 
 INSERT INTO `reports` (`reports_id`, `report_date`, `revenue`, `profit_margin`, `revenue_by_product`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_product`, `net_margin_by_product`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`) VALUES
-(1, '2024-11-02', 21413.00, 24.86, '[{\"product_id\":1,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"10\",\"total_sales\":\"1500.00\",\"total_cost\":\"1000.00\",\"total_profit\":\"500.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":2,\"product_name\":\"Pilsner\",\"total_quantity\":\"60\",\"total_sales\":\"2400.00\",\"total_cost\":\"2100.00\",\"total_profit\":\"300.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":4,\"product_name\":\"Beauty Soap\",\"total_quantity\":\"18\",\"total_sales\":\"378.00\",\"total_cost\":\"270.00\",\"total_profit\":\"108.00\",\"inventory_turnover_rate\":\"0.4500\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":5,\"product_name\":\"Floral Dress\",\"total_quantity\":\"25\",\"total_sales\":\"875.00\",\"total_cost\":\"500.00\",\"total_profit\":\"375.00\",\"inventory_turnover_rate\":\"0.5000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":6,\"product_name\":\"Vitamin Water\",\"total_quantity\":\"40\",\"total_sales\":\"600.00\",\"total_cost\":\"400.00\",\"total_profit\":\"200.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":7,\"product_name\":\"Apple iPhone\",\"total_quantity\":\"12\",\"total_sales\":\"14400.00\",\"total_cost\":\"10800.00\",\"total_profit\":\"3600.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":8,\"product_name\":\"Sony Camera\",\"total_quantity\":\"12\",\"total_sales\":\"1260.00\",\"total_cost\":\"1020.00\",\"total_profit\":\"240.00\",\"inventory_turnover_rate\":\"0.6000\",\"sell_through_rate\":\"100.0000\"}]', 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 5323.00, -10767.00, '2024-11-02 16:13:14', 21413, 177, 99, 99, -99);
+(2, '2024-11-02', '3000.00', '33.33', '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"20\",\"total_sales\":\"3000.00\",\"total_cost\":\"2000.00\",\"total_profit\":\"1000.00\",\"inventory_turnover_rate\":\"1.3333\",\"sell_through_rate\":\"100.0000\"}]', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '1000.00', '-1000.00', '2024-11-03 03:42:08', '3000', 20, '99', '99', '-99'),
+(3, '2024-11-03', '43900.00', '19.25', '[{\"product_id\":11,\"product_name\":\"Samsung Galaxy\",\"total_quantity\":\"20\",\"total_sales\":\"3000.00\",\"total_cost\":\"2000.00\",\"total_profit\":\"1000.00\",\"inventory_turnover_rate\":\"1.3333\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":12,\"product_name\":\"Pilsner Beer\",\"total_quantity\":\"20\",\"total_sales\":\"500.00\",\"total_cost\":\"400.00\",\"total_profit\":\"100.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":13,\"product_name\":\"Sony Camera\",\"total_quantity\":\"5\",\"total_sales\":\"375.00\",\"total_cost\":\"250.00\",\"total_profit\":\"125.00\",\"inventory_turnover_rate\":\"0.2000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":14,\"product_name\":\"Chevrolet AWD\",\"total_quantity\":\"2\",\"total_sales\":\"36000.00\",\"total_cost\":\"30000.00\",\"total_profit\":\"6000.00\",\"inventory_turnover_rate\":\"0.4000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":15,\"product_name\":\"Floral Dress\",\"total_quantity\":\"15\",\"total_sales\":\"825.00\",\"total_cost\":\"600.00\",\"total_profit\":\"225.00\",\"inventory_turnover_rate\":\"0.3750\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":16,\"product_name\":\"Nike Sneakers\",\"total_quantity\":\"20\",\"total_sales\":\"1900.00\",\"total_cost\":\"1400.00\",\"total_profit\":\"500.00\",\"inventory_turnover_rate\":\"0.4082\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":17,\"product_name\":\"Beauty Soap\",\"total_quantity\":\"40\",\"total_sales\":\"800.00\",\"total_cost\":\"400.00\",\"total_profit\":\"400.00\",\"inventory_turnover_rate\":\"1.0000\",\"sell_through_rate\":\"100.0000\"},{\"product_id\":18,\"product_name\":\"Makeup kit\",\"total_quantity\":\"20\",\"total_sales\":\"500.00\",\"total_cost\":\"400.00\",\"total_profit\":\"100.00\",\"inventory_turnover_rate\":\"0.8000\",\"sell_through_rate\":\"100.0000\"}]', '0.00', '0.00', '309.15', '0.32', '999.99', '0.00', '0.00', '8450.00', '-27000.00', '2024-11-03 09:55:06', '43900', 142, '99', '99', '-99');
 
 -- --------------------------------------------------------
 
@@ -333,13 +355,15 @@ CREATE TABLE `sales` (
 --
 
 INSERT INTO `sales` (`sales_id`, `product_id`, `user_id`, `customer_id`, `staff_id`, `sales_qty`, `sale_date`, `sale_status`, `payment_status`, `name`, `product_type`, `sale_note`, `sales_price`) VALUES
-(1, 1, 1, 8, 8, 10, '2024-01-16 15:31:53', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', 150.00),
-(2, 2, 1, 9, 9, 60, '2024-02-02 15:35:28', 'completed', 'paid', 'Pilsner', 'Goods', 'sold', 40.00),
-(3, 7, 1, 10, 10, 12, '2024-03-22 15:39:44', 'completed', 'paid', 'Apple iPhone', 'Goods', 'sold', 1200.00),
-(4, 6, 1, 11, 11, 40, '2024-04-11 15:41:12', 'completed', 'paid', 'Vitamin Water', 'Goods', 'sold', 15.00),
-(5, 5, 1, 12, 12, 25, '2024-05-02 15:54:01', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', 35.00),
-(6, 4, 1, 8, 8, 18, '2024-06-15 15:54:54', 'completed', 'paid', 'Beauty Soap', 'Goods', '', 21.00),
-(7, 8, 1, 13, 9, 12, '2024-07-02 15:57:34', 'completed', 'paid', 'Sony Camera', 'Goods', '', 105.00);
+(10, 11, 2, 15, 13, 20, '2024-01-03 04:32:21', 'completed', 'paid', 'Samsung Galaxy', 'Goods', 'sold', '150.00'),
+(11, 18, 2, 16, 13, 20, '2024-02-03 19:49:49', 'completed', 'paid', 'Makeup kit', 'Goods', 'sold', '25.00'),
+(12, 17, 2, 17, 14, 40, '2024-03-13 18:50:49', 'completed', 'paid', 'Beauty Soap', 'Goods', 'sold', '20.00'),
+(13, 16, 2, 18, 15, 20, '2024-04-23 18:52:34', 'completed', 'paid', 'Nike Sneakers', 'Goods', 'sold', '95.00'),
+(14, 15, 2, 15, 16, 15, '2024-05-03 18:54:15', 'completed', 'paid', 'Floral Dress', 'Goods', 'sold', '55.00'),
+(15, 14, 2, 16, 13, 2, '2024-06-23 18:56:16', 'completed', 'paid', 'Chevrolet AWD', 'Goods', 'sold', '18000.00'),
+(16, 13, 2, 17, 17, 5, '2024-07-09 18:57:31', 'completed', 'paid', 'Sony Camera', 'Goods', 'SOLD', '75.00'),
+(17, 12, 2, 18, 15, 20, '2024-11-03 19:58:32', 'completed', 'paid', 'Pilsner Beer', 'Goods', 'sold', '25.00'),
+(18, 19, 2, 15, 13, 10, '2024-11-03 20:21:11', 'completed', 'paid', 'Apple IPhone 15', 'Goods', 'sold', '1500.00');
 
 -- --------------------------------------------------------
 
@@ -376,16 +400,15 @@ CREATE TABLE `sales_analytics` (
 --
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
-(1, '2024-11-02', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, '2024-11-02 13:26:02', 0, 0, 0, 0, 0, 0, 0),
-(2, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:07:46', 69215, 46, 99, 0, 0, 0, 0),
-(3, '2024-11-02', 69215.00, 22.17, 0.00, 0.00, 999.99, 0.07, 999.99, 0.00, 0.00, 53870.00, 15345.00, '2024-11-02 16:12:53', 69215, 46, 99, 0, 0, 0, 0),
-(4, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:50:12', 21413, 177, 99, 0, 0, 0, 0),
-(5, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:50:56', 21413, 177, 99, 0, 0, 0, 0),
-(6, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:53:46', 21413, 177, 99, 0, 0, 0, 0),
-(7, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:54:32', 21413, 177, 99, 0, 0, 0, 0),
-(8, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:55:23', 21413, 177, 99, 0, 0, 0, 0),
-(9, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 19:55:55', 21413, 177, 99, 0, 0, 0, 0),
-(10, '2024-11-02', 21413.00, 24.86, 0.00, 0.00, 120.98, 0.83, 999.99, 0.00, 0.00, 16090.00, 5323.00, '2024-11-02 20:03:11', 21413, 177, 99, 0, 0, 0, 0);
+(4, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 03:41:58', '3000', 20, '99', '0', '0', '0', 0),
+(5, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 09:54:59', '3000', 20, '99', '0', '0', '0', 0),
+(6, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:15:03', '3000', 20, '99', '0', '0', '0', 0),
+(7, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:15:34', '3000', 20, '99', '0', '0', '0', 0),
+(8, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:15:38', '3000', 20, '99', '0', '0', '0', 0),
+(9, '2024-11-02', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:17:23', '3000', 20, '99', '0', '0', '0', 0),
+(10, '2024-11-02', '43900.00', '19.25', '0.00', '0.00', '309.15', '0.32', '999.99', '0.00', '0.00', '35450.00', '8450.00', '2024-11-03 20:03:18', '43900', 142, '99', '0', '0', '0', 0),
+(11, '2024-11-02', '58900.00', '24.53', '0.00', '0.00', '387.50', '0.26', '999.99', '0.00', '0.00', '44450.00', '14450.00', '2024-11-04 07:07:40', '58900', 152, '99', '0', '0', '0', 0),
+(12, '2024-11-02', '58900.00', '24.53', '0.00', '0.00', '387.50', '0.26', '999.99', '0.00', '0.00', '44450.00', '14450.00', '2024-11-04 10:28:01', '58900', 152, '99', '0', '0', '0', 0);
 
 -- --------------------------------------------------------
 
@@ -407,11 +430,11 @@ CREATE TABLE `staffs` (
 --
 
 INSERT INTO `staffs` (`staff_id`, `staff_name`, `staff_email`, `staff_phone`, `position`, `created_at`) VALUES
-(8, 'james', '', '', 'sales', '2024-11-02 15:31:53'),
-(9, 'chris', '', '', 'sales', '2024-11-02 15:35:28'),
-(10, 'john', '', '', 'sales', '2024-11-02 15:39:44'),
-(11, 'jack', 'jack@gmail.com', '123456789', 'sales', '2024-11-02 15:41:12'),
-(12, 'mark', '', '', 'sales', '2024-11-02 15:54:01');
+(13, 'joe', 'joe@gmail.com', '123456876', 'sales', '2024-11-03 03:27:42'),
+(14, 'jack', '', '', 'sales', '2024-11-03 19:50:49'),
+(15, 'chris', '', '', 'sales', '2024-11-03 19:52:34'),
+(16, 'mike', '', '', 'sales', '2024-11-03 19:54:15'),
+(17, 'james', '', '', 'sales', '2024-11-03 19:57:31');
 
 -- --------------------------------------------------------
 
@@ -436,7 +459,7 @@ CREATE TABLE `suppliers` (
 --
 
 INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_email`, `supplier_phone`, `supplier_location`, `created_at`, `product_name`, `supply_qty`, `note`) VALUES
-(1, 'East Africa Distillery', 'eadl@gmail.com', '0101674356', 'Madrid', '2024-11-02 16:28:43', 'Premium Beer', 200, 'good');
+(2, 'skystore', 'skystores@gmail.com', '876544567', 'London', '2024-11-03 03:37:04', 'Samsung Galaxy', 10, '');
 
 -- --------------------------------------------------------
 
@@ -463,7 +486,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `is_active`, `role`, `date`, `confirmpassword`, `user_image`, `phone`, `location`) VALUES
-(1, 'superstores', 'olphemie@hotmail.com', '$2y$10$17c6i5VDkwQ0on0RqW3FX.qcmRKCIYzokQOrcP7LRFQzGQY5u6dl.', NULL, NULL, '2024-11-02 12:30:40', 'super1234', 'uploads/user/1730551257_1730520358_1726523112_20230712_130458.jpg', '', 'Texas');
+(2, 'Megastores', 'olphemie@hotmail.com', '$2y$10$X8uPrpPbouNMJNqhZvfKMOk.cxbTO0Cmqm2UIj9Y2r/f3wEyXA2sm', 0, 'sales', '2024-11-03 03:08:56', 'mega1234', 'uploads/user/1730604250_1730520358_1726523112_20230712_130458.jpg', '', 'Texas');
 
 --
 -- Indexes for dumped tables
@@ -584,37 +607,37 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activation_codes`
 --
 ALTER TABLE `activation_codes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `expense_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `inventory_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `invoice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `invoice_items`
@@ -632,49 +655,49 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `payments_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `reports_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `sales_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `sales_analytics`
 --
 ALTER TABLE `sales_analytics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
