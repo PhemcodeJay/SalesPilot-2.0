@@ -1,13 +1,12 @@
 <?php
 
-
 // Include the configuration file
 require_once 'config.php';
 
-
-
 /**
- * Update expired subscriptions based on end date.
+ * Update expired subscriptions based on the end date.
+ *
+ * @param PDO $db Database connection
  */
 function updateExpiredSubscriptions($db) {
     $currentDate = date("Y-m-d");
@@ -23,12 +22,12 @@ function updateExpiredSubscriptions($db) {
  *
  * @param int $userId User ID
  * @param PDO $db Database connection
- * @return bool True if active, false if expired
+ * @return bool True if the subscription is active, false if expired
  */
 function isSubscriptionActive($userId, $db) {
     $query = "SELECT status FROM subscriptions WHERE user_id = :userId";
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':userId', $userId);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
     $stmt->execute();
     $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -36,7 +35,7 @@ function isSubscriptionActive($userId, $db) {
 }
 
 /**
- * Handle user access control based on subscription status.
+ * Control user access based on subscription status.
  *
  * @param int $userId User ID
  * @param PDO $db Database connection
@@ -54,7 +53,8 @@ function handleSubscriptionCheck($userId, $db) {
 // Run the daily update to mark expired subscriptions
 updateExpiredSubscriptions($db);
 
-// Example usage for a user
-$userId = 1; // Replace with the actual user ID
+// Example usage for a specific user (replace $userId with actual user ID)
+$userId = 1;
 handleSubscriptionCheck($userId, $db);
+
 ?>
