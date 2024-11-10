@@ -4,7 +4,11 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-require 'C:\xampp\htdocs\project\vendor\autoload.php'; // Include the Composer autoloader
+require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+require '../../PHPMailer/src/PHPMailer.php';
+require '../../PHPMailer/src/SMTP.php';
+require '../../PHPMailer/src/Exception.php';
+
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -42,17 +46,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
         try {
             $mail = new PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->Port = 465;
+            $mail->Host = 'smtp.ionos.com';
+            $mail->Port = 587;
             $mail->SMTPAuth = true;
-            $mail->Username = 'olphemie@gmail.com';
-            $mail->Password = 'itak uyjg empc blnp';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Username = 'admin@cybertrendhub.store';
+            $mail->Password = 'kokochulo@1987#';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
-            $mail->setFrom('olphemie@gmail.com', 'SalesPilot');
+            $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
             $mail->addAddress($email);
             $mail->Subject = 'Password Reset Request';
-            $mail->Body = 'Click the link below to reset your password:<br><a href="http://localhost/project/reset_password.php?token=' . $resetToken . '">Reset Password</a>';
+            $mail->Body = 'Click the link below to reset your password:<br><a href="https://salespilot.cybertrendhub.store/reset_password.php?token=' . $resetToken . '">Reset Password</a>';
 
             if ($mail->send()) {
                 echo 'Password reset email sent!';
@@ -78,12 +82,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
       <title>Password Recovery</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="http://localhost/project/assets/images/favicon.ico" />
-      <link rel="stylesheet" href="http://localhost/project/assets/css/backend-plugin.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/css/backend.css?v=1.0.0">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
-      <link rel="stylesheet" href="http://localhost/project/assets/vendor/remixicon/fonts/remixicon.css">  </head>
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+      <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/remixicon/fonts/remixicon.css">  </head>
   <body class=" ">
     <!-- loader Start -->
     <div id="loading">
@@ -121,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
                               </div>
                            </div>
                            <div class="col-lg-5 content-right">
-                              <img src="http://localhost/project/assets/images/login/01.png" class="img-fluid image-right" alt="">
+                              <img src="https://salespilot.cybertrendhub.store/assets/images/login/01.png" class="img-fluid image-right" alt="">
                            </div>
                         </div>
                      </div>
@@ -133,12 +137,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
       </div>
     
     <!-- Backend Bundle JavaScript -->
-    <script src="http://localhost/project/assets/js/backend-bundle.min.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/backend-bundle.min.js"></script>
     
     <!-- Table Treeview JavaScript -->
-    <script src="http://localhost/project/assets/js/table-treeview.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/table-treeview.js"></script>
     
     <!-- app JavaScript -->
-    <script src="http://localhost/project/assets/js/app.js"></script>
+    <script src="https://salespilot.cybertrendhub.store/assets/js/app.js"></script>
   </body>
 </html>

@@ -524,12 +524,12 @@ try {
                                 </li>
                                 <li class="">
                                         <a href="https://salespilot.cybertrendhub.store/sales-metrics.php">
-                                            <i class="las la-minus"></i><span>Sales Metrics</span>
+                                            <i class="las la-minus"></i><span>Category Metrics</span>
                                         </a>
                                 </li>
                                 <li class="">
                                         <a href="https://salespilot.cybertrendhub.store/inventory-metrics.php">
-                                            <i class="las la-minus"></i><span>Inventory Metrics</span>
+                                            <i class="las la-minus"></i><span>Product Metrics</span>
                                         </a>
                                 </li>
                                 
@@ -808,6 +808,7 @@ try {
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/pay.php">Pay Now</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/help.html">Help</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">

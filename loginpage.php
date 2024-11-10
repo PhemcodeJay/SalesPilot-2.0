@@ -115,11 +115,7 @@ $connection = null;
                 <div class="bg-gradient-primary shadow-primary border-radius-lg py-3 pe-1">
                   <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Sign in</h4>
                   <div class="row mt-3">
-                    <div class="col-2 text-center ms-auto">
-                      <a class="btn btn-link px-3" href="javascript:;">
-                        <i class="fa fa-facebook text-white text-lg"></i>
-                      </a>
-                    </div>
+                    
                     <div class="col-2 text-center me-auto">
                       <a class="btn btn-link px-3" href="javascript:;">
                         <i class="fa fa-google text-white text-lg"></i>
@@ -164,18 +160,17 @@ $connection = null;
                 © <script>
                   document.write(new Date().getFullYear())
                 </script>,
-                made with <i class="fa fa-heart" aria-hidden="true"></i> by
-                <a href="https://salespilot.cybertrendhub.store/home.html" class="font-weight-bold text-white" target="_blank">SalesPilot</a>
-                for a better project.
+                Phemcode <i class="fa fa-heart" aria-hidden="true"></i> for
+                <a href="https://salespilot.cybertrendhub.store/index.html" class="font-weight-bold text-white" target="_blank">SalesPilot</a>.
               </div>
             </div>
             <div class="col-12 col-md-6">
               <ul class="nav nav-footer justify-content-center justify-content-lg-end">
                 <li class="nav-item">
-                  <a href="https://salespilot.cybertrendhub.store/home.html" class="nav-link text-white" target="_blank">SalesPilot</a>
+                  <a href="https://salespilot.cybertrendhub.store/index.html" class="nav-link text-white" target="_blank">SalesPilot</a>
                 </li>
                 <li class="nav-item">
-                  <a href="https://salespilot.cybertrendhub.store/home.html" class="nav-link text-white" target="_blank">About Us</a>
+                  <a href="https://salespilot.cybertrendhub.store/index.html" class="nav-link text-white" target="_blank">About Us</a>
                 </li>
               </ul>
             </div>

@@ -4,6 +4,8 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+
 include('config.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
@@ -77,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
           </div>
     </div>
     <!-- loader END -->
-    
+
       <div class="wrapper">
       <section class="login-content">
          <div class="container">

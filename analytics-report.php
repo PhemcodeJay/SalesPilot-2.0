@@ -534,12 +534,12 @@ h2 {
                                 </li>
                                 <li class="">
                                         <a href="https://salespilot.cybertrendhub.store/sales-metrics.php">
-                                            <i class="las la-minus"></i><span>Sales Metrics</span>
+                                            <i class="las la-minus"></i><span>Category Metrics</span>
                                         </a>
                                 </li>
                                 <li class="">
                                         <a href="https://salespilot.cybertrendhub.store/inventory-metrics.php">
-                                            <i class="las la-minus"></i><span>Inventory Metrics</span>
+                                            <i class="las la-minus"></i><span>Product Metrics</span>
                                         </a>
                                 </li>
                                 
@@ -747,10 +747,9 @@ h2 {
 
 <div class="dashboard" id="dashboard">
     <div class="control-panel">
-        <h1 style="font-weight: bold; text-decoration: underline; ">Analytics Report</h1>
-        
+        <h1 style="font-weight: bold; text-decoration: underline; ">Analytics Report</h1> 
     </div>
-
+    <a href="analytics.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Analytics</a>
     <h2 class="bg-light" style="text-decoration: underline;">Product Performance</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
@@ -854,7 +853,7 @@ h2 {
                       <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
                       <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
                       <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/pay.php">Pay Now</a></li>
-
+                      <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/help.html">Help</a></li>
                   </ul>
               </div>
               <div class="col-lg-6 text-right">

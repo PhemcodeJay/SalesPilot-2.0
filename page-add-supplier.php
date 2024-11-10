@@ -682,6 +682,7 @@ try {
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/pay.php">Pay Now</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/help.html">Help</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">

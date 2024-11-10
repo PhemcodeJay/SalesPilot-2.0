@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <header>
-    <h1>Update Invoice</h1>
+    <h1>SalesPilot - Update Invoice</h1>
 </header>
 
 <?php if ($message): ?>
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
 <footer>
-    <p>Invoice Management System</p>
+    <p>SalesPilot - Invoice Management</p>
 </footer>
 
 <script>
