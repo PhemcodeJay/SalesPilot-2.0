@@ -4,102 +4,92 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Include the database configuration and PHPMailer classes
-include 'config.php'; // Include the database configuration
-require __DIR__ . '/../PHPMailer/src/PHPMailer.php';
-require __DIR__ . '/../PHPMailer/src/SMTP.php';
-require __DIR__ . '/../PHPMailer/src/Exception.php';
-
+// Include configuration and PHPMailer
+include 'config.php';
+require '../../PHPMailer/src/PHPMailer.php';
+require '../../PHPMailer/src/SMTP.php';
+require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
+// Debugging output
+echo "Form processing started.<br>";
 
 // Initialize variables and error array
 $name = $email = $phone = $message = '';
 $errors = [];
 
-// Process form submission
+// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Debugging output
+    echo "POST request received.<br>";
 
-    // Sanitize and validate input
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $phone = trim($_POST['phone']);
-    $message = trim($_POST['message']);
+    // Sanitize and assign input values
+    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+    $message = isset($_POST['message']) ? trim($_POST['message']) : '';
 
-    // Validate input fields
-    if (empty($name)) {
-        $errors[] = 'Name is required.';
-    }
-    if (empty($email)) {
-        $errors[] = 'Email is required.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Email is not valid.';
-    }
-    if (empty($phone)) {
-        $errors[] = 'Phone number is required.';
-    }
-    if (empty($message)) {
-        $errors[] = 'Message is required.';
-    }
+    // Validate inputs
+    if (empty($name)) $errors[] = 'Name is required.';
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
+    if (empty($phone)) $errors[] = 'Phone number is required.';
+    if (empty($message)) $errors[] = 'Message is required.';
 
-    // If no errors, insert data into the database and send email
+    // Process the form if no validation errors
     if (empty($errors)) {
-        // Prepare SQL statement
-        $stmt = $conn->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)");
-        if ($stmt === false) {
-            die("Error preparing statement: " . $conn->error);
-        }
+        try {
+            // Create a PDO connection to the database
+            $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8";
+            $pdo = new PDO($dsn, $dbUsername, $dbPassword);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Enable exceptions for error handling
 
-        $stmt->bind_param("ssss", $name, $email, $phone, $message);
+            // Prepare the insert query with placeholders
+            $stmt = $pdo->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)");
 
-        // Execute the statement
-        if ($stmt->execute()) {
-            // Setup PHPMailer
-            $mail = new PHPMailer(true);
-            try {
+            // Bind values to the placeholders
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':phone', $phone);
+            $stmt->bindParam(':message', $message);
+
+            // Execute the query and check for success
+            if ($stmt->execute()) {
+                // Debugging output
+                echo "Database entry successful.<br>";
+
+                // Set up PHPMailer for sending the email
+                $mail = new PHPMailer(true);
                 $mail->isSMTP();
-$mail->Host = 'smtp.ionos.com';
-$mail->SMTPAuth = true;
-$mail->Username = 'admin@cybertrendhub.store';  // IONOS email address
-$mail->Password = 'Kokochulo@1987#';             // IONOS email password
-$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
-$mail->Port = 587;                               // Port 587 for TLS
-$mail->SMTPDebug = 0;                            // Enable debug output for troubleshooting
-
-                // Set email format and recipient details
+                $mail->Host = 'smtp.ionos.com'; // Use your SMTP host
+                $mail->SMTPAuth = true;
+                $mail->Username = 'admin@cybertrendhub.store'; // SMTP username
+                $mail->Password = 'Kokochulo@1987#'; // SMTP password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port = 587;
                 $mail->setFrom('admin@cybertrendhub.store', 'CyberTrendHub');
-                $mail->addAddress('phemcodejay@gmail.com');       // Primary recipient
-                $mail->addReplyTo($email, $name);                 // Reply-to email and name
-
-                // Email content
-                $mail->Subject = 'New Feedback Message from ' . $name;
+                $mail->addAddress('phemcodejay@gmail.com'); // Recipient's email address
+                $mail->Subject = 'New Feedback Message from ' . $name . ' (Phone: ' . $phone . ')';
                 $mail->Body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage:\n$message";
 
                 // Send the email
-                $mail->send();
-                echo "Email sent successfully.<br>"; // Debug message
+                if ($mail->send()) {
+                    echo "Email sent successfully.<br>";
+                } else {
+                    echo "Mailer error: {$mail->ErrorInfo}<br>";
+                }
 
-                // Success message and page reload script
-                echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent</div>";
-               // Redirect to index.html after sending the email
-    echo "<script>
-            setTimeout(function() {
-                window.location.href = 'index.html';
-            }, 2000); // Redirect after 2 seconds
-          </script>";
-} catch (Exception $e) {
-    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-}
-catch (Exception $e) {
-                echo "<div class='text-danger'>There was an error sending your message via email: {$mail->ErrorInfo}</div>";
+                // Redirect after successful form submission
+                echo "<script>setTimeout(() => { window.location.href = 'index.html'; }, 2000);</script>";
+            } else {
+                echo "<div class='text-danger'>Database error: Unable to insert data.</div>";
             }
-        } else {
-            echo "<div class='text-danger'>Error: " . $stmt->error . "</div>"; // Display SQL errors
+        } catch (PDOException $e) {
+            echo "Database error: " . $e->getMessage() . "<br>";
+        } catch (Exception $e) {
+            echo "Mailer error: {$e->getMessage()}<br>";
         }
-
-        // Close the statement
-        $stmt->close();
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -107,7 +97,5 @@ catch (Exception $e) {
         }
     }
 }
-
-// Close the database connection
-$conn->close();
 ?>
+

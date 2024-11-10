@@ -142,7 +142,9 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             die("Error: " . $e->getMessage());
         }
     }
-} 
+} else {
+    echo "Error: User not logged in.";
+}
 
 try {
     // Fetch inventory notifications with product images
@@ -665,12 +667,12 @@ try {
 
                     <!-- Price -->
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="total_price">Sales Price *</label>
-                            <input type="number" id="sales_price" name="sales_price" class="form-control" placeholder="Enter Unit Price" required step="0.01" min="0">
-                            <div class="help-block with-errors"></div>
-                        </div>
-                    </div>
+                      <div class="form-group">
+                          <label for="sales_price">Sales Price *</label>
+                          <input type="number" id="sales_price" name="sales_price" class="form-control" placeholder="Enter Unit Price" required step="0.01" min="0">
+                          <div class="help-block with-errors"></div>
+                      </div>
+                  </div>
 
                     <!-- Customer Name -->
                     <div class="col-md-6">
@@ -697,13 +699,13 @@ try {
                         </div>
                     </div>
 
-                    <!-- Sales Price -->
+                    <!-- Total Price -->
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="sales_price">Total Price</label>
-                            <input type="number" id="total_price" name="total_price" class="form-control" placeholder="Total Price" min="0" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="total_price">Total Price</label>
+                        <input type="number" id="total_price" name="total_price" class="form-control" placeholder="Total Price" min="0" required readonly>
                     </div>
+                </div>
 
                     
 
@@ -763,6 +765,8 @@ try {
                             <ul class="list-inline mb-0">
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/privacy-policy.php">Privacy Policy</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/pay.php">Pay Now</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
@@ -788,6 +792,17 @@ document.getElementById('createButton').addEventListener('click', function() {
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
 });
+</script>
+<script>
+    document.getElementById('sales_qty').addEventListener('input', calculateTotalPrice);
+    document.getElementById('sales_price').addEventListener('input', calculateTotalPrice);
+
+    function calculateTotalPrice() {
+        const qty = parseFloat(document.getElementById('sales_qty').value) || 0;
+        const price = parseFloat(document.getElementById('sales_price').value) || 0;
+        const total = qty * price;
+        document.getElementById('total_price').value = total.toFixed(2); // Formats to 2 decimal places
+    }
 </script>
   </body>
 </html>

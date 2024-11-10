@@ -45,6 +45,26 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         exit("Error: " . $e->getMessage());
     }
     
+    // Retrieve user information from the users table
+try {
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        exit("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+} catch (PDOException $e) {
+    error_log("PDO Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
+}
+
 }
 
 
@@ -786,6 +806,8 @@ try {
                             <ul class="list-inline mb-0">
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/privacy-policy.php">Privacy Policy</a></li>
                                 <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
+                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/pay.php">Pay Now</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
