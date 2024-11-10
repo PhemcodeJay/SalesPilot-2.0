@@ -270,6 +270,47 @@ function savePayment($amount, $method, $status, $extraData = []) {
 
     $stmt->execute();
 }
+
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Collect form data
+    $formData = $_POST;
+    $adminEmail = $_POST['adminEmail']; // Admin email address
+
+    // You can add other form fields here as needed
+    $orderId = $formData['order_id']; 
+    $amount = $formData['amount']; // The amount paid, or the data you'd like to send in the email
+    
+    // Create email body
+    $subject = "Payment Proof Submitted for Order #$orderId";
+    $message = "
+        <html>
+        <head>
+            <title>Payment Proof for Order #$orderId</title>
+        </head>
+        <body>
+            <p>A payment proof has been submitted for order #$orderId.</p>
+            <p><strong>Amount Paid:</strong> $$amount</p>
+            <p><strong>Payment Proof:</strong> <a href='path/to/payment-proof/" . $formData['payment_proof'] . "'>View Proof</a></p>
+        </body>
+        </html>
+    ";
+
+    // Set content-type header for HTML email
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    
+    // Additional headers
+    $headers .= "From: webmaster@cybertrendhub.store" . "\r\n";
+
+    // Send the email
+    if (mail($adminEmail, $subject, $message, $headers)) {
+        echo "Email sent successfully.";
+    } else {
+        echo "Error sending email.";
+    }
+}
+
 ?>
 
 
@@ -594,13 +635,41 @@ function savePayment($amount, $method, $status, $extraData = []) {
         // Handle success, maybe notify the user and close the modal
         alert("Payment proof submitted successfully!");
         $('#bankTransferModal').modal('hide');
+        
+        // Call the email function to send proof to admin
+        sendEmailToAdmin(formData);
       } else {
         alert("Error submitting payment proof. Please try again.");
       }
     };
     xhr.send(formData);
   });
+
+  // Function to send payment proof email to the admin
+  function sendEmailToAdmin(formData) {
+    // Create an AJAX request to send the email to admin
+    var xhrEmail = new XMLHttpRequest();
+    xhrEmail.open("POST", "pay.php", true);
+    xhrEmail.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    // Prepare the form data for sending the email (you can add more form data if needed)
+    var emailData = new URLSearchParams(formData).toString();
+    emailData += "&adminEmail=admin@cybertrendhub.store"; // Set the admin's email address
+
+    // Handle email sending response
+    xhrEmail.onload = function() {
+      if (xhrEmail.status === 200) {
+        console.log("Email sent to admin successfully!");
+      } else {
+        console.log("Error sending email to admin.");
+      }
+    };
+
+    // Send the email request
+    xhrEmail.send(emailData);
+  }
 </script>
+
 
 
 <!-- Footer -->
