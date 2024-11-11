@@ -5,7 +5,9 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
-
+require '../../PHPMailer/src/PHPMailer.php';
+require '../../PHPMailer/src/SMTP.php';
+require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

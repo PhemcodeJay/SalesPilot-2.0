@@ -777,12 +777,7 @@ function savePayment($amount, $method, $status, $extraData = []) {
     });
 </script>
 
-<!-- HTML structure for displaying the details -->
-<ul>
-    <li><strong>Bill Amount:</strong> <span id="bankAmountDisplay">$0.00</span></li>
-    <li><strong>Exchange Rate:</strong> <span id="Naira Equivalent">Loading...</span></li>
-    <li><strong>Total (NGN):</strong> <span id="totalAmountDisplay">Loading...</span></li>
-</ul>
+
 
 </body>
 </html>

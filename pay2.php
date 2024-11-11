@@ -2,6 +2,14 @@
 session_start();
 require 'config.php'; // Include your database configuration file
 
+require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+
+
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
 // Define the plans and their corresponding prices for each cycle
 $plans = [
     'starter' => ['monthly' => 5],
@@ -331,7 +339,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         /* Header Styling */
         header {
             background-color: lightgoldenrodyellow; /* Bright Blue */
-            color: lightgreen;
+            color: blue;
             padding: 30px;
             text-align: center;
         }
@@ -411,16 +419,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .buy-btn:hover {
-            background-color: red;
+            background-color: blue;
         }
 
         .buy-btn.selected {
-            background-color: red; /* Keep the color red when selected */
+            background-color: blue; /* Keep the color red when selected */
         }
             
 
         .buy-btn:active {
-            background-color: red; /* Color stays on click */
+            background-color: blue; /* Color stays on click */
         }
 
 
