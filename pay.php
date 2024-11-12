@@ -33,7 +33,9 @@ $basePricingPlans = [
             'features' => [
                 'Inventory Management',
                 'Sales Management',
+                'Invoices & Expenses',
                 'Analytics & Reports',
+                '24/7 Customer Service Support'
             ]
         ],
     ],
@@ -46,8 +48,11 @@ $basePricingPlans = [
             'features' => [
                 'Inventory Management',
                 'Sales Management',
+                'Invoices & Expenses',
                 'Analytics & Reports',
-                'Customers, Staffs, Suppliers - Records '
+                'Customers, Staffs, Suppliers - Records',
+                '24/7 Customer Service Support'
+                
             ]
         ],
     ],
@@ -60,9 +65,10 @@ $basePricingPlans = [
             'features' => [
                 'Inventory Management',
                 'Sales Management',
+                'Invoices & Expenses',
                 'Analytics & Reports',
                 'Customers, Staffs, Suppliers - Records',
-                'Custom Integrations'
+                'Custom Integrations and Dedicated Support'
             ]
         ],
     ],
@@ -103,6 +109,25 @@ foreach ($basePricingPlans as $key => $plan) {
         .btn-warning { background-color: #ff9800; border: none; }
         .btn-success { background-color: #28a745; border: none; }
         .btn-info { background-color: #17a2b8; border: none; }
+        .trial-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .trial-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .trial-button:hover {
+            background-color: #45a049;
+        }
+        .response-message {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -114,6 +139,12 @@ foreach ($basePricingPlans as $key => $plan) {
         <p>Select a plan that suits your needs and get started today!</p>
     </div>
 
+    <div class="trial-container">
+    <h2>Start Your Free 3-Month Trial!</h2>
+    <button class="trial-button" onclick="activateTrial()">Activate Free Trial</button>
+    <div id="responseMessage" class="response-message"></div>
+    </div>
+
     <div class="row">
         <?php foreach ($pricingPlans as $planKey => $plan): ?>
             <div class="col-md-4 mb-4">
@@ -121,9 +152,8 @@ foreach ($basePricingPlans as $key => $plan) {
                     <h3><?= $plan['name'] ?></h3>
                     <p class="price">USD: $<?= number_format($plan['amount_USD'], 2) ?></p>
                     <p><strong>KES:</strong> <?= number_format($plan['amount_KES'], 2) ?></p>
-                     <p><strong>NGN:</strong> <?= number_format($plan['amount_NGN'], 2) ?></p>
+                    <p><strong>NGN:</strong> <?= number_format($plan['amount_NGN'], 2) ?></p>
 
-                    
                     <p><?= $plan['details']['description'] ?></p>
                     <ul>
                         <?php foreach ($plan['details']['features'] as $feature): ?>
@@ -131,25 +161,25 @@ foreach ($basePricingPlans as $key => $plan) {
                         <?php endforeach; ?>
                     </ul>
                     
-                    <!-- Payment Buttons -->
-                     <!-- PayPal Button -->
-                     <button class="btn btn-primary" >
-                        PayPal (USD)
-                    </button>
+                    <!-- PayPal Button -->
+                    <form action="https://www.paypal.com/ncp/payment/B9NZE4X5V6ET6" method="post" target="_top">
+                        <button class="btn btn-primary pp-B9NZE4X5V6ET6" type="submit">PayPal (USD)</button>
+                    </form>
 
-                    <button class="btn btn-warning" data-toggle="modal" data-target="#paymentModal" 
+                    <!-- Payment Buttons for other options -->
+                    <button class="btn btn-warning" data-toggle="modal" data-target="#binanceModal" 
                             data-currency="USD" data-amount="<?= $plan['amount_USD'] ?>" 
                             data-payment="Binance Pay" data-info="Pay with Binance">
                         Binance Pay (USDT)
                     </button>
-                    <button class="btn btn-success" data-toggle="modal" data-target="#paymentModal" 
+                    <button class="btn btn-success" data-toggle="modal" data-target="#mpesaModal" 
                             data-currency="KES" data-amount="<?= $plan['amount_KES'] ?>" 
                             data-payment="M-Pesa" data-info="Pay via M-Pesa">
                         M-Pesa (KES)
                     </button>
-                    <button class="btn btn-info" data-toggle="modal" data-target="#paymentModal" 
+                    <button class="btn btn-info" data-toggle="modal" data-target="#ngnModal" 
                             data-currency="NGN" data-amount="<?= $plan['amount_NGN'] ?>" 
-                            data-payment="Nigerian Bank" data-info="Bank Transfer (NGN)">
+                            data-payment="Bank Transfer (NGN)" data-info="Bank Transfer (NGN)">
                         Bank Transfer (NGN)
                     </button>
                 </div>
@@ -158,12 +188,12 @@ foreach ($basePricingPlans as $key => $plan) {
     </div>
 </div>
 
-<!-- Payment Modal -->
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+<!-- Payment Modals -->
+<div class="modal fade" id="binanceModal" tabindex="-1" aria-labelledby="binanceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Payment Details</h5>
+                <h5 class="modal-title" id="binanceModalLabel">Binance Payment Details</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -171,57 +201,120 @@ foreach ($basePricingPlans as $key => $plan) {
             <div class="modal-body">
                 <p id="payment-info"></p>
                 <p><strong>Amount:</strong> <span id="payment-amount"></span> <span id="payment-currency"></span></p>
-                <p><strong>Account Name:</strong> Business Name</p>
-                <p><strong>Account Number / Phone:</strong> +123456789</p>
-                <p><strong>Email:</strong> business@example.com</p>
-
-                <!-- Payment Proof Upload for non-PayPal Options -->
-<div id="proof-upload-section" style="display: none;">
-    <form id="payment-proof-form" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
-        <label for="payment-proof">Upload Payment Proof:</label>
-        <input type="file" id="payment-proof" name="payment_proof" class="form-control" accept="image/*, application/pdf" required>
-        <small class="form-text text-muted">Accepted formats: JPG, PNG, PDF</small>
-    </form>
+                <p><strong>BINANCE PAY ID:</strong> 128 320 436 </p>
+                <p><strong>BINANCE USERNAME:</strong> Phemcode</p>
+                <p><strong>Email:</strong> sales@cybertrendhub.store</p>
+                
+                <!-- Payment Proof Upload Section -->
+                <form id="paymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="payment-proof">Upload Payment Proof</label>
+                        <input type="file" class="form-control" id="payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
+                    </div>
+                    <input type="hidden" name="payment-method" value="binance">
+                    <input type="hidden" name="amount" id="hidden-amount">
+                    <input type="hidden" name="currency" id="hidden-currency">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="paymentProofForm" class="btn btn-primary">Confirm Payment</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-    <button type="button" class="btn btn-primary" id="confirm-payment-btn">Confirm Payment</button>
+<!-- M-Pesa Modal -->
+<div class="modal fade" id="mpesaModal" tabindex="-1" aria-labelledby="mpesaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mpesaModalLabel">M-Pesa Payment Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="payment-info"></p>
+                <p><strong>Amount:</strong> <span id="payment-amount"></span> <span id="payment-currency"></span></p>
+                <script>
+                // Example amount in a variable, replace this with your actual value
+                const amount = 1234567.89;
+                const currency = "KES";
+
+                // Format the amount with commas and set the values in the HTML
+                document.getElementById("payment-amount").textContent = amount.toLocaleString();
+                document.getElementById("payment-currency").textContent = currency;
+                </script>
+                <p><strong>Mpesa name:</strong> OLUWAFEMI JEGEDE</p>
+                <p><strong>Mpesa Number:</strong> +254 111 826 872</p>
+                <p><strong>Email:</strong>sales@cybertrendhub.store</p>
+
+                <!-- Payment Proof Upload Section -->
+                <form id="mpesaPaymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="mpesa-payment-proof">Upload Payment Proof</label>
+                        <input type="file" class="form-control" id="mpesa-payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
+                    </div>
+                    <input type="hidden" name="payment-method" value="mpesa">
+                    <input type="hidden" name="amount" id="mpesa-hidden-amount">
+                    <input type="hidden" name="currency" id="mpesa-hidden-currency">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="mpesaPaymentProofForm" class="btn btn-primary">Confirm Payment</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-    document.getElementById("confirm-payment-btn").addEventListener("click", function () {
-        const form = document.getElementById("payment-proof-form");
-        const formData = new FormData(form);
+<!-- NGN Bank Transfer Modal -->
+<div class="modal fade" id="ngnModal" tabindex="-1" aria-labelledby="ngnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ngnModalLabel">Bank Transfer (NGN) Payment Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="payment-info"></p>
+                <p><strong>Amount:</strong> <span id="payment-amount"></span> <span id="payment-currency"></span></p>
+                <script>
+                // Example amount in a variable, replace this with your actual value
+                const amount1 = 1234567.89;
+                const currency1 = "NGN";
 
-        // Check if a file is selected
-        if (!document.getElementById("payment-proof").files.length) {
-            alert("Please select a payment proof file before confirming payment.");
-            return;
-        }
+                // Format the amount with commas and set the values in the HTML
+                document.getElementById("payment-amount").textContent = amount.toLocaleString();
+                document.getElementById("payment-currency").textContent = currency;
+                </script>
+                <p><strong>Bank Name:</strong> STANBIC IBTC Nigeria</p>
+                <p><strong>Bank Account Number:</strong> 0141980198</p>
+                <p><strong>Bank Account Name:</strong> JEGEDE OLUWAFEMI ADEGBOYE</p>
+                <p><strong>Phone Number:</strong> +2348131365814</p>
+                <p><strong>Email:</strong> sales@cybertrendhub.store</p>
 
-        // Use Fetch API to upload file via AJAX
-        fetch("upload-payment-proof.php", {
-            method: "POST",
-            body: formData,
-        })
-        .then(response => response.json()) // Expect a JSON response from the server
-        .then(data => {
-            if (data.success) {
-                alert("Payment proof uploaded successfully!");
-                // Optionally, close the modal or redirect to another page
-                $('#paymentModal').modal('hide'); // Close modal if using Bootstrap
-            } else {
-                alert("Failed to upload payment proof: " + data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error uploading payment proof:", error);
-            alert("An error occurred while uploading the payment proof.");
-        });
-    });
-</script>
-
+                <!-- Payment Proof Upload Section -->
+                <form id="ngnPaymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="ngn-payment-proof">Upload Payment Proof</label>
+                        <input type="file" class="form-control" id="ngn-payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
+                    </div>
+                    <input type="hidden" name="payment-method" value="bank-transfer-ngn">
+                    <input type="hidden" name="amount" id="ngn-hidden-amount">
+                    <input type="hidden" name="currency" id="ngn-hidden-currency">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="ngnPaymentProofForm" class="btn btn-primary">Confirm Payment</button>
+            </div>
         </div>
     </div>
 </div>
@@ -229,30 +322,45 @@ foreach ($basePricingPlans as $key => $plan) {
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    $('#paymentModal').on('show.bs.modal', function (event) {
+    $('#binanceModal, #mpesaModal, #ngnModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
-        var amount = button.data('amount');
         var currency = button.data('currency');
-        var payment = button.data('payment');
+        var amount = button.data('amount');
+        var paymentMethod = button.data('payment');
         var info = button.data('info');
-        
         var modal = $(this);
-        modal.find('#payment-info').text(info);
-        modal.find('#payment-amount').text(amount);
-        modal.find('#payment-currency').text(currency);
-        
-        if (payment !== "PayPal") {
-            $('#proof-upload-section').show();
-        } else {
-            $('#proof-upload-section').hide();
-        }
+        modal.find('.modal-title').text(paymentMethod);
+        modal.find('.modal-body #payment-info').text(info);
+        modal.find('.modal-body #payment-amount').text(amount);
+        modal.find('.modal-body #payment-currency').text(currency);
     });
 </script>
-<style>.pp-B9NZE4X5V6ET6{text-align:center;border:none;border-radius:1.5rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
-<form action="https://www.paypal.com/ncp/payment/B9NZE4X5V6ET6" method="post" target="_top" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-  <input class="pp-B9NZE4X5V6ET6" type="submit" value="Pay Now" />
-  <img src=https://www.paypalobjects.com/images/Debit_Credit.svg alt="cards" />
-  <section> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
-</form>
+<script>
+    function activateTrial() {
+        // Show loading message while waiting for response
+        document.getElementById("responseMessage").innerHTML = "Activating your free trial...";
+
+        // Send a request to activate the free trial
+        fetch('activate_trial.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=activate_trial'  // Send the action parameter
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("responseMessage").innerHTML = "Your free trial has been activated successfully!";
+            } else {
+                document.getElementById("responseMessage").innerHTML = "Error activating trial: " + data.message;
+            }
+        })
+        .catch(error => {
+            document.getElementById("responseMessage").innerHTML = "An error occurred: " + error.message;
+        });
+    }
+</script>
+
 </body>
 </html>
