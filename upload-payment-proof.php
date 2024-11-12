@@ -4,6 +4,26 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php'; // Include PHPMailer's autoloader
 
+<?php
+header('Content-Type: application/json');
+
+if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
+    $fileTmpPath = $_FILES['payment_proof']['tmp_name'];
+    $fileName = $_FILES['payment_proof']['name'];
+    $uploadFileDir = './uploads/';
+    $dest_path = $uploadFileDir . $fileName;
+
+    if (move_uploaded_file($fileTmpPath, $dest_path)) {
+        echo json_encode(['success' => true, 'message' => 'File uploaded successfully.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error moving the file.']);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => 'No file uploaded or upload error.']);
+}
+?>
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if a file is uploaded
     if (isset($_FILES['paymentProof']) && $_FILES['paymentProof']['error'] === UPLOAD_ERR_OK) {
