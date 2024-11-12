@@ -7,14 +7,12 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-// Display errors for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+
 
 // Include database connection
 include('config.php');
 require 'vendor/autoload.php';
+require 'access_level.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["username"])) {

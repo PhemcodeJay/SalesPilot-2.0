@@ -1,4 +1,29 @@
 <?php 
+
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
+
+
+// Include database connection
+include('config.php');
+require 'vendor/autoload.php';
+require 'access_level.php';
+
+// Check if user is logged in
+if (!isset($_SESSION["username"])) {
+    header("Location: loginpage.php");
+    exit;
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
+
+
 // Simulated exchange rates
 $exchangeRates = [
     'USD' => 1,
