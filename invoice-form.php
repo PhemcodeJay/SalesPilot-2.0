@@ -147,6 +147,35 @@ try {
     $reportsQuery->execute([':high_revenue' => 10000, ':low_revenue' => 1000]);
     $reportsNotifications = $reportsQuery->fetchAll();
 
+    try {
+        // Prepare and execute the query to fetch detailed user information
+        $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
+        $stmt = $connection->prepare($user_query);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        
+        // Fetch user data
+        $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if ($user_info) {
+            // Retrieve user details and sanitize output
+            $email = htmlspecialchars($user_info['email']);
+            $date = date('d F, Y', strtotime($user_info['date']));
+            $location = htmlspecialchars($user_info['location']);
+            $user_id = htmlspecialchars($user_info['id']);
+            
+            // Check if a user image exists, use default if not
+            $existing_image = htmlspecialchars($user_info['user_image']);
+            $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
+        }
+    } catch (PDOException $e) {
+        // Handle database errors
+        exit("Database error: " . $e->getMessage());
+    } catch (Exception $e) {
+        // Handle other exceptions
+        exit("Error: " . $e->getMessage());
+    }
+
 } catch (PDOException $e) {
     exit("Database error: " . $e->getMessage());
 } catch (Exception $e) {
@@ -163,7 +192,7 @@ try {
       <title>Invoice</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -182,7 +211,7 @@ try {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                  <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                  <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -400,7 +429,7 @@ try {
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                          <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                          <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>
@@ -612,7 +641,7 @@ try {
                 <div class="card-body">
                     <div class="row">
                         <div class="col-sm-12">
-                            <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="logo-invoice img-fluid mb-3" alt="Logo">
+                            <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="logo-invoice img-fluid mb-3" alt="Logo">
                             <h5 class="mb-0">Hello, <?php echo $username; ?></h5>
                             <input type="text" class="form-control" name="customer_name" placeholder="Customer Name" required>
                             <textarea name="invoice_description" class="form-control mt-2" placeholder="Invoice Details" required></textarea>
