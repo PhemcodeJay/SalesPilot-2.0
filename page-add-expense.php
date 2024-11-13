@@ -10,6 +10,14 @@ session_start([
 include('config.php'); // Includes database connection
 
 try {
+    // Check if username is set in session, redirect to login if not
+    if (!isset($_SESSION["username"])) {
+        header("Location: loginpage.php"); // Redirect to login page
+        exit();
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
     // Fetch inventory notifications with product images
     $inventoryQuery = $connection->prepare("
         SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
@@ -40,21 +48,9 @@ try {
         ':low_revenue' => 1000,
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
 
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the Staffs table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    // Retrieve user information from the users table
+    $user_query = "SELECT id, username, email, date, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -64,91 +60,55 @@ try {
         throw new Exception("User not found.");
     }
 
-    // Retrieve user email and registration date
+    // Retrieve and sanitize user details
     $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
+    $date = date('d F, Y', strtotime($user_info['date']));
+    $location = htmlspecialchars($user_info['location']);
+    $user_id = htmlspecialchars($user_info['id']);
+    $existing_image = htmlspecialchars($user_info['user_image']);
+    $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
-    // Ensure this PHP script is accessed through a POST request
+    // Handle form submission for expenses (only on POST request)
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Check if the user is logged in
         if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             throw new Exception("User is not logged in.");
         }
 
         // Sanitize and validate form inputs
-        $description = htmlspecialchars(trim($_POST['description'])); // Description
-        $amount = floatval($_POST['amount']); // Amount
-        $expense_date = htmlspecialchars(trim($_POST['expense_date'])); // Expense Date
-        $created_by = htmlspecialchars(trim($_POST['created_by'])); // Created By
+        $description = htmlspecialchars(trim($_POST['description']));
+        $amount = floatval($_POST['amount']);
+        $expense_date = htmlspecialchars(trim($_POST['expense_date']));
+        $created_by = htmlspecialchars(trim($_POST['created_by']));
 
         if (empty($description) || empty($amount) || empty($expense_date) || empty($created_by)) {
             throw new Exception("All form fields are required.");
         }
 
-        // SQL query for inserting into expenses table
+        // Insert into expenses table
         $insert_expense_query = "INSERT INTO expenses (description, amount, expense_date, created_by) 
                                  VALUES (:description, :amount, :expense_date, :created_by)";
-        
-        // Prepare and execute statement
         $stmt = $connection->prepare($insert_expense_query);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':amount', $amount);
         $stmt->bindParam(':expense_date', $expense_date);
         $stmt->bindParam(':created_by', $created_by);
         
-        // Execute the statement and check for success
         if ($stmt->execute()) {
-            // Redirect back to listing page after insertion
             header('Location: page-list-expense.php');
             exit();
         } else {
-            // Log the error if insertion failed
             error_log("Expense insertion failed: " . implode(" | ", $stmt->errorInfo()));
             throw new Exception("Expense insertion failed.");
         }
-    } 
+    }
 } catch (PDOException $e) {
-    // Handle database errors
     error_log("PDO Error: " . $e->getMessage());
     exit("Database Error: " . $e->getMessage());
 } catch (Exception $e) {
-    // Handle other errors
     error_log("Error: " . $e->getMessage());
     exit("Error: " . $e->getMessage());
 }
-
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
 ?>
-
 
 
 <!doctype html>
@@ -159,7 +119,7 @@ try {
       <title>Add Expenses</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -397,7 +357,7 @@ try {
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                          <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                          <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>

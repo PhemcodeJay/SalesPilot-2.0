@@ -125,6 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
       </section>
     </div>
 
+  
     <!-- Backend Bundle JavaScript -->
     <script src="https://salespilot.cybertrendhub.store/assets/js/backend-bundle.min.js"></script>
     

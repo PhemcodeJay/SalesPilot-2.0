@@ -9,28 +9,32 @@ session_start([
 
 include('config.php'); // Includes the updated config.php with the $connection variable
 
-// Check if username is set in session
-if (!isset($_SESSION["username"])) {
-    throw new Exception("No username found in session.");
+try {
+    // Check if username is set in session
+    if (!isset($_SESSION["username"])) {
+        throw new Exception("No username found in session.");
+    }
+
+    $username = htmlspecialchars($_SESSION["username"]);
+
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        throw new Exception("User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+} catch (Exception $e) {
+    // Handle user not logged in or user not found
+    exit("Error: " . $e->getMessage());
 }
-
-$username = htmlspecialchars($_SESSION["username"]);
-
-// Retrieve user information from the users table
-$user_query = "SELECT username, email, date FROM users WHERE username = :username";
-$stmt = $connection->prepare($user_query);
-$stmt->bindParam(':username', $username);
-$stmt->execute();
-$user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user_info) {
-    throw new Exception("User not found.");
-}
-
-// Retrieve user email and registration date
-$email = htmlspecialchars($user_info['email']);
-$date = htmlspecialchars($user_info['date']);
-
 
 try {
     // Fetch inventory notifications with product images
@@ -64,12 +68,13 @@ try {
     ]);
     $reportsNotifications = $reportsQuery->fetchAll();
 } catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
+    // Handle database query errors
+    error_log("Database Error: " . $e->getMessage());
+    exit("Database Error: " . $e->getMessage());
 }
 
 try {
-    // Prepare and execute the query to fetch user information from the users table
+    // Prepare and execute the query to fetch detailed user information
     $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
     $stmt = $connection->prepare($user_query);
     $stmt->bindParam(':username', $username);
@@ -88,16 +93,16 @@ try {
         // Check if a user image exists, use default if not
         $existing_image = htmlspecialchars($user_info['user_image']);
         $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
     }
 } catch (PDOException $e) {
     // Handle database errors
     exit("Database error: " . $e->getMessage());
 } catch (Exception $e) {
-    // Handle user not found or other exceptions
+    // Handle other exceptions
     exit("Error: " . $e->getMessage());
 }
 ?>
+
 
 
 <!DOCTYPE html>
@@ -108,7 +113,7 @@ try {
     <title>Sales Analytics</title>
     <link rel="stylesheet" href="analysis.css">
     <!-- Favicon -->
-    <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+    <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
     <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
     <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
     <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -131,7 +136,7 @@ try {
     <div class="iq-sidebar  sidebar-default ">
         <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
             <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
             </a>
             <div class="iq-menu-bt-sidebar ml-0">
                 <i class="las la-bars wrapper-menu"></i>
@@ -350,7 +355,7 @@ try {
                 <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                     <i class="ri-menu-line wrapper-menu"></i>
                     <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                        <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                        <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                         <h5 class="logo-title ml-3">SalesPilot</h5>
     
                     </a>

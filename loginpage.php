@@ -117,7 +117,7 @@ $connection = null;
                   <div class="row mt-3">
                     
                     <div class="col-2 text-center me-auto">
-                      <a class="btn btn-link px-3" href="javascript:;">
+                      <a class="btn btn-link px-3" href="gmail-login.php">
                         <i class="fa fa-google text-white text-lg"></i>
                       </a>
                     </div>
