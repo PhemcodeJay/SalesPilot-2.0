@@ -13,7 +13,6 @@ session_start([
 // Include database connection
 include('config.php');
 require 'vendor/autoload.php';
-require 'access_level.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["username"])) {

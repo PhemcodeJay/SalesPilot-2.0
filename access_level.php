@@ -1,9 +1,14 @@
 <?php
-session_start();
+
+
 require_once 'config.php'; // Include your DB connection file
 
-// Assuming the user is already authenticated and their user ID is stored in the session
-$user_id = $_SESSION['user_id'];
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    throw new Exception("No username found in session.");
+}
+
+$username = htmlspecialchars($_SESSION["username"]);
 
 // Step 1: Fetch the user's subscription plan and trial end date from the `subscriptions` table
 $query = "SELECT subscription_plan, start_date, end_date FROM subscriptions WHERE user_id = ? AND status = 'active' LIMIT 1";
