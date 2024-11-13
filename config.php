@@ -2,7 +2,7 @@
 $hostname = "localhost";
 $username = "root";
 $password = "";
-$database = "project";
+$database = "dbs13455438";
 
 $dsn = "mysql:host=$hostname;dbname=$database;charset=utf8";
 

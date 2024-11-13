@@ -747,7 +747,7 @@ h2 {
 
 <div class="dashboard" id="dashboard">
     <div class="control-panel">
-        <h1 style="font-weight: bold; text-decoration: underline; ">Analytics Report</h1> 
+        <h1 style="font-weight: bold; text-decoration: underline; ">Report</h1> 
     </div>
     <a href="analytics.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Analytics</a>
     <h2 class="bg-light" style="text-decoration: underline;">Product Performance</h2>
