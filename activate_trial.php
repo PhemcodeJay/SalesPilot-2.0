@@ -2,13 +2,13 @@
 session_start();
 require_once 'config.php'; // Include your DB connection file
 
-// Ensure the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'User not logged in']);
-    exit();
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    throw new Exception("No username found in session.");
 }
 
-$user_id = $_SESSION['user_id'];
+$username = htmlspecialchars($_SESSION["username"]);
+
 
 // Check if action is set to 'activate_trial'
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'activate_trial') {

@@ -320,7 +320,7 @@ function generateProductReport() {
     $pdf = new FPDF('L', 'mm', 'A4'); // 'L' for landscape orientation
     $pdf->AddPage();
     $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell(0, 10, 'Product Report', 0, 1, 'C');
+    $pdf->Cell(0, 10, 'SalesPilot - Product Report', 0, 1, 'C');
     $pdf->Ln(10); // Add line break
     
     // Adjusted column widths for A4 landscape
