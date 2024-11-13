@@ -3,6 +3,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php'; // Include PHPMailer's autoloader
+require 'config.php'; // Include your PDO configuration file
 
 header('Content-Type: application/json');
 
@@ -34,17 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['payment_method']) && in_array($_POST['payment_method'], ['paypal', 'binance', 'mpesa', 'naira'])) {
                 $paymentMethod = $_POST['payment_method'];
 
-                // Save the payment information to the database
-                // Example: Using a prepared statement to insert into the database
-                $conn = new mysqli('localhost', 'username', 'password', 'database'); // Update with actual DB connection details
-                if ($conn->connect_error) {
-                    die("Connection failed: " . $conn->connect_error);
-                }
+                try {
+                    // Establish database connection using PDO
+                    $connection = new PDO($dsn, $username, $password, $options);
 
-                $stmt = $conn->prepare("INSERT INTO payments (payment_method, payment_proof) VALUES (?, ?)");
-                $stmt->bind_param("ss", $paymentMethod, $destPath);
+                    // Insert payment information into the database
+                    $sql = "INSERT INTO payments (payment_method, payment_proof) VALUES (:payment_method, :payment_proof)";
+                    $stmt = $connection->prepare($sql);
+                    $stmt->execute([':payment_method' => $paymentMethod, ':payment_proof' => $destPath]);
 
-                if ($stmt->execute()) {
                     echo json_encode(['success' => true, 'message' => 'Payment proof uploaded successfully.']);
 
                     // Send email with the payment proof
@@ -75,12 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } catch (Exception $e) {
                         echo json_encode(['success' => false, 'message' => 'Mailer Error: ' . $mail->ErrorInfo]);
                     }
-                } else {
-                    echo json_encode(['success' => false, 'message' => 'Error saving payment information to the database.']);
+                } catch (PDOException $e) {
+                    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
                 }
-
-                $stmt->close();
-                $conn->close();
             } else {
                 echo json_encode(['success' => false, 'message' => 'Invalid payment method selected.']);
             }

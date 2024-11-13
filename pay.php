@@ -233,7 +233,7 @@ foreach ($basePricingPlans as $key => $plan) {
                 <form id="paymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="payment-proof">Upload Payment Proof</label>
-                        <input type="file" class="form-control" id="payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <input type="file" class="form-control" id="payment-proof" name="payment_proof" accept="image/*, .pdf" required>
                         <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
                     </div>
                     <input type="hidden" name="payment-method" value="binance">
@@ -279,7 +279,7 @@ foreach ($basePricingPlans as $key => $plan) {
                 <form id="mpesaPaymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="mpesa-payment-proof">Upload Payment Proof</label>
-                        <input type="file" class="form-control" id="mpesa-payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <input type="file" class="form-control" id="mpesa-payment-proof" name="payment_proof" accept="image/*, .pdf" required>
                         <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
                     </div>
                     <input type="hidden" name="payment-method" value="mpesa">
@@ -327,7 +327,7 @@ foreach ($basePricingPlans as $key => $plan) {
                 <form id="ngnPaymentProofForm" action="upload-payment-proof.php" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="ngn-payment-proof">Upload Payment Proof</label>
-                        <input type="file" class="form-control" id="ngn-payment-proof" name="payment-proof" accept="image/*, .pdf" required>
+                        <input type="file" class="form-control" id="ngn-payment-proof" name="payment_proof" accept="image/*, .pdf" required>
                         <small class="form-text text-muted">Upload a screenshot or PDF of your payment proof.</small>
                     </div>
                     <input type="hidden" name="payment-method" value="bank-transfer-ngn">
