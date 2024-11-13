@@ -344,7 +344,7 @@ h2 {
     <div class="iq-sidebar  sidebar-default ">
         <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
             <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
             </a>
             <div class="iq-menu-bt-sidebar ml-0">
                 <i class="las la-bars wrapper-menu"></i>
@@ -563,7 +563,7 @@ h2 {
                 <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                     <i class="ri-menu-line wrapper-menu"></i>
                     <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                        <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                        <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                         <h5 class="logo-title ml-3">SalesPilot</h5>
     
                     </a>
@@ -750,7 +750,8 @@ h2 {
         <h1 style="font-weight: bold; text-decoration: underline; ">Report</h1> 
     </div>
     <a href="analytics.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Analytics</a>
-    <h2 class="bg-light" style="text-decoration: underline;">Product Performance</h2>
+    <a href="pdf_generate.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>PDF</a>
+    <h2 class="bg-light" style="text-decoration: underline;">Product Sales</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
@@ -769,7 +770,7 @@ h2 {
         </tbody>
     </table>
 
-    <h2 class="bg-light" style="text-decoration: underline;">Top Products by Revenue</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Top Products </h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
@@ -788,7 +789,7 @@ h2 {
         </tbody>
     </table>
 
-    <h2 class="bg-light" style="text-decoration: underline;">Inventory Metrics</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Inventory </h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>
@@ -796,6 +797,7 @@ h2 {
                 <th>Product Name</th>
                 <th>Available Stock</th>
                 <th>Inventory Quantity</th>
+                <th>Sales Quantity</th>
             </tr>
         </thead>
         <tbody id="candleTableBody">
@@ -804,12 +806,13 @@ h2 {
                     <td><?php echo htmlspecialchars($inventory['name']); ?></td>
                     <td><?php echo htmlspecialchars($inventory['available_stock']); ?></td>
                     <td><?php echo htmlspecialchars($inventory['inventory_qty']); ?></td>
+                    <td><?php echo htmlspecialchars($inventory['sales_qty']); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 
-    <h2 class="bg-light" style="text-decoration: underline;">Income Overview</h2>
+    <h2 class="bg-light" style="text-decoration: underline;">Expenditure</h2>
     <div class="table-responsive rounded mb-3">
                 <table class="data-tables table mb-0 tbl-server-info">
         <thead>

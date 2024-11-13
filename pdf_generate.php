@@ -317,29 +317,49 @@ function generateProductReport() {
         displayError('No products found for report generation.');
     }
 
-    $pdf = new FPDF();
+    $pdf = new FPDF('L', 'mm', 'A4'); // 'L' for landscape orientation
     $pdf->AddPage();
     $pdf->SetFont('Arial', 'B', 16);
     $pdf->Cell(0, 10, 'Product Report', 0, 1, 'C');
     $pdf->Ln(10); // Add line break
-
+    
+    // Adjusted column widths for A4 landscape
+    $columnWidths = [
+        'id' => 15,           // ID
+        'name' => 35,         // Name
+        'description' => 60,  // Description (limited length below)
+        'category' => 30,     // Category
+        'cost' => 25,         // Cost
+        'sales' => 25,        // Sales
+        'inventory_qty' => 25, // Inventory Qty
+        'date' => 25          // Date
+    ];
+    
     // Table header
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(30, 10, 'ID', 1);
-    $pdf->Cell(80, 10, 'Name', 1);
-    $pdf->Cell(30, 10, 'Price', 1);
-    $pdf->Cell(30, 10, 'Stock', 1);
-    $pdf->Ln();
-
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell($columnWidths['id'], 10, 'ID', 1, 0, 'C');
+    $pdf->Cell($columnWidths['name'], 10, 'Name', 1, 0, 'C');
+    $pdf->Cell($columnWidths['description'], 10, 'Description', 1, 0, 'C');
+    $pdf->Cell($columnWidths['category'], 10, 'Category', 1, 0, 'C');
+    $pdf->Cell($columnWidths['cost'], 10, 'Cost', 1, 0, 'C');
+    $pdf->Cell($columnWidths['sales'], 10, 'Sales', 1, 0, 'C');
+    $pdf->Cell($columnWidths['inventory_qty'], 10, 'Inventory Qty', 1, 0, 'C');
+    $pdf->Cell($columnWidths['date'], 10, 'Date', 1, 1, 'C'); // Move to new line
+    
     // Table rows
-    $pdf->SetFont('Arial', '', 12);
+    $pdf->SetFont('Arial', '', 10);
     foreach ($products as $product) {
-        $pdf->Cell(30, 10, $product['id'], 1);
-        $pdf->Cell(80, 10, htmlspecialchars($product['name']), 1);
-        $pdf->Cell(30, 10, '$' . number_format(floatval($product['price']), 2), 1);
-        $pdf->Cell(30, 10, intval($product['stock_qty']), 1);
-        $pdf->Ln();
+        $pdf->Cell($columnWidths['id'], 10, $product['id'], 1, 0, 'C');
+        $pdf->Cell($columnWidths['name'], 10, htmlspecialchars($product['name']), 1, 0, 'L');
+        $pdf->Cell($columnWidths['description'], 10, htmlspecialchars(substr($product['description'], 0, 30)) . '...', 1, 0, 'L'); // Limit description
+        $pdf->Cell($columnWidths['category'], 10, htmlspecialchars($product['category']), 1, 0, 'L');
+        $pdf->Cell($columnWidths['cost'], 10, '$' . number_format(floatval($product['cost']), 2), 1, 0, 'R');
+        $pdf->Cell($columnWidths['sales'], 10, '$' . number_format(floatval($product['price']), 2), 1, 0, 'R'); // Sales
+        $pdf->Cell($columnWidths['inventory_qty'], 10, intval($product['inventory_qty']), 1, 0, 'C');
+        $pdf->Cell($columnWidths['date'], 10, date('Y-m-d', strtotime($product['created_at'])), 1, 1, 'C'); // New line after each row
     }
+
+    
 
     $pdf->Output('D', 'product_report.pdf'); // Download the report
 }
