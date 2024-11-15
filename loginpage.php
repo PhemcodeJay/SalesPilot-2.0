@@ -77,20 +77,20 @@ $connection = null;
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="apple-touch-icon" sizes="76x76" href="https://salespilot.cybertrendhub.store/home_assets/img/apple-icon.png">
-  <link rel="icon" type="image/png" href="https://salespilot.cybertrendhub.store/home_assets/img/favicon.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="http://localhost/salespilot/home_assets/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="http://localhost/salespilot/home_assets/img/favicon.png">
   <title>Login</title>
   <!--     Fonts and icons     -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
   <!-- Nucleo Icons -->
-  <link href="https://salespilot.cybertrendhub.store/home_assets/css/nucleo-icons.css" rel="stylesheet" />
-  <link href="https://salespilot.cybertrendhub.store/home_assets/css/nucleo-svg.css" rel="stylesheet" />
+  <link href="http://localhost/salespilot/home_assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="http://localhost/salespilot/home_assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
   <!-- CSS Files -->
-  <link id="pagestyle" href="https://salespilot.cybertrendhub.store/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
+  <link id="pagestyle" href="http://localhost/salespilot/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
   <!-- Nepcha Analytics (nepcha.com) -->
   <!-- Nepcha is a easy-to-use project analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
   <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
@@ -117,15 +117,13 @@ $connection = null;
                   <div class="row mt-3">
                     
                     <div class="col-2 text-center me-auto">
-                      <a class="btn btn-link px-3" href="gmail-login.php">
-                        <i class="fa fa-google text-white text-lg"></i>
-                      </a>
+                      
                     </div>
                   </div>
                 </div>
               </div>
               <div class="card-body">
-              <form action="https://salespilot.cybertrendhub.store/loginpage.php" method="post" role="form" class="text-start">
+              <form action="http://localhost/salespilot/loginpage.php" method="post" role="form" class="text-start">
                       <div class="input-group input-group-outline my-3">
                           <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
                       </div>
@@ -138,13 +136,13 @@ $connection = null;
                       </div>
                       <div class="text-center">
                           <button type="submit" name="login" value="Login" id="loginButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
-                          <button type="button" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='https://salespilot.cybertrendhub.store/recoverpwd.php'">Forgot Password</button>
+                          <button type="button" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='http://localhost/salespilot/recoverpwd.php'">Forgot Password</button>
 
                       </div>
                       
                       <p class="mt-4 text-sm text-center">
                           Don't have an account?
-                          <a href="https://salespilot.cybertrendhub.store/sign-up.php" class="text-primary text-gradient font-weight-bold">Sign up</a>
+                          <a href="http://localhost/salespilot/sign-up.php" class="text-primary text-gradient font-weight-bold">Sign up</a>
                       </p>
                   </form>
               </div>
@@ -161,16 +159,16 @@ $connection = null;
                   document.write(new Date().getFullYear())
                 </script>,
                 Phemcode <i class="fa fa-heart" aria-hidden="true"></i> for
-                <a href="https://salespilot.cybertrendhub.store/index.html" class="font-weight-bold text-white" target="_blank">SalesPilot</a>.
+                <a href="http://localhost/salespilot/index.html" class="font-weight-bold text-white" target="_blank">SalesPilot</a>.
               </div>
             </div>
             <div class="col-12 col-md-6">
               <ul class="nav nav-footer justify-content-center justify-content-lg-end">
                 <li class="nav-item">
-                  <a href="https://salespilot.cybertrendhub.store/index.html" class="nav-link text-white" target="_blank">SalesPilot</a>
+                  <a href="http://localhost/salespilot/index.html" class="nav-link text-white" target="_blank">SalesPilot</a>
                 </li>
                 <li class="nav-item">
-                  <a href="https://salespilot.cybertrendhub.store/index.html" class="nav-link text-white" target="_blank">About Us</a>
+                  <a href="http://localhost/salespilot/index.html" class="nav-link text-white" target="_blank">About Us</a>
                 </li>
               </ul>
             </div>
@@ -180,10 +178,10 @@ $connection = null;
     </div>
   </main>
   <!--   Core JS Files   -->
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/popper.min.js"></script>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/bootstrap.min.js"></script>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/plugins/perfect-scrollbar.min.js"></script>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="http://localhost/salespilot/home_assets/js/core/popper.min.js"></script>
+  <script src="http://localhost/salespilot/home_assets/js/core/bootstrap.min.js"></script>
+  <script src="http://localhost/salespilot/home_assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="http://localhost/salespilot/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {

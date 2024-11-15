@@ -43,7 +43,7 @@ $product_metrics_query = "
         SUM(sales.sales_qty * products.cost) AS total_cost,
         SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
         SUM(sales.sales_qty) / NULLIF(SUM(products.stock_qty), 0) AS inventory_turnover_rate, -- Adding inventory turnover rate
-        (SUM(sales.sales_qty) / NULLIF(SUM(sales.sales_qty), 0)) * 100 AS sell_through_rate -- Adding sell-through rate
+        (SUM(products.price) / NULLIF(SUM(products.cost), 0)) * 100 AS sell_through_rate -- Adding sell-through rate
     FROM sales
     INNER JOIN products ON sales.product_id = products.id
     GROUP BY products.id";
@@ -72,9 +72,9 @@ $total_expenses = $total_cost;
 $gross_margin = ($total_sales > 0) ? $total_sales - $total_expenses : 0;
 $net_margin = ($total_sales > 0) ? $total_profit - $total_expenses : 0;
 $profit_margin = ($total_sales > 0) ? ($total_profit / $total_sales) * 100 : 0;
-$inventory_turnover_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) : 0;
+$inventory_turnover_rate = ($total_quantity > 0) ? ($total_cost / ($total_cost / 2)) : 0;
 $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 100 : 0;
-$sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
+$sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) / 100 : 0;
 
 // Encode revenue by product as JSON
 $revenue_by_product = json_encode($product_metrics_data);
@@ -686,8 +686,8 @@ try {
             <th>Total Sales</th>
             <th>Quantity Sold</th>
             <th>Profit</th>
-            <th>Sell-Through (%)</th>
-            <th>Inventory Turnover (%)</th>
+            <th>Sell Through Rate</th>
+            <th>Inventory Turnover Ratio</th>
         </tr>
     </thead>
     <tbody>
