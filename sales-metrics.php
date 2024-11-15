@@ -43,7 +43,8 @@ $sales_category_query = "
         SUM(sales.sales_qty * products.price) AS total_sales,
         SUM(sales.sales_qty) AS total_quantity,
         SUM(sales.sales_qty * (products.price - products.cost)) AS total_profit,
-        SUM(sales.sales_qty * products.cost) AS total_expenses
+        SUM(sales.sales_qty * products.cost) AS total_expenses,
+        (SUM(products.price) / NULLIF(SUM(products.cost), 0)) * 100 AS sell_through_rate -- Adding sell-through rate
     FROM products
     INNER JOIN categories ON products.category_id = categories.category_id
     LEFT JOIN sales ON sales.product_id = products.id
@@ -64,13 +65,14 @@ foreach ($sales_category_data as $category) {
     $total_profit += $category['total_profit'];
 }
 
+
 // Additional calculations for the report table
 $revenue_by_category = json_encode($sales_category_data);
 $gross_margin = $total_sales - $total_profit;
 $net_margin = $total_profit;  // Assuming total profit represents net margin
 $inventory_turnover_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) : 0;
 $stock_to_sales_ratio = ($total_sales > 0) ? ($total_quantity / $total_sales) * 100 : 0;
-$sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) * 100 : 0;
+$sell_through_rate = ($total_quantity > 0) ? ($total_sales / $total_quantity) / 100 : 0;
 
 // Fetch previous year's revenue for year-over-year growth calculation
 $previous_year_date = date('Y-m-d', strtotime($date . ' -1 year'));
@@ -251,7 +253,7 @@ try {
       <title>Category Analytics</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -270,7 +272,7 @@ try {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                  <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                  <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -489,7 +491,7 @@ try {
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                          <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                          <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>

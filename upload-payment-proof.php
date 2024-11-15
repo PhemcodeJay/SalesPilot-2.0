@@ -7,19 +7,23 @@ require 'config.php'; // Include your PDO configuration file
 
 header('Content-Type: application/json');
 
+// Ensure the upload directory exists and is writable
+$uploadDir = 'uploads/payment_proofs/';
+if (!is_dir($uploadDir) && !mkdir($uploadDir, 0777, true)) {
+    echo json_encode(['success' => false, 'message' => 'Failed to create the upload directory.']);
+    exit;
+}
+
 // Check if form data is posted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Check if payment proof file is uploaded
+    // Validate uploaded file
     if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['payment_proof']['tmp_name'];
-        $fileName = $_FILES['payment_proof']['name'];
+        $fileName = basename($_FILES['payment_proof']['name']); // Sanitize file name
         $fileSize = $_FILES['payment_proof']['size'];
         $fileType = $_FILES['payment_proof']['type'];
-
-        // Define the upload directory (make sure it's writable)
-        $uploadDir = 'uploads/payment_proofs/';
-        $destPath = $uploadDir . basename($fileName);
+        $destPath = $uploadDir . $fileName;
 
         // Validate file type (JPG, PNG, PDF)
         $allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -28,12 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Check file size (limit to 5MB)
+        if ($fileSize > 5 * 1024 * 1024) { // 5MB
+            echo json_encode(['success' => false, 'message' => 'File size exceeds the 5MB limit.']);
+            exit;
+        }
+
         // Move the uploaded file to the destination directory
         if (move_uploaded_file($fileTmpPath, $destPath)) {
 
-            // Get the selected payment method from the form
+            // Validate payment method
             if (isset($_POST['payment_method']) && in_array($_POST['payment_method'], ['paypal', 'binance', 'mpesa', 'naira'])) {
-                $paymentMethod = $_POST['payment_method'];
+                $paymentMethod = htmlspecialchars($_POST['payment_method']); // Sanitize input
 
                 try {
                     // Establish database connection using PDO
@@ -42,9 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Insert payment information into the database
                     $sql = "INSERT INTO payments (payment_method, payment_proof) VALUES (:payment_method, :payment_proof)";
                     $stmt = $connection->prepare($sql);
-                    $stmt->execute([':payment_method' => $paymentMethod, ':payment_proof' => $destPath]);
-
-                    echo json_encode(['success' => true, 'message' => 'Payment proof uploaded successfully.']);
+                    $stmt->execute([
+                        ':payment_method' => $paymentMethod,
+                        ':payment_proof' => $destPath,
+                    ]);
 
                     // Send email with the payment proof
                     try {
@@ -70,9 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->Body = 'A new payment proof has been uploaded for payment method: ' . ucfirst($paymentMethod) . '. Please review the attached file.';
 
                         $mail->send();
-                        echo json_encode(['success' => true, 'message' => 'Email sent to admin@cybertrendhub.store.']);
+
+                        echo json_encode(['success' => true, 'message' => 'Payment proof uploaded and email sent successfully.']);
                     } catch (Exception $e) {
-                        echo json_encode(['success' => false, 'message' => 'Mailer Error: ' . $mail->ErrorInfo]);
+                        echo json_encode(['success' => false, 'message' => 'Email sending failed: ' . $mail->ErrorInfo]);
                     }
                 } catch (PDOException $e) {
                     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
