@@ -80,7 +80,7 @@ try {
 
     // Fetch inventory metrics for the third table
     $inventoryMetricsQuery = $connection->prepare("
-        SELECT p.name, i.available_stock, i.inventory_qty 
+        SELECT p.name, i.available_stock, i.inventory_qty, i.sales_qty 
         FROM inventory i 
         JOIN products p ON i.product_id = p.id
     ");
