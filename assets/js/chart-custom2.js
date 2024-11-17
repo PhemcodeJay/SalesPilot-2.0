@@ -240,11 +240,12 @@ fetchChartData('chart-data.php', '#apex-column', function(response) {
                 series.dataFields.value = "revenue";
                 series.dataFields.category = "product";
                 series.colors.list = [
-                    am4core.color("#FFFF00"),
-                    am4core.color("#37e6b0"),
-                    am4core.color("#ff4b4b"),
-                    am4core.color("#fe721c"),
-                    am4core.color("#876cfe")
+                    am4core.color("#3A5A99"),
+                    am4core.color("#4CAF50"),
+                    am4core.color("#FF9800"),
+                    am4core.color("#607D8B"),
+                    am4core.color("#F44336")
+
                 ];
             });
         } else {
