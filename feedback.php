@@ -40,13 +40,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Process the form if no validation errors
     if (empty($errors)) {
         try {
-            // Create a PDO connection to the database
-            $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8";
-            $pdo = new PDO($dsn, $dbUsername, $dbPassword);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Enable exceptions for error handling
-
+            
             // Prepare the insert query with placeholders
-            $stmt = $pdo->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)");
+            $stmt = $connection->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)");
 
             // Bind values to the placeholders
             $stmt->bindParam(':name', $name);

@@ -88,27 +88,6 @@ CREATE TABLE `contacts` (
 --
 
 INSERT INTO `contacts` (`id`, `name`, `email`, `message`, `created_at`, `phone`) VALUES
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hvijolm,nm', '2024-11-10 00:07:21', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fdguiuopo[', '2024-11-10 00:10:40', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fxdhgkjl', '2024-11-10 00:12:10', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hbjklk', '2024-11-10 00:15:57', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'ytuioklmnbhvcfxdzsaw', '2024-11-10 00:19:01', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'vcghvkjlmknjbhagx', '2024-11-10 00:22:09', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fsdjklbmnbvf', '2024-11-10 00:24:20', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fsdjklbmnbvf', '2024-11-10 00:24:23', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hkjbl;lj', '2024-11-10 00:24:59', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'vhuiouxaihscj', '2024-11-10 00:43:10', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hbjixahucs', '2024-11-10 00:44:55', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hvijolm,nm', '2024-11-10 00:07:21', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fdguiuopo[', '2024-11-10 00:10:40', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fxdhgkjl', '2024-11-10 00:12:10', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hbjklk', '2024-11-10 00:15:57', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'ytuioklmnbhvcfxdzsaw', '2024-11-10 00:19:01', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'vcghvkjlmknjbhagx', '2024-11-10 00:22:09', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fsdjklbmnbvf', '2024-11-10 00:24:20', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'fsdjklbmnbvf', '2024-11-10 00:24:23', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hkjbl;lj', '2024-11-10 00:24:59', '0111826872'),
-(0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'vhuiouxaihscj', '2024-11-10 00:43:10', '0111826872'),
 (0, 'OLUWAFEMI JEGEDE', 'olphemie@gmail.com', 'hbjixahucs', '2024-11-10 00:44:55', '0111826872');
 
 -- --------------------------------------------------------
@@ -281,43 +260,35 @@ CREATE TABLE `page_access` (
 
 INSERT INTO `page_access` (`id`, `page`, `required_access_level`, `created_at`, `updated_at`) VALUES
 (1, 'dashboard.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(2, 'loginpage.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(3, 'logout.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 
 
-(13, 'page-add-expense.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(14, 'page-add-product.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(15, 'page-list-inventory.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(16, 'page-list-sale.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(17, 'page-add-sale.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(18, 'page-list-category.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(19, 'page-list-product.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(20, 'analytics-report.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(21, 'analytics.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(13, 'page-add-expense.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(14, 'page-add-product.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(15, 'page-list-inventory.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(16, 'page-list-sale.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(17, 'page-add-sale.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(18, 'page-list-category.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(19, 'page-list-product.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+
+(20, 'analytics-report.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(21, 'analytics.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 (22, 'inventory-metrics.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 (23, 'sales-metrics.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(24, 'analytics-report.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(25, 'inventory-metrics.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(26, 'sales-metrics.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(27, 'analytics.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(28, 'invoice-form.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(29, 'edit_invoice.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(30, 'subscription.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(31, 'pay.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(32, 'pages-invoice.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+
+(28, 'invoice-form.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(29, 'edit_invoice.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(30, 'subscription.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(31, 'pay.php', 'trial', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(32, 'pages-invoice.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 (33, 'page-add-customers.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(34, 'page-add-expense.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(35, 'page-add-product.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(36, 'page-add-sale.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(37, 'page-add-staffs.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(37, 'page-add-staffs.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 (38, 'page-add-supplier.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(39, 'page-list-category.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+
 (40, 'page-list-customers.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(41, 'page-list-expense.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(42, 'page-list-inventory.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(43, 'page-list-product.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(44, 'page-list-sale.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
-(45, 'page-list-staffs.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+(41, 'page-list-expense.php', 'starter', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
+
+
+(45, 'page-list-staffs.php', 'enterprise', '2024-11-12 18:01:55', '2024-11-12 18:01:55'),
 (46, 'page-list-suppliers.php', 'business', '2024-11-12 18:01:55', '2024-11-12 18:01:55');
 
 -- --------------------------------------------------------
@@ -355,8 +326,7 @@ CREATE TABLE `payments` (
 -- Dumping data for table `payments`
 --
 
-INSERT INTO `payments` (`id`, `user_id`, `payment_method`, `payment_proof`, `payment_amount`, `payment_status`, `payment_date`, `subscription_id`) VALUES
-(3, 2, '', 'N/A', '0.00', 'completed', '2024-11-15 19:43:09', 3);
+
 
 -- --------------------------------------------------------
 
@@ -521,7 +491,7 @@ CREATE TABLE `sales_analytics` (
 --
 
 INSERT INTO `sales_analytics` (`id`, `date`, `revenue`, `profit_margin`, `year_over_year_growth`, `cost_of_selling`, `inventory_turnover_rate`, `stock_to_sales_ratio`, `sell_through_rate`, `gross_margin_by_category`, `net_margin_by_category`, `gross_margin`, `net_margin`, `created_at`, `total_sales`, `total_quantity`, `total_profit`, `total_expenses`, `net_profit`, `revenue_by_category`, `most_sold_product_id`) VALUES
-(9, '2024-06-12', '3000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:17:23', '3000.00', 20, '99.00', '0.00', '0.00', '0.00', 0),
+(9, '2024-06-12', '30000.00', '33.33', '0.00', '0.00', '150.00', '0.67', '999.99', '0.00', '0.00', '2000.00', '1000.00', '2024-11-03 19:17:23', '3000.00', 20, '99.00', '0.00', '0.00', '0.00', 0),
 (10, '2024-07-12', '43900.00', '19.25', '0.00', '0.00', '309.15', '0.32', '999.99', '0.00', '0.00', '35450.00', '8450.00', '2024-11-03 20:03:18', '43900.00', 142, '99.00', '0.00', '0.00', '0.00', 0),
 (11, '2024-08-24', '58900.00', '24.53', '0.00', '0.00', '387.50', '0.26', '999.99', '0.00', '0.00', '44450.00', '14450.00', '2024-11-04 07:07:40', '58900.00', 152, '99.00', '0.00', '0.00', '0.00', 0),
 (18, '2024-11-02', '58900.00', '24.53', '0.00', '0.00', '387.50', '0.26', '3.88', '0.00', '0.00', '44450.00', '14450.00', '2024-11-17 18:25:40', '58900.00', 152, '14450.00', '0.00', '0.00', '0.00', 0),
@@ -579,8 +549,6 @@ CREATE TABLE `subscriptions` (
 -- Dumping data for table `subscriptions`
 --
 
-INSERT INTO `subscriptions` (`id`, `user_id`, `subscription_plan`, `start_date`, `end_date`, `status`, `created_at`, `updated_at`, `is_free_trial_used`) VALUES
-(3, 2, 'starter', '2024-11-15 17:43:08', '2025-02-15 17:43:08', 'active', '2024-11-15 19:43:08', '2024-11-15 19:43:08', 1);
 
 -- --------------------------------------------------------
 

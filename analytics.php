@@ -653,7 +653,6 @@ try {
 <!-- app JavaScript -->
 <script src="http://localhost/salespilot/assets/js/app.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <!-- Include AmCharts 4 core and charts -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>

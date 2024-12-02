@@ -694,7 +694,7 @@ $connection = null;
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-4 card-total-sale">
                                     <div class="icon iq-icon-box-2 bg-info-light">
-                                        <img src="http://localhost/salespilot/assets/images/product/1.png" class="img-fluid" alt="image">
+                                        <img src="http://localhost/salespilot/assets/images/product/01.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
                                     <p class="mb-2">Revenue</p>
@@ -702,7 +702,7 @@ $connection = null;
                                     </div>
                                 </div>                                
                                 <div class="iq-progress-bar mt-2">
-                                    <span class="bg-info iq-progress progress-1" data-percent="85">
+                                    <span class="bg-info iq-progress progress-1" data-percent="90">
                                     </span>
                                 </div>
                             </div>
@@ -713,7 +713,7 @@ $connection = null;
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-4 card-total-sale">
                                     <div class="icon iq-icon-box-2 bg-danger-light">
-                                        <img src="http://localhost/salespilot/assets/images/product/2.png" class="img-fluid" alt="image">
+                                        <img src="http://localhost/salespilot/assets/images/product/02.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
                                     <p class="mb-2">Total Cost</p>
@@ -721,7 +721,7 @@ $connection = null;
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
-                                    <span class="bg-danger iq-progress progress-1" data-percent="70">
+                                    <span class="bg-danger iq-progress progress-1" data-percent="50">
                                     </span>
                                 </div>
                             </div>
@@ -732,15 +732,15 @@ $connection = null;
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-4 card-total-sale">
                                     <div class="icon iq-icon-box-2 bg-success-light">
-                                        <img src="http://localhost/salespilot/assets/images/product/3.png" class="img-fluid" alt="image">
+                                        <img src="http://localhost/salespilot/assets/images/product/03.png" class="img-fluid" alt="image">
                                     </div>
                                     <div>
                                     <p class="mb-2">Profit</p>
-                                    <h4><?php echo $total_profit; ?></h4>
+                                    <h4>$<?php echo $total_profit; ?></h4>
                                     </div>
                                 </div>
                                 <div class="iq-progress-bar mt-2">
-                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    <span class="bg-success iq-progress progress-1" data-percent="25">
                                     </span>
                                 </div>
                             </div>
