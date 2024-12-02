@@ -9,6 +9,8 @@ session_start([
 
 include('config.php'); // Includes the updated config.php with the $connection variable
 
+
+
 try {
     // Check if username is set in session
     if (!isset($_SESSION["username"])) {
@@ -543,6 +545,7 @@ try {
         <h1 style="font-weight: bold; text-decoration: underline;">Analytics</h1>
     </div>
     <a href="analytics-report.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>Reports</a>
+    <a href="pdf_generate.php" class="btn btn-primary add-list"><i class="las la-plus mr-3"></i>PDF</a>
     <!-- Charts Grid -->
     <div class="charts-grid">
 
@@ -653,6 +656,7 @@ try {
 <!-- app JavaScript -->
 <script src="http://localhost/salespilot/assets/js/app.js"></script>
 
+<script src="http://localhost/salespilot/assets/js/apexcharts.js"></script>
 <!-- Include AmCharts 4 core and charts -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>

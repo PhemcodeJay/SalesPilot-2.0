@@ -1,20 +1,18 @@
 <?php
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-// Include configuration and PHPMailer
-include 'config.php';
+// Include the PHPMailer settings
+require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
 require '../../PHPMailer/src/PHPMailer.php';
 require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
-// Debugging output
-echo "Form processing started.<br>";
+// Include the database connection settings
+include('config.php');
+
 
 // Initialize variables and error array
 $name = $email = $phone = $message = '';
@@ -22,8 +20,7 @@ $errors = [];
 
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Debugging output
-    echo "POST request received.<br>";
+    
 
     // Sanitize and assign input values
     $name = isset($_POST['name']) ? trim($_POST['name']) : '';
@@ -52,8 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Execute the query and check for success
             if ($stmt->execute()) {
-                // Debugging output
-                echo "Database entry successful.<br>";
+               
 
                 // Set up PHPMailer for sending the email
                 $mail = new PHPMailer(true);
