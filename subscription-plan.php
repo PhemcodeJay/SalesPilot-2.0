@@ -7,16 +7,16 @@ require_once 'config.php';
  * Update expired subscriptions based on the subscription plan (monthly).
  * Expiration for monthly plans is set to 30 days after the start date.
  *
- * @param PDO $db Database connection
+ * @param PDO $pdo Database connection
  */
-function updateExpiredSubscriptions($db) {
+function updateExpiredSubscriptions($pdo) {
     $currentDate = date("Y-m-d");
 
     // Update subscriptions where the end date has passed and the status is still 'active'
     // For monthly plans, expiration date is calculated as 30 days after start_date
     $query = "UPDATE subscriptions SET status = 'expired', end_date = DATE_ADD(start_date, INTERVAL 30 DAY)
               WHERE start_date < :currentDate AND status = 'active'";
-    $stmt = $db->prepare($query);
+    $stmt = $pdo->prepare($query);
     $stmt->bindParam(':currentDate', $currentDate);
     $stmt->execute();
 }
@@ -25,12 +25,12 @@ function updateExpiredSubscriptions($db) {
  * Check if a user's subscription is active.
  *
  * @param int $userId User ID
- * @param PDO $db Database connection
+ * @param PDO $pdo Database connection
  * @return bool True if the subscription is active, false if expired
  */
-function isSubscriptionActive($userId, $db) {
+function isSubscriptionActive($userId, $pdo) {
     $query = "SELECT status, start_date, end_date FROM subscriptions WHERE user_id = :userId AND status = 'active'";
-    $stmt = $db->prepare($query);
+    $stmt = $pdo->prepare($query);
     $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
     $stmt->execute();
     $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -59,13 +59,13 @@ function isSubscriptionActive($userId, $db) {
  * @param string $paymentMethod Payment method (e.g., 'paypal', 'binance', 'ngn')
  * @param string $paymentProof Path to the payment proof file
  * @param float $paymentAmount The payment amount (0 if free trial)
- * @param PDO $db Database connection
+ * @param PDO $pdo Database connection
  * @return bool True on success, false on failure
  */
-function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $db) {
+function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $pdo) {
     // Check if the user already has an active subscription or free trial
     $query = "SELECT status, is_free_trial_used FROM subscriptions WHERE user_id = :userId";
-    $stmt = $db->prepare($query);
+    $stmt = $pdo->prepare($query);
     $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
     $stmt->execute();
     $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -81,7 +81,7 @@ function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $
         if ($paymentAmount > 0 && $subscription['is_free_trial_used'] == 0) {
             // Mark the user as having used the free trial now
             $updateTrialQuery = "UPDATE subscriptions SET is_free_trial_used = 1 WHERE user_id = :userId";
-            $updateTrialStmt = $db->prepare($updateTrialQuery);
+            $updateTrialStmt = $pdo->prepare($updateTrialQuery);
             $updateTrialStmt->bindParam(':userId', $userId, PDO::PARAM_INT);
             $updateTrialStmt->execute();
         }
@@ -109,7 +109,7 @@ function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $
                   VALUES (:userId, :startDate, :endDate, :status, 0)";
     }
 
-    $stmt = $db->prepare($query);
+    $stmt = $pdo->prepare($query);
     $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
     $stmt->bindParam(':startDate', $startDate, PDO::PARAM_STR);
     $stmt->bindParam(':endDate', $endDate, PDO::PARAM_STR);
@@ -117,12 +117,12 @@ function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $
 
     if ($stmt->execute()) {
         // Get the subscription ID
-        $subscriptionId = $db->lastInsertId();
+        $subscriptionId = $pdo->lastInsertId();
 
         // Insert the payment record and link it to the subscription
         $query = "INSERT INTO payments (user_id, payment_method, payment_proof, payment_amount, payment_status, subscription_id) 
                   VALUES (:userId, :paymentMethod, :paymentProof, :paymentAmount, 'completed', :subscriptionId)";
-        $stmt = $db->prepare($query);
+        $stmt = $pdo->prepare($query);
         $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->bindParam(':paymentMethod', $paymentMethod, PDO::PARAM_STR);
         $stmt->bindParam(':paymentProof', $paymentProof, PDO::PARAM_STR);
@@ -146,10 +146,10 @@ function recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $
  * Control user access based on subscription status.
  *
  * @param int $userId User ID
- * @param PDO $db Database connection
+ * @param PDO $pdo Database connection
  */
-function handleSubscriptionCheck($userId, $db) {
-    if (!isSubscriptionActive($userId, $db)) {
+function handleSubscriptionCheck($userId, $pdo) {
+    if (!isSubscriptionActive($userId, $pdo)) {
         // Redirect to subscription renewal page if expired or no active subscription
         header("Location: /subscription.php");
         exit();
@@ -159,11 +159,11 @@ function handleSubscriptionCheck($userId, $db) {
 }
 
 // Run the daily update to mark expired subscriptions
-updateExpiredSubscriptions($db);
+updateExpiredSubscriptions($pdo);
 
 // Example usage for a specific user (replace $userId with actual user ID)
 $userId = 1;  // Replace with actual user ID
-handleSubscriptionCheck($userId, $db);
+handleSubscriptionCheck($userId, $pdo);
 
 // Example of how a payment is processed for a user
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentProof = 'uploads/payment_proofs/payment-proof.jpg';  // Example file path
     $paymentAmount = 49.99;  // Payment amount
 
-    recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $db);
+    recordPayment($userId, $paymentMethod, $paymentProof, $paymentAmount, $pdo);
 }
 
 ?>

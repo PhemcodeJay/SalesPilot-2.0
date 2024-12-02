@@ -101,14 +101,14 @@ function handleFormSubmission($username, $password, $email, $confirmpassword, $c
                 // Send activation email
                 try {
                     $mail->isSMTP();
-                    $mail->Host = 'smtp.gmail.com';
-                    $mail->Port = 465;
+                    $mail->Host = 'smtp.ionos.com';
+                    $mail->Port = 587;
                     $mail->SMTPAuth = true;
-                    $mail->Username = 'olphemie@gmail.com'; // Replace with your Gmail email
-                    $mail->Password = 'itak uyjg empc blnp'; // Replace with your app password
+                    $mail->Username = 'admin@cybertrendhub.store'; // Replace with your Gmail email
+                    $mail->Password = 'kokochulo@1987#'; // Replace with your app password
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
 
-                    $mail->setFrom('olphemie@gmail.com', 'SalesPilot');
+                    $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
                     $mail->addAddress($email);
                     $mail->Subject = 'Activate Your Account';
                     $mail->Body = 'Hello,<br>Click the link below to activate your account:<br><a href="https://salespilot.cybertrendhub.store/activate.php?token=' . $activationCode . '">Activate Account</a>';
