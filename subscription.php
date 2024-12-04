@@ -90,7 +90,7 @@ try {
       <title>Subscriptions</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -571,74 +571,58 @@ try {
 <div class="container">
     <h1>Subscription</h1>
     <form id="paymentForm" method="post" action="">
-        
-        <div class="form-group">
-            <label for="method">Payment Method:</label>
-            <select id="method" name="method" required>
-                <option value="PayPal">PayPal</option>
-            </select>
-        </div>
+    <div class="form-group">
+        <label for="method">Payment Method:</label>
+        <select id="method" name="method" required>
+            <option value="PayPal">PayPal</option>
+        </select>
+    </div>
 
-        <!-- Plan Selection for Both Payment Methods -->
-        <div class="form-group" id="planSelection">
-            <label for="planSelect">Choose Your Plan:</label>
-            <select id="planSelect" name="planSelect">
-                <option value="P-93L4325701954531KM4XJXTI">Enterprise</option>
-                <option value="P-6SV46253WD2252157M4XJS5I">Growth</option>
-                <option value="P-24W85808161823945M4XJJMY">Starter</option>
-            </select>
-        </div>
+    <!-- Plan Selection -->
+    <div class="form-group" id="planSelection">
+        <label for="planSelect">Choose Your Plan:</label>
+        <select id="planSelect" name="planSelect" required>
+            <option value="P-7E210255TM029860GM5HYC4A">Enterprise</option>
+            <option value="P-6TP94103DT2394623M5HYFKY">Business</option>
+            <option value="P-92V01000GH171635WM5HYGRQ">Starter</option>
+        </select>
+    </div>
 
-        <div class="form-group">
-            <label for="amount">Amount:</label>
-            <input type="number" id="amount" name="amount" step="0.01" required>
-        </div>
+    <div id="paypal-button-container"></div>
+</form>
 
-        <!-- Payment Button Containers -->
-        <div id="paypal-button-container" style="display: none;"></div>
-        
-
-    </form>
-</div>
-
+<script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const methodSelect = document.getElementById('method');
-        const planSelection = document.getElementById('planSelection');
-        const paypalButtonContainer = document.getElementById('paypal-button-container');
-        
-
-        // Display plan selection by default
-        planSelection.style.display = "block";
-
-        // Set initial visibility for payment buttons
-        paypalButtonContainer.style.display = "block";
-        
-        
-        // Initialize PayPal subscription button
+    // Function to dynamically render PayPal button based on selected plan
+    function renderPayPalButton(planId) {
         paypal.Buttons({
             style: {
                 shape: 'pill',
                 color: 'gold',
-                layout: 'horizontal',
+                layout: 'vertical',
                 label: 'subscribe'
             },
             createSubscription: function(data, actions) {
-                const selectedPlan = document.getElementById('planSelect').value;
                 return actions.subscription.create({
-                    plan_id: selectedPlan
+                    plan_id: planId // Use the selected plan ID
                 });
             },
-            onApprove: function(data) {
-                alert("Subscription successful! Your subscription ID is: " + data.subscriptionID);
+            onApprove: function(data, actions) {
+                alert(`Subscription successful! ID: ${data.subscriptionID}`);
             }
-        }).render('#paypal-button-container');
+        }).render('#paypal-button-container'); // Render PayPal button in this container
+    }
+
+    // Initial render for the default selected plan
+    const planSelect = document.getElementById('planSelect');
+    renderPayPalButton(planSelect.value);
+
+    // Re-render PayPal button when the plan changes
+    planSelect.addEventListener('change', function() {
+        document.getElementById('paypal-button-container').innerHTML = ''; // Clear the previous button
+        renderPayPalButton(this.value); // Render button for the newly selected plan
     });
 </script>
-
-<!-- PayPal SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-
 
 
     </div>

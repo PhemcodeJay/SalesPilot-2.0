@@ -171,47 +171,100 @@ foreach ($basePricingPlans as $key => $plan) {
     </div>
 
     <div class="row">
-        <?php foreach ($pricingPlans as $planKey => $plan): ?>
-            <div class="col-md-4 mb-4">
-                <div class="pricing-plan text-center">
-                    <h3><?= $plan['name'] ?></h3>
-                    <p class="price">USD: $<?= number_format($plan['amount_USD'], 2) ?></p>
-                    <p><strong>KES:</strong> <?= number_format($plan['amount_KES'], 2) ?></p>
-                    <p><strong>NGN:</strong> <?= number_format($plan['amount_NGN'], 2) ?></p>
+    <?php foreach ($pricingPlans as $planKey => $plan): ?>
+        <div class="col-md-4 mb-4">
+            <div class="pricing-plan text-center">
+                <h3><?= $plan['name'] ?></h3>
+                <p class="price">USD: $<?= number_format($plan['amount_USD'], 2) ?></p>
+                <p><strong>KES:</strong> <?= number_format($plan['amount_KES'], 2) ?></p>
+                <p><strong>NGN:</strong> <?= number_format($plan['amount_NGN'], 2) ?></p>
 
-                    <p><?= $plan['details']['description'] ?></p>
-                    <ul>
-                        <?php foreach ($plan['details']['features'] as $feature): ?>
-                            <li><?= $feature ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                    
-                    <!-- PayPal Button -->
-                    <form action="https://www.paypal.com/ncp/payment/B9NZE4X5V6ET6" method="post" target="_top">
-                        <button class="btn btn-primary pp-B9NZE4X5V6ET6" type="submit">PayPal (USD)</button>
-                    </form>
+                <p><?= $plan['details']['description'] ?></p>
+                <ul>
+                    <?php foreach ($plan['details']['features'] as $feature): ?>
+                        <li><?= $feature ?></li>
+                    <?php endforeach; ?>
+                </ul>
 
-                    <!-- Payment Buttons for other options -->
-                    <button class="btn btn-warning" data-toggle="modal" data-target="#binanceModal" 
-                            data-currency="USD" data-amount="<?= $plan['amount_USD'] ?>" 
-                            data-payment="Binance Pay" data-info="Pay with Binance">
-                        Binance Pay (USDT)
-                    </button>
-                    <button class="btn btn-success" data-toggle="modal" data-target="#mpesaModal" 
-                            data-currency="KES" data-amount="<?= $plan['amount_KES'] ?>" 
-                            data-payment="M-Pesa" data-info="Pay via M-Pesa">
-                        M-Pesa (KES)
-                    </button>
-                    <button class="btn btn-info" data-toggle="modal" data-target="#ngnModal" 
-                            data-currency="NGN" data-amount="<?= $plan['amount_NGN'] ?>" 
-                            data-payment="Bank Transfer (NGN)" data-info="Bank Transfer (NGN)">
-                        Bank Transfer (NGN)
-                    </button>
+                <!-- Subscription Plan Selection -->
+                <div class="form-group">
+                    <label for="planSelect<?= $planKey ?>">Choose Your Plan:</label>
+                    <select id="planSelect<?= $planKey ?>" name="planSelect" onchange="updatePlan('<?= $planKey ?>')">
+                        <option value="P-7E210255TM029860GM5HYC4A">Enterprise</option>
+                        <option value="P-6TP94103DT2394623M5HYFKY">Growth</option>
+                        <option value="P-92V01000GH171635WM5HYGRQ">Starter</option>
+                    </select>
                 </div>
+
+                <!-- PayPal Button Container for each plan -->
+                <div id="paypal-button-container-<?= $planKey ?>"></div>
+
+                <!-- Payment Buttons for other options -->
+                <button class="btn btn-warning" data-toggle="modal" data-target="#binanceModal" 
+                        data-currency="USD" data-amount="<?= $plan['amount_USD'] ?>" 
+                        data-payment="Binance Pay" data-info="Pay with Binance">
+                    Binance Pay (USDT)
+                </button>
+                <button class="btn btn-success" data-toggle="modal" data-target="#mpesaModal" 
+                        data-currency="KES" data-amount="<?= $plan['amount_KES'] ?>" 
+                        data-payment="M-Pesa" data-info="Pay via M-Pesa">
+                    M-Pesa (KES)
+                </button>
+                <button class="btn btn-info" data-toggle="modal" data-target="#ngnModal" 
+                        data-currency="NGN" data-amount="<?= $plan['amount_NGN'] ?>" 
+                        data-payment="Bank Transfer (NGN)" data-info="Bank Transfer (NGN)">
+                    Bank Transfer (NGN)
+                </button>
             </div>
-        <?php endforeach; ?>
-    </div>
+        </div>
+    <?php endforeach; ?>
 </div>
+
+<!-- PayPal SDK Script -->
+<script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+
+<script>
+  // Function to update the plan dynamically based on user selection
+  function updatePlan(planKey) {
+    var planSelect = document.getElementById('planSelect' + planKey);
+    var selectedPlanId = planSelect.value;
+
+    // Re-render the PayPal button with the selected plan
+    renderPaypalButton(planKey, selectedPlanId);
+  }
+
+  // Function to render the PayPal button based on the selected plan
+  function renderPaypalButton(planKey, planId) {
+    // Destroy the previous PayPal button (if any)
+    if (paypal.Buttons !== undefined) {
+      paypal.Buttons().close();
+    }
+
+    // Render the PayPal button with the selected plan ID
+    paypal.Buttons({
+        style: {
+            shape: 'rect',
+            color: 'gold',
+            layout: 'vertical',
+            label: 'subscribe'
+        },
+        createSubscription: function(data, actions) {
+            return actions.subscription.create({
+                plan_id: planId  // Use the selected plan ID
+            });
+        },
+        onApprove: function(data, actions) {
+            alert('Subscription successful! Subscription ID: ' + data.subscriptionID);
+        }
+    }).render('#paypal-button-container-' + planKey);  // Renders the PayPal button inside the specified container
+  }
+
+  // Initial render for all plans
+  <?php foreach ($pricingPlans as $planKey => $plan): ?>
+      renderPaypalButton('<?= $planKey ?>', 'P-7E210255TM029860GM5HYC4A');
+  <?php endforeach; ?>
+</script>
+
 
 <!-- Payment Modals -->
 <div class="modal fade" id="binanceModal" tabindex="-1" aria-labelledby="binanceModalLabel" aria-hidden="true">
