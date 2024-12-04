@@ -650,6 +650,7 @@ try {
             </div>
         </div>
     </footer>
+    
     <!-- Backend Bundle JavaScript -->
     <script src="https://salespilot.cybertrendhub.store/assets/js/backend-bundle.min.js"></script>
     
