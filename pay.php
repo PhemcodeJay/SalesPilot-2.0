@@ -186,16 +186,6 @@ foreach ($basePricingPlans as $key => $plan) {
                     <?php endforeach; ?>
                 </ul>
 
-                <!-- Subscription Plan Selection -->
-                <div class="form-group">
-                    <label for="planSelect<?= $planKey ?>">Choose Your Plan:</label>
-                    <select id="planSelect<?= $planKey ?>" name="planSelect" onchange="updatePlan('<?= $planKey ?>')">
-                        <option value="P-7E210255TM029860GM5HYC4A">Enterprise</option>
-                        <option value="P-6TP94103DT2394623M5HYFKY">Growth</option>
-                        <option value="P-92V01000GH171635WM5HYGRQ">Starter</option>
-                    </select>
-                </div>
-
                 <!-- PayPal Button Container for each plan -->
                 <div id="paypal-button-container-<?= $planKey ?>"></div>
 
@@ -224,16 +214,7 @@ foreach ($basePricingPlans as $key => $plan) {
 <script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
 <script>
-  // Function to update the plan dynamically based on user selection
-  function updatePlan(planKey) {
-    var planSelect = document.getElementById('planSelect' + planKey);
-    var selectedPlanId = planSelect.value;
-
-    // Re-render the PayPal button with the selected plan
-    renderPaypalButton(planKey, selectedPlanId);
-  }
-
-  // Function to render the PayPal button based on the selected plan
+  // Function to render the PayPal button based on the selected plan ID
   function renderPaypalButton(planKey, planId) {
     // Destroy the previous PayPal button (if any)
     if (paypal.Buttons !== undefined) {
@@ -259,9 +240,10 @@ foreach ($basePricingPlans as $key => $plan) {
     }).render('#paypal-button-container-' + planKey);  // Renders the PayPal button inside the specified container
   }
 
-  // Initial render for all plans
+  // Initial render for all plans with hardcoded plan IDs
   <?php foreach ($pricingPlans as $planKey => $plan): ?>
-      renderPaypalButton('<?= $planKey ?>', 'P-7E210255TM029860GM5HYC4A');
+      // Render the PayPal button for each plan using the respective plan ID
+      renderPaypalButton('<?= $planKey ?>', 'P-7E210255TM029860GM5HYC4A'); // Replace with actual plan ID for each plan
   <?php endforeach; ?>
 </script>
 
