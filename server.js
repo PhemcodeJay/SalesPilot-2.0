@@ -22,8 +22,8 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files (e.g., HTML, CSS, JS, images)
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files (e.g., HTML, CSS, JS, images) from the root folder
+app.use(express.static(path.join(__dirname)));
 
 // Create a MySQL connection pool
 const db = mysql.createPool({
@@ -42,6 +42,11 @@ db.getConnection((err, connection) => {
     }
     console.log('Connected to the database as id ' + connection.threadId);
     connection.release(); // release the connection after use
+});
+
+// Serve HTML files directly from the root directory
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html')); // Serve index.html file
 });
 
 // User Signup
