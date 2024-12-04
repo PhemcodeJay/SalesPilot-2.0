@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Check file size (limit to 5MB)
-        if ($fileSize > 5 * 1024 * 1024) { // 5MB
+        // Check file size (limit to 15MB)
+        if ($fileSize > 15 * 1024 * 1024) { // 15MB
             echo json_encode(['success' => false, 'message' => 'File size exceeds the 5MB limit.']);
             exit;
         }
@@ -61,15 +61,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     try {
                         $mail = new PHPMailer(true);
                         $mail->isSMTP();
-                        $mail->Host = 'smtp.yourserver.com'; // Set your SMTP server
+                        $mail->Host = 'smtp.ionos.com'; // Set your SMTP server
                         $mail->SMTPAuth = true;
-                        $mail->Username = 'your_email@example.com'; // SMTP username
-                        $mail->Password = 'your_email_password'; // SMTP password
+                        $mail->Username = 'admin@cybertrendhub.store'; // SMTP username
+                        $mail->Password = 'kokochulo@1987#'; // SMTP password
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                         $mail->Port = 587;
 
                         // Recipients
-                        $mail->setFrom('your_email@example.com', 'Your Name');
+                        $mail->setFrom('info@salespilot.cybertrendhub.store', 'SalesPilot');
                         $mail->addAddress('admin@cybertrendhub.store'); // Admin email
 
                         // Attachments

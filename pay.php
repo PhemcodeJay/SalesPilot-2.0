@@ -26,8 +26,8 @@ $username = htmlspecialchars($_SESSION["username"]);
 // Simulated exchange rates
 $exchangeRates = [
     'USD' => 1,
-    'KES' => 100,
-    'NGN' => 450,
+    'KES' => 130,
+    'NGN' => 1500,
 ];
 
 // Fetch exchange rates
@@ -167,6 +167,7 @@ foreach ($basePricingPlans as $key => $plan) {
     <h2>Start Your Free 3-Month Trial!</h2>
     <button class="trial-button" onclick="activateTrial()">Activate Free Trial</button>
     <div id="responseMessage" class="response-message"></div>
+    <a class="trial-button" href="dashboard.php">Back to Dashboard</a>
     </div>
 
     <div class="row">

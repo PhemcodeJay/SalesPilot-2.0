@@ -13,7 +13,6 @@ use PHPMailer\PHPMailer\SMTP;
 // Include the database connection settings
 include('config.php');
 
-
 // Initialize variables and error array
 $name = $email = $phone = $message = '';
 $errors = [];

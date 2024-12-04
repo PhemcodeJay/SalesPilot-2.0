@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
             $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
             $mail->addAddress($email);
             $mail->Subject = 'Password Reset Request';
-            $mail->Body = 'Click the link below to reset your password:<br><a href="https://salespilot.cybertrendhub.store/reset_password.php?token=' . $resetToken . '">Reset Password</a>';
+            $mail->Body = 'Click the link below to reset your password:<br><a href="https://salespilot.cybertrendhub.store/recoverpwd.php?token=' . $resetToken . '">Reset Password</a>';
 
             if ($mail->send()) {
                 echo 'Password reset email sent!';

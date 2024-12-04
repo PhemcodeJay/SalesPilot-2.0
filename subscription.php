@@ -38,55 +38,15 @@ $location = htmlspecialchars($user_info['location']);
 $existing_image = htmlspecialchars($user_info['user_image']);
 $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
-// Binance payment function
-function createBinancePayment($amount, $currency) {
-    $apiKey = getenv('oerorywnqozkuillondw6i3agatww7ohql5tqkoiozhjra9fdzxui6xqvssbqgcl');
-    $apiSecret = getenv('anadyqw1l3u4abjd3lu6xkpqf88pd5ik0hnxhrlnrnxgpn8rhjgbvqtk8yrrqaqi');
-
-    $url = "https://api.binance.com/binancepay/api/v3/order";
-    $data = [
-        "amount" => $amount,
-        "currency" => $currency,
-    ];
-
-    $signature = hash_hmac('sha256', json_encode($data), $apiSecret);
-
-    $headers = [
-        "Content-Type: application/json",
-        "Binance-Api-Key: $apiKey",
-        "Binance-Api-Signature: $signature"
-    ];
-
-    $options = [
-        "http" => [
-            "header" => $headers,
-            "method" => "POST",
-            "content" => json_encode($data)
-        ]
-    ];
-
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-
-    return json_decode($result, true);
-}
-
-// Handle POST request for payment
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $amount = $_POST['amount'];
-    $currency = $_POST['currency'];
-    $response = createBinancePayment($amount, $currency);
-    echo json_encode($response);
-}
 
 try {
     // Process payment form submission
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $amount = $_POST['amount'] ?? 0;
-        $method = $_POST['method'] ?? 'Cash';
-        $status = 'Pending';
+        $amount = $_POST['payment_amount'] ?? 0;
+        $method = $_POST['payment_method'] ?? 'Cash';
+        $status = $_POST['payment_status'] ?? 'Pending';
 
-        $stmt = $connection->prepare("INSERT INTO payments (amount, method, status) VALUES (?, ?, ?)");
+        $stmt = $connection->prepare("INSERT INTO payments (payment_amount, payment_method, payment_status) VALUES (?, ?, ?)");
         $stmt->execute([$amount, $method, $status]);
         $paymentId = $connection->lastInsertId();
     }
@@ -208,7 +168,7 @@ try {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                  <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                  <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -426,7 +386,7 @@ try {
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                          <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                          <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>
@@ -609,17 +569,12 @@ try {
     </div>
 </div>
 <div class="container">
-    <h1>Renew Your Subscription</h1>
+    <h1>Subscription</h1>
     <form id="paymentForm" method="post" action="">
-        <div class="form-group">
-            <label for="amount">Amount:</label>
-            <input type="number" id="amount" name="amount" step="0.01" required>
-        </div>
         
         <div class="form-group">
             <label for="method">Payment Method:</label>
             <select id="method" name="method" required>
-                <option value="BinancePay">Binance Pay</option>
                 <option value="PayPal">PayPal</option>
             </select>
         </div>
@@ -634,9 +589,14 @@ try {
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" step="0.01" required>
+        </div>
+
         <!-- Payment Button Containers -->
         <div id="paypal-button-container" style="display: none;"></div>
-        <button type="submit" id="binancePayButton">Pay with Binance Pay</button>
+        
 
     </form>
 </div>
@@ -646,22 +606,15 @@ try {
         const methodSelect = document.getElementById('method');
         const planSelection = document.getElementById('planSelection');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
-        const binancePayButton = document.getElementById('binancePayButton');
+        
 
         // Display plan selection by default
         planSelection.style.display = "block";
 
         // Set initial visibility for payment buttons
-        paypalButtonContainer.style.display = "none";
-        binancePayButton.style.display = "block";  // Display Binance Pay button by default
-
-        // Toggle payment options based on selected method
-        methodSelect.addEventListener("change", function() {
-            const isPayPal = methodSelect.value === "PayPal";
-            paypalButtonContainer.style.display = isPayPal ? "block" : "none";
-            binancePayButton.style.display = isPayPal ? "none" : "block";
-        });
-
+        paypalButtonContainer.style.display = "block";
+        
+        
         // Initialize PayPal subscription button
         paypal.Buttons({
             style: {
@@ -683,15 +636,6 @@ try {
     });
 </script>
 
-
-<!-- Modal for payment -->
-<div id="binanceModal" style="display: none;">
-    <div class="modal-content">
-        <span id="closeModal">&times;</span>
-        <h2>Complete Your Payment</h2>
-        <p>Processing payment...</p>
-    </div>
-</div>
 <!-- PayPal SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
@@ -738,32 +682,6 @@ document.getElementById('createButton').addEventListener('click', function() {
     
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
-});
-
-document.getElementById('binancePayButton').addEventListener('click', () => {
-    // Open the modal
-    document.getElementById('binanceModal').style.display = 'block';
-    
-    // Call server to create a payment order
-    fetch('/binance/create-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 10, currency: 'USDT' }) // Example payload
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Open Binance Pay or display payment info in modal
-            window.open(data.payment_url, '_blank');
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-});
-
-// Close the modal
-document.getElementById('closeModal').addEventListener('click', () => {
-    document.getElementById('binanceModal').style.display = 'none';
 });
 
 </script>

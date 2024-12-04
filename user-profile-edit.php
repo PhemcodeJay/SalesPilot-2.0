@@ -163,6 +163,29 @@ try {
     exit("Error: " . $e->getMessage());
 }
 
+// Fetch the subscription details for the logged-in user (replace `$_SESSION['user_id']` with actual user id)
+$user_id = 1; // Example user ID, replace with dynamic value like $_SESSION['user_id'] or from URL parameter
+$sql = "SELECT * FROM subscriptions WHERE user_id = :user_id ORDER BY start_date DESC LIMIT 1";
+$stmt = $connection->prepare($sql);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
+
+// Check if subscription exists using rowCount() instead of num_rows
+if ($stmt->rowCount() > 0) {
+    // Get subscription data
+    $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
+    $subscription_status = $subscription['status'];
+    $subscription_plan = $subscription['subscription_plan'];
+    $start_date = $subscription['start_date'];
+    $end_date = $subscription['end_date'];
+    $is_free_trial_used = $subscription['is_free_trial_used'];
+} else {
+    $subscription_status = 'No active subscription';
+    $subscription_plan = '';
+    $start_date = '';
+    $end_date = '';
+    $is_free_trial_used = 0;
+}
 ?>
 
 
@@ -176,7 +199,7 @@ try {
       <title>User Profile</title>
       
       <!-- Favicon -->
-      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon.ico" />
+      <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend-plugin.min.css">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/css/backend.css?v=1.0.0">
       <link rel="stylesheet" href="https://salespilot.cybertrendhub.store/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -195,7 +218,7 @@ try {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                  <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                  <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -289,12 +312,12 @@ try {
                           </a>
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
-                                          <a href="https://salespilot.cybertrendhub.store/backend/page-list-expense.php">
+                                          <a href="https://salespilot.cybertrendhub.store/page-list-expense.php">
                                               <i class="las la-minus"></i><span>List Expenses</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="https://salespilot.cybertrendhub.store/backend/page-add-expense.php">
+                                          <a href="https://salespilot.cybertrendhub.store/page-add-expense.php">
                                               <i class="las la-minus"></i><span>Add Expenses</span>
                                           </a>
                                   </li>
@@ -414,7 +437,7 @@ try {
                   <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                       <i class="ri-menu-line wrapper-menu"></i>
                       <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="header-logo">
-                          <img src="https://salespilot.cybertrendhub.store/assets/images/logo.png" class="img-fluid rounded-normal" alt="logo">
+                          <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
       
                       </a>
@@ -604,20 +627,20 @@ try {
                   <div class="card-body p-0">
                      <div class="iq-edit-list usr-edit">
                         <ul class="iq-edit-profile d-flex nav nav-pills">
-                           <li class="col-md-3 p-0">
+                           <li class="col-md-4 p-0">
                               <a class="nav-link active" data-toggle="pill" href="#personal-information">
                               Personal Information
                               </a>
                            </li>
                            
-                           <li class="col-md-3 p-0">
+                           <li class="col-md-4 p-0">
                               <a class="nav-link" data-toggle="pill" href="#emailandsms">
-                              Email
+                              Settings
                               </a>
                            </li>
-                           <li class="col-md-3 p-0">
+                           <li class="col-md-4 p-0">
                               <a class="nav-link" data-toggle="pill" href="#manage-contact">
-                              Manage Contact
+                              Subscriptions
                               </a>
                            </li>
                         </ul>
@@ -703,14 +726,10 @@ try {
             </select>
         </div>
     </div>
-
     <!-- Submit and Reset Buttons -->
     <button type="submit" class="btn btn-primary mr-2">Submit</button>
-    <button type="reset" class="btn iq-bg-danger">Cancel</button>
-</form>
-
-
-
+                            <button type="reset" class="btn iq-bg-danger">Cancel</button>
+                        </form>
                         </div>
                         </div>
                      </div>
@@ -718,7 +737,7 @@ try {
                         <div class="card">
                            <div class="card-header d-flex justify-content-between">
                               <div class="iq-header-title">
-                                 <h4 class="card-title">Email</h4>
+                                 <h4 class="card-title">Email Settings</h4>
                               </div>
                            </div>
                            <div class="card-body">
@@ -775,7 +794,7 @@ try {
                         <div class="card">
                            <div class="card-header d-flex justify-content-between">
                               <div class="iq-header-title">
-                                 <h4 class="card-title">Manage Contact</h4>
+                                 <h4 class="card-title">Manage Subscription</h4>
                               </div>
                            </div>
                            <div class="card-body">
@@ -791,26 +810,33 @@ try {
                             </div>
                             
                             <!-- Contact Number and Location -->
-                            <div class="form-group">
-                                <label for="phone">Contact Number:</label>
-                                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $user_info['phone']; ?>">
-                            </div>
+                            
                             <div class="form-group">
                                 <label for="location">Location:</label>
                                 <input type="text" class="form-control" id="location" name="location" value="<?php echo $user_info['location']; ?>">
+                            </div>
+
+                            <!-- Subscription Status -->
+                            <div class="form-group">
+                                <label for="subscription_status">Subscription Status:</label>
+                                <input type="text" class="form-control" id="subscription_status" name="subscription_status" 
+                                    value="<?php echo htmlspecialchars($subscription_status); ?>" readonly>
                             </div>
                             
                             <!-- Submit and Reset Buttons -->
                             <button type="submit" class="btn btn-primary mr-2">Submit</button>
                             <button type="reset" class="btn iq-bg-danger">Cancel</button>
+                            <a href="subscription.php" class="btn btn-secondary mr-2">Go to Subscriptions</a>
                         </form>
                            </div>
                         </div>
                      </div>
+                        
                   </div>
                </div>
             </div>
          </div>
+         
       </div>
       </div>
     </div>

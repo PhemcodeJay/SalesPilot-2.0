@@ -1,63 +1,79 @@
 <?php
 include('config.php');
 
-// First, check if the email and code exist in the query parameters.
+// Check if email and activation code exist in query parameters.
 if (isset($_GET['Email'], $_GET['code'])) {
     $email = $_GET['Email'];
     $code = $_GET['code'];
 
-    // Prepare and execute a SELECT query to check if the activation code exists for the given email.
-    if ($stmt = $con->prepare('SELECT * FROM dbs13455438.activation_codes WHERE Email = ? AND activation_code = ?')) {
-        $stmt->bind_param('ss', $email, $code);
-        $stmt->execute();
-        $stmt->store_result();
-        
-        if ($stmt->num_rows > 0) {
-            // Activation code exists, proceed to activate the account.
-            // Prepare an UPDATE query to set the account as activated in the users table.
-            if ($updateStmt = $con->prepare('UPDATE dbs13455438.users SET activation_code = ? WHERE Email = ?')) {
-                $newcode = 'activated';
-                $updateStmt->bind_param('ss', $newcode, $email);
-                $updateStmt->execute();
-                
-                // Delete the activation code entry after successful activation
-                if ($deleteStmt = $con->prepare('DELETE FROM dbs13455438.activation_codes WHERE Email = ? AND activation_code = ?')) {
-                    $deleteStmt->bind_param('ss', $email, $code);
-                    $deleteStmt->execute();
+    try {
+        // Check if the activation code exists for the given email.
+        if ($stmt = $con->prepare('SELECT id FROM dbs13455438.activation_codes WHERE Email = ? AND activation_code = ?')) {
+            $stmt->bind_param('ss', $email, $code);
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows > 0) {
+                // Fetch the user ID for the given email.
+                if ($userStmt = $con->prepare('SELECT id FROM dbs13455438.users WHERE email = ?')) {
+                    $userStmt->bind_param('s', $email);
+                    $userStmt->execute();
+                    $userStmt->bind_result($userId);
+                    $userStmt->fetch();
+                    $userStmt->close();
+
+                    if (!empty($userId)) {
+                        // Update activation status in the users table.
+                        if ($updateStmt = $con->prepare('UPDATE dbs13455438.users SET activation_code = ? WHERE email = ?')) {
+                            $newCode = 'activated';
+                            $updateStmt->bind_param('ss', $newCode, $email);
+                            $updateStmt->execute();
+                            $updateStmt->close();
+
+                            // Add a 3-month free trial subscription.
+                            $startDate = date('Y-m-d H:i:s');
+                            $endDate = date('Y-m-d H:i:s', strtotime('+3 months'));
+                            if ($subStmt = $con->prepare('INSERT INTO dbs13455438.subscriptions (user_id, subscription_plan, start_date, end_date, status, is_free_trial_used) VALUES (?, ?, ?, ?, ?, ?)')) {
+                                $plan = 'starter';
+                                $status = 'active';
+                                $isFreeTrialUsed = 1;
+                                $subStmt->bind_param('issssi', $userId, $plan, $startDate, $endDate, $status, $isFreeTrialUsed);
+                                $subStmt->execute();
+                                $subStmt->close();
+                            }
+
+                            // Remove the activation code.
+                            if ($deleteStmt = $con->prepare('DELETE FROM dbs13455438.activation_codes WHERE Email = ? AND activation_code = ?')) {
+                                $deleteStmt->bind_param('ss', $email, $code);
+                                $deleteStmt->execute();
+                                $deleteStmt->close();
+                            }
+
+                            // Redirect to the login page with a success flag.
+                            header('Location: loginpage.php?activated=1');
+                            exit;
+                        } else {
+                            throw new Exception('Failed to update activation status.');
+                        }
+                    } else {
+                        throw new Exception('User not found.');
+                    }
                 }
-                
-                // Display the success message with a link to login
-                echo '<div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
-                        <h2>Your account is now activated!</h2>
-                        <p>You can now log in to your account.</p>
-                        <a href="loginpage.php" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; font-weight: bold; border-radius: 5px;">Go to Login</a>
-                      </div>';
             } else {
-                echo 'Database update error.';
+                throw new Exception('Invalid activation code or email.');
             }
         } else {
-            echo 'The account is already activated or doesn\'t exist!';
+            throw new Exception('Database query error.');
         }
-    } else {
-        echo 'Database query error.';
+    } catch (Exception $e) {
+        echo '<div style="color: red; text-align: center; font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Error!</h2>
+                <p>' . htmlspecialchars($e->getMessage()) . '</p>
+              </div>';
     }
-
-    // Check activation status and display content accordingly.
-    $query = "SELECT activation_code FROM dbs13455438.users WHERE Email = ?";
-    if ($stmt = $con->prepare($query)) {
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $stmt->bind_result($activationStatus);
-        $stmt->fetch();
-        
-        if ($activationStatus == 'activated') {
-            echo 'Your account has already been activated!';
-        }
-    }
-} else {
-    echo 'Invalid activation link.';
-}
+} 
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -82,7 +98,7 @@ if (isset($_GET['Email'], $_GET['code'])) {
                                 <div class="d-flex align-items-center auth-content">
                                     <div class="col-lg-7 align-self-center">
                                         <div class="p-3">
-                                            <h2 class="mb-2" style="font-weight: bold; text-decoration: underline;">Activate Your Account</h2>
+                                            <h2 class="mb-2" style="font-weight: bold; text-decoration: underline;">Account Activated</h2>
                                             <p style="font-weight: bold; text-decoration: underline;">Click below to log in now</p>
                                             <a href="loginpage.php" class="btn btn-primary mt-3" style="font-weight: bold; text-decoration: underline;">Go to Login</a>
                                         </div>
