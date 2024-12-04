@@ -7,25 +7,25 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-include('config.php'); // This file should set up the PDO connection as $connection
+include('config.php'); // Ensure $connection is set up for the database
 
-// Check if the user is already logged in, if yes, redirect to the dashboard page
+// Redirect logged-in users to the dashboard
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     header("Location: user-confirm.html");
     exit();
 }
 
+// Initialize error messages
 $username_err = $password_err = $login_err = "";
 
-// Check if the form is submitted
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     $username = isset($_POST["username"]) ? trim($_POST["username"]) : '';
     $password = isset($_POST["password"]) ? trim($_POST["password"]) : '';
 
     if (empty($username)) {
-        $username_err = "Please enter a username.";
+        $username_err = "Please enter your username.";
     }
-
     if (empty($password)) {
         $password_err = "Please enter your password.";
     }
@@ -37,19 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
             if ($stmt->rowCount() > 0) {
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                $id_user = $user['id'];
-                $db_username = $user['username'];
-                $passwordHash = $user['password'];
-
-                if (password_verify($password, $passwordHash)) {
-                    // Set session variables only after successful login
+                if (password_verify($password, $user['password'])) {
                     $_SESSION["loggedin"] = true;
-                    $_SESSION["id_user"] = $id_user;
-                    $_SESSION["username"] = $db_username;
-
-                    // Debugging
-                    error_log("Login successful. Session ID: " . session_id());
-                    error_log("Session variables: " . print_r($_SESSION, true));
+                    $_SESSION["id_user"] = $user['id'];
+                    $_SESSION["username"] = $user['username'];
 
                     header("Location: user-confirm.html");
                     exit();
@@ -65,86 +56,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     }
 }
 
-// Close the database connection
+// Close database connection
 $connection = null;
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="apple-touch-icon" sizes="76x76" href="http://localhost/salespilot/home_assets/img/apple-icon.png">
-  <link rel="icon" type="image/png" href="http://localhost/salespilot/home_assets/img/favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  <!--     Fonts and icons     -->
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
-  <!-- Nucleo Icons -->
-  <link href="http://localhost/salespilot/home_assets/css/nucleo-icons.css" rel="stylesheet" />
-  <link href="http://localhost/salespilot/home_assets/css/nucleo-svg.css" rel="stylesheet" />
-  <!-- Font Awesome Icons -->
-  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-  <!-- Material Icons -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  <!-- CSS Files -->
-  <link id="pagestyle" href="http://localhost/salespilot/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
-  <!-- Nepcha Analytics (nepcha.com) -->
-  <!-- Nepcha is a easy-to-use project analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
-  <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
+  <link rel="icon" type="image/png" href="https://salespilot.cybertrendhub.store/home_assets/img/favicon.png">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+  <link href="https://salespilot.cybertrendhub.store/home_assets/css/nucleo-icons.css" rel="stylesheet">
+  <link href="https://salespilot.cybertrendhub.store/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet">
 </head>
 
 <body class="bg-gray-200">
   <div class="container position-sticky z-index-sticky top-0">
     <div class="row">
-      <div class="col-12">
-       
-      </div>
+      <div class="col-12"></div>
     </div>
   </div>
-  <main class="main-content  mt-0">
-    <div class="page-header align-items-start min-vh-100" style="background-image: url('https://images.unsplash.com/photo-1497294815431-9365093b7331?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80');">
+  <main class="main-content mt-0">
+    <div class="page-header align-items-start min-vh-100" style="background-image: url('https://images.unsplash.com/photo-1497294815431-9365093b7331?auto=format&fit=crop&w=1950&q=80');">
       <span class="mask bg-gradient-dark opacity-6"></span>
       <div class="container my-auto">
         <div class="row">
           <div class="col-lg-4 col-md-8 col-12 mx-auto">
             <div class="card z-index-0 fadeIn3 fadeInBottom">
               <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                <div class="bg-gradient-primary shadow-primary border-radius-lg py-3 pe-1">
-                  <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Sign in</h4>
-                  <div class="row mt-3">
-                    
-                    <div class="col-2 text-center me-auto">
-                      
-                    </div>
-                  </div>
+                <div class="bg-gradient-primary shadow-primary border-radius-lg py-3">
+                  <h4 class="text-white text-center">Sign in</h4>
                 </div>
               </div>
               <div class="card-body">
-              <form action="http://localhost/salespilot/loginpage.php" method="post" role="form" class="text-start">
-                      <div class="input-group input-group-outline my-3">
-                          <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
-                      </div>
-                      <div class="input-group input-group-outline mb-3">
-                          <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
-                      </div>
-                      <div class="form-check form-switch d-flex align-items-center mb-3">
-                          <input class="form-check-input" type="checkbox" id="rememberMe" checked>
-                          <label class="form-check-label mb-0 ms-3" for="rememberMe">Remember me</label>
-                      </div>
-                      <div class="text-center">
-                          <button type="submit" name="login" value="Login" id="loginButton" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
-                          <button type="button" name="reset" value="Forgot Password" id="resetButton" class="btn bg-gradient-primary w-100 my-4 mb-2" onclick="window.location.href='http://localhost/salespilot/recoverpwd.php'">Forgot Password</button>
-
-                      </div>
-                      
-                      <p class="mt-4 text-sm text-center">
-                          Don't have an account?
-                          <a href="http://localhost/salespilot/sign-up.php" class="text-primary text-gradient font-weight-bold">Sign up</a>
-                      </p>
-                  </form>
+                <?php if (!empty($login_err)): ?>
+                  <div class="alert alert-danger text-center"><?php echo $login_err; ?></div>
+                <?php endif; ?>
+                <form action="https://salespilot.cybertrendhub.store/loginpage.php" method="post" class="text-start">
+                  <div class="input-group input-group-outline my-3">
+                    <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo htmlspecialchars($username ?? '', ENT_QUOTES); ?>">
+                    <small class="text-danger"><?php echo $username_err; ?></small>
+                  </div>
+                  <div class="input-group input-group-outline mb-3">
+                    <input type="password" name="password" class="form-control" placeholder="Password">
+                    <small class="text-danger"><?php echo $password_err; ?></small>
+                  </div>
+                  <div class="form-check form-switch d-flex align-items-center mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label ms-3" for="rememberMe">Remember me</label>
+                  </div>
+                  <div class="text-center">
+                    <button type="submit" name="login" class="btn bg-gradient-primary w-100">Sign in</button>
+                    <button type="button" class="btn bg-gradient-primary w-100 mt-2" onclick="window.location.href='https://salespilot.cybertrendhub.store/recoverpwd.php'">Forgot Password</button>
+                  </div>
+                  <p class="mt-4 text-sm text-center">
+                    Don't have an account?
+                    <a href="https://salespilot.cybertrendhub.store/sign-up.php" class="text-primary font-weight-bold">Sign up</a>
+                  </p>
+                </form>
               </div>
             </div>
           </div>
@@ -153,45 +125,17 @@ $connection = null;
       <footer class="footer position-absolute bottom-2 py-2 w-100">
         <div class="container">
           <div class="row align-items-center justify-content-lg-between">
-            <div class="col-12 col-md-6 my-auto">
-              <div class="copyright text-center text-sm text-white text-lg-start">
-                © <script>
-                  document.write(new Date().getFullYear())
-                </script>,
-                Phemcode <i class="fa fa-heart" aria-hidden="true"></i> for
-                <a href="http://localhost/salespilot/index.html" class="font-weight-bold text-white" target="_blank">SalesPilot</a>.
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                <li class="nav-item">
-                  <a href="http://localhost/salespilot/index.html" class="nav-link text-white" target="_blank">SalesPilot</a>
-                </li>
-                <li class="nav-item">
-                  <a href="http://localhost/salespilot/index.html" class="nav-link text-white" target="_blank">About Us</a>
-                </li>
-              </ul>
+            <div class="col-12 col-md-6 text-center text-md-start">
+              <p class="text-white mb-0">© <?php echo date('Y'); ?> Developed for <a href="https://phemcode.cybertrendhub.store/index.html" class="text-white">SalesPilot</a>.</p>
             </div>
           </div>
         </div>
       </footer>
     </div>
   </main>
-  <!--   Core JS Files   -->
-  <script src="http://localhost/salespilot/home_assets/js/core/popper.min.js"></script>
-  <script src="http://localhost/salespilot/home_assets/js/core/bootstrap.min.js"></script>
-  <script src="http://localhost/salespilot/home_assets/js/plugins/perfect-scrollbar.min.js"></script>
-  <script src="http://localhost/salespilot/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
-  <script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = {
-        damping: '0.5'
-      }
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
-  </script>
- 
+  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/popper.min.js"></script>
+  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/bootstrap.min.js"></script>
+  <script src="https://salespilot.cybertrendhub.store/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
 </body>
 
 </html>

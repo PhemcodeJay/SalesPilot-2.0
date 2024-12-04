@@ -6,7 +6,8 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+// Include necessary files
+require __DIR__ . '/vendor/autoload.php'; // Composer autoloader
 require '../../PHPMailer/src/PHPMailer.php';
 require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
@@ -18,6 +19,12 @@ use PHPMailer\PHPMailer\SMTP;
 include('config.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
+    // Validate CSRF token
+    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo 'CSRF token validation failed!';
+        exit;
+    }
+
     // Sanitize and validate email input
     $email = filter_var(trim($_POST["Email"]), FILTER_SANITIZE_EMAIL);
 
@@ -35,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
     $stmt = $connection->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
 
-    if ($stmt->rowCount() == 0) {
+    if ($stmt->rowCount() === 0) {
         echo 'Email not found!';
         return;
     }
@@ -44,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
     $resetToken = bin2hex(random_bytes(32));
     $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-    // Insert reset token into password_resets table
+    // Insert reset token into the database
     $resetStmt = $connection->prepare('INSERT INTO password_resets (user_id, reset_code, expires_at) VALUES (?, ?, ?)');
     if ($resetStmt->execute([$userId, $resetToken, $expiresAt])) {
         try {
@@ -54,25 +61,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
             $mail->Host = 'smtp.ionos.com';
             $mail->Port = 587;
             $mail->SMTPAuth = true;
-            $mail->Username = 'admin@cybertrendhub.store';
-            $mail->Password = 'kokochulo@1987#';
+            $mail->Username = 'admin@cybertrendhub.store'; // Ensure this is correct
+            $mail->Password = 'kokochulo@1987#'; // Ensure this is correct
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPDebug = 2;  // Enable detailed debug output
 
             $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
             $mail->addAddress($email);
+            $mail->isHTML(true); // Enable HTML formatting
             $mail->Subject = 'Password Reset Request';
             $mail->Body = 'Click the link below to reset your password:<br><a href="https://salespilot.cybertrendhub.store/recoverpwd.php?token=' . $resetToken . '">Reset Password</a>';
 
+            // Send email
             if ($mail->send()) {
                 echo 'Password reset email sent!';
             } else {
-                echo 'Error sending email: ' . $mail->ErrorInfo;
+                echo 'Failed to send email.';
             }
         } catch (Exception $e) {
-            echo 'Mailer Error: ' . $e->getMessage();
+            echo 'Mailer Error: ' . $e->getMessage(); // Display detailed error message
+            error_log('Mailer Error: ' . $e->getMessage()); // Log errors for debugging
         }
     } else {
-        echo 'Error inserting reset token into the database: ' . $resetStmt->errorInfo()[2];
+        echo 'Error saving reset token: ' . $resetStmt->errorInfo()[2];
     }
 }
 ?>
@@ -137,7 +148,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_reset'])) {
             </div>
         </section>
     </div>
-
 
     <!-- Backend Bundle JavaScript -->
     <script src="https://salespilot.cybertrendhub.store/assets/js/backend-bundle.min.js"></script>

@@ -1,16 +1,22 @@
 <?php
+// Start a session to handle CSRF token
+session_start();
 
-// Include the PHPMailer settings
-require __DIR__ . '/vendor/autoload.php'; // Include the Composer autoloader
+// Generate CSRF token if not already set
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Include necessary files
+require __DIR__ . '/vendor/autoload.php'; // Composer autoloader
 require '../../PHPMailer/src/PHPMailer.php';
 require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHMailer\Exception;
+use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-// Include the database connection settings
 include('config.php');
 
 // Initialize variables and error array
@@ -18,12 +24,18 @@ $name = $email = $phone = $message = '';
 $errors = [];
 
 // Check if the form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Verify CSRF token
+    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+        echo "<div class='text-danger'>Invalid CSRF token.</div>";
+        exit;
+    }
+
     // Sanitize and assign input values
-    $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
-    $email = isset($_POST['email']) ? htmlspecialchars(trim($_POST['email'])) : '';
-    $phone = isset($_POST['phone']) ? htmlspecialchars(trim($_POST['phone'])) : '';
-    $message = isset($_POST['message']) ? htmlspecialchars(trim($_POST['message'])) : '';
+    $name = htmlspecialchars(trim($_POST['name'] ?? ''));
+    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+    $phone = htmlspecialchars(trim($_POST['phone'] ?? ''));
+    $message = htmlspecialchars(trim($_POST['message'] ?? ''));
 
     // Validate inputs
     if (empty($name)) $errors[] = 'Name is required.';
@@ -35,7 +47,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($errors)) {
         try {
             // Prepare the insert query with placeholders
-            $stmt = $connection->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)");
+            $stmt = $connection->prepare(
+                "INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)"
+            );
 
             // Bind values to the placeholders
             $stmt->bindParam(':name', $name);
@@ -47,34 +61,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 // Set up PHPMailer for sending the email
                 $mail = new PHPMailer(true);
-                $mail->isSMTP();
-                $mail->Host = 'smtp.ionos.com'; // Use your SMTP host
-                $mail->SMTPAuth = true;
-                $mail->Username = 'admin@cybertrendhub.store'; // SMTP username
-                $mail->Password = 'Kokochulo@1987#'; // SMTP password
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587;
-                $mail->setFrom('admin@cybertrendhub.store', 'CyberTrendHub');
-                $mail->addAddress('phemcodejay@gmail.com'); // Recipient's email address
-                $mail->Subject = 'New Feedback Message from ' . $name . ' (Phone: ' . $phone . ')';
-                $mail->Body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage:\n$message";
 
-                // Send the email
-                if ($mail->send()) {
-                    echo "Email sent successfully.<br>";
-                } else {
-                    echo "Mailer error: {$mail->ErrorInfo}<br>";
+                try {
+                    // SMTP settings
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.ionos.com'; // Use your SMTP host
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'admin@cybertrendhub.store'; // SMTP username
+                    $mail->Password = 'kokochulo@1987#'; // SMTP password
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+
+                    // Email settings
+                    $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
+                    $mail->addAddress($email);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'New Feedback Message';
+                    $mail->Body = "
+                        <p><strong>Name:</strong> $name</p>
+                        <p><strong>Email:</strong> $email</p>
+                        <p><strong>Phone:</strong> $phone</p>
+                        <p><strong>Message:</strong></p>
+                        <p>$message</p>
+                    ";
+
+                    // Send email
+                    if ($mail->send()) {
+                        echo "<div class='text-success'>Thank you for your message. We will get back to you shortly.</div>";
+                    } else {
+                        echo "<div class='text-danger'>Error: Could not send email. Please try again later.</div>";
+                    }
+                } catch (Exception $e) {
+                    echo "<div class='text-danger'>Mailer error: {$e->getMessage()}</div>";
                 }
 
                 // Redirect after successful form submission
                 echo "<script>setTimeout(() => { window.location.href = 'index.html'; }, 2000);</script>";
             } else {
-                echo "<div class='text-danger'>Database error: Unable to insert data.</div>";
+                echo "<div class='text-danger'>Database error: Unable to save your message. Please try again later.</div>";
             }
         } catch (PDOException $e) {
-            // Handle PDO exceptions (e.g., database issues)
             echo "<div class='text-danger'>Database error: " . htmlspecialchars($e->getMessage()) . "</div>";
-        } 
+        }
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -83,3 +111,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+

@@ -1,8 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TXR1WFJ4GP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TXR1WFJ4GP');
+</script>
+  
+  <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta content="" name="Boost your business efficiency with SalesPilot – the ultimate sales management app. Track leads, manage clients, and increase revenue effortlessly with our user-friendly platform.">
+  <meta content="" name="Sales productivity tools, Sales and Client management, Business efficiency tools">
+
     <title>User Guide</title>
     <!-- Favicon -->
     <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
@@ -101,8 +115,8 @@
 </head>
 <body>
 
-    <h1>SalesPilot Application User Guide</h1>
-    <p>Welcome to the SalesPilot user guide. This application is designed to manage products and services, its sales, inventory, and analytics with a user-friendly menu layout. Use the sections below to understand each feature and menu of SalesPilot.</p>
+    <h1>SalesPilot - User Guide</h1>
+    <p>Welcome to the SalesPilot User Guide. This application is designed to manage products and services, its sales, inventory, and analytics with a user-friendly menu layout. Use the sections below to understand each feature and menu of SalesPilot.</p>
 
     <div class="card">
         <div class="section-title">Product Management</div>
@@ -111,13 +125,13 @@
             <li>Enter the product details, including its name, category, unit price, and other details in the form.</li>
             <li>Once a product is added, its 
                 <a href="page-list-category.php" class="menu-title">Category</a> 
-                and prices should be re-updated when the page refreshes. Then click the update button to display the latest details.
+                and <span class="highlight">Prices</span> should be re-edited on the <a href="page-list-product.php" class="menu-title">List Product</a> page. Then click the update button to reload and display the updated details.
             </li>
             <li>Products can only be edited in the 
                 <a href="page-list-product.php" class="menu-title">Product Menu</a> 
                 only.
             </li>
-            <li>Once a product is added, its <span class="highlight">Category and Prices</span> should be re-updated after the page refreshes, then click the update button to insert and display the latest details.</li>
+            
         </ul>
     </div>
 
@@ -126,7 +140,7 @@
         <p>To record sales transactions, follow these steps:</p>
         <ul>
             <li>Enter the product name as it is written in the product records, then enter the <strong>unit price</strong>, <strong>sales quantity</strong>, <strong>total price</strong>, and other sales data. Only existing products can be inserted into sale records, which can be managed through the <a href="page-list-sale.php" class="menu-title">Add Sale</a> page.</li>
-            <li>Submit the sales data. This data will update in the <span class="highlight">Sales</span> and <span class="highlight">Inventory</span> sections, ensuring inventory levels reflect the sales.</li>
+            <li>Submit the sales data. This data will update in the <a href="page-list-sale.php" class="menu-title">Sales Menu</a>  and <a href="page-list-inventory.php" class="menu-title">Inventory Menu</a>  sections, ensuring inventory levels reflect the sales.</li>
         </ul>
     </div>
 
@@ -136,14 +150,14 @@
         <ul>
             <li><strong>Category</strong>: Access the 
                 <a href="page-list-category.php" class="menu-title">Category Menu</a> 
-                to view products grouped by category for easier management.
+                to view products grouped by category for easier classification.
             </li>
             <li><strong>Inventory</strong>: View all sales transactions and stock levels within the 
                 <a href="page-list-inventory.php" class="menu-title">Inventory Menu</a>.
             </li>
             <li><strong>People</strong>: Manage <strong>Customers</strong>, <strong>Staff</strong>, and <strong>Suppliers</strong> through the <span class="menu-title">People Menu</span>, where you can add or update contact and profile information as needed.</li>
             <li><strong>Expenses</strong>: Record expenses related to sales or inventory operations in the 
-                <a href="page-list-expense.php" class="menu-title">Expenses</a> page. This information will be used for financial analytics.
+                <a href="page-list-expense.php" class="menu-title">Expenses</a> menu. This information will be used for financial analytics.
             </li>
             <li><strong>Invoices</strong>: Manage and view invoices on the 
                 <a href="pages-invoice.php" class="menu-title">Invoices</a> page. This information will be used for financial tracking and reporting.
@@ -158,9 +172,9 @@
             <li><span class="menu-title">Charts and Reports Menu</span>: Access real-time charts and detailed reports, showing overall analytics on product performance, revenue, and profitability.</li>
             <li><span class="menu-title">Performance Analysis</span>:
                 <ul>
-                    <li><strong>Product-Based Sales Metrics</strong>: View product metrics for individual items on the <a href="inventory-metrics.php" class="menu-title">Inventory Metrics</a> page to help identify top-performing products.</li>
+                    <li><strong>Product-Based Sales Metrics</strong>: View product metrics for individual items on the <a href="inventory-metrics.php" class="menu-title">Product Metrics</a> page to help identify top-performing products.</li>
                     <li><strong>Analytics Report</strong>: View available stock, sell-through rates, and inventory turnover for each product on the <a href="analytics-report.php" class="menu-title">Analytics Report</a> page.</li>
-                    <li><strong>Category-Based Sales Metrics</strong>: Analyze sales by product category on the <a href="sales-metrics.php" class="menu-title">Sales Metrics</a> page to assess which categories are contributing most to overall sales.</li>
+                    <li><strong>Category-Based Sales Metrics</strong>: Analyze sales by product category on the <a href="sales-metrics.php" class="menu-title">Category Metrics</a> page to assess which categories are contributing most to overall sales.</li>
                     <li><strong>Supply</strong>: Monitor product and service deliveries and purchases through the <a href="page-list-supply.php" class="menu-title">Supply Menu</a> using the invoices and suppliers details.</li>
                 </ul>
             </li>
