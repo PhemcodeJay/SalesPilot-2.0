@@ -9,6 +9,7 @@ const moment = require('moment');
 const { Configuration, OpenAI } = require("openai");
 
 // Initialize dotenv to load environment variables from .env file
+require('dotenv').config();
 dotenv.config();
 
 // Initialize the Express app
@@ -45,7 +46,7 @@ db.getConnection((err, connection) => {
 
 // Route to serve the home page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'home.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Route for login page
@@ -130,4 +131,84 @@ app.get('/feedback', (req, res) => {
 // Route for chart data (e.g., sales data)
 app.get('/chart-data', (req, res) => {
     // Example: Fetch sales data for the chart
-    db.query('SELECT MONTH
+    db.query('SELECT MONTH(date) AS month, SUM(sales) AS total_sales FROM sales GROUP BY MONTH(date)', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results); // Send data to be used by the chart.js frontend
+    });
+});
+
+// Route to fetch analytics data for dynamic charts (monthly, weekly, yearly)
+app.get('/analytics', (req, res) => {
+    const { period } = req.query; // period can be 'monthly', 'weekly', or 'yearly'
+    let query = '';
+
+    if (period === 'monthly') {
+        query = 'SELECT MONTH(date) AS month, SUM(sales) AS total_sales FROM sales GROUP BY MONTH(date)';
+    } else if (period === 'weekly') {
+        query = 'SELECT WEEK(date) AS week, SUM(sales) AS total_sales FROM sales GROUP BY WEEK(date)';
+    } else if (period === 'yearly') {
+        query = 'SELECT YEAR(date) AS year, SUM(sales) AS total_sales FROM sales GROUP BY YEAR(date)';
+    }
+
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results);
+    });
+});
+
+// Route for sales report PDF generation (PDF generation logic)
+app.get('/generate-pdf', (req, res) => {
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
+
+    doc.pipe(res);
+
+    doc.fontSize(25).text('Sales Report', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text('Date: ' + moment().format('YYYY-MM-DD'), { align: 'left' });
+
+    // Example: Fetch product data for the PDF
+    db.query('SELECT * FROM tbl_product', (err, results) => {
+        if (err) {
+            doc.text('Failed to fetch product data');
+        } else {
+            results.forEach((product, index) => {
+                doc.text(`${index + 1}. ${product.product_name} - ${product.price}`);
+            });
+        }
+        doc.end();
+    });
+});
+
+// Route for AI recommendations (optional route for OpenAI integration)
+app.get('/ai-recommendations', async (req, res) => {
+    const configuration = new Configuration({
+        apiKey: process.env.OPENAI_API_KEY
+    });
+
+    const openai = new OpenAI(configuration);
+
+    try {
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: 'system', content: 'You are an assistant that provides product recommendations.' },
+                { role: 'user', content: 'Suggest products for a summer sale.' }
+            ]
+        });
+        
+        res.json({ message: completion.choices[0].message.content });
+    } catch (error) {
+        res.status(500).json({ error: 'AI request failed', details: error.message });
+    }
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});
