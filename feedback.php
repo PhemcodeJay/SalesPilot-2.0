@@ -7,7 +7,7 @@ require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
 // Include the database connection settings
@@ -19,13 +19,11 @@ $errors = [];
 
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-
     // Sanitize and assign input values
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-    $message = isset($_POST['message']) ? trim($_POST['message']) : '';
+    $name = isset($_POST['name']) ? htmlspecialchars(trim($_POST['name'])) : '';
+    $email = isset($_POST['email']) ? htmlspecialchars(trim($_POST['email'])) : '';
+    $phone = isset($_POST['phone']) ? htmlspecialchars(trim($_POST['phone'])) : '';
+    $message = isset($_POST['message']) ? htmlspecialchars(trim($_POST['message'])) : '';
 
     // Validate inputs
     if (empty($name)) $errors[] = 'Name is required.';
@@ -36,7 +34,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Process the form if no validation errors
     if (empty($errors)) {
         try {
-            
             // Prepare the insert query with placeholders
             $stmt = $connection->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)");
 
@@ -48,8 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Execute the query and check for success
             if ($stmt->execute()) {
-               
-
                 // Set up PHPMailer for sending the email
                 $mail = new PHPMailer(true);
                 $mail->isSMTP();
@@ -77,10 +72,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo "<div class='text-danger'>Database error: Unable to insert data.</div>";
             }
         } catch (PDOException $e) {
-            echo "Database error: " . $e->getMessage() . "<br>";
-        } catch (Exception $e) {
-            echo "Mailer error: {$e->getMessage()}<br>";
-        }
+            // Handle PDO exceptions (e.g., database issues)
+            echo "<div class='text-danger'>Database error: " . htmlspecialchars($e->getMessage()) . "</div>";
+        } 
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -89,4 +83,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
