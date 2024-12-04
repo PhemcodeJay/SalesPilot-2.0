@@ -1,15 +1,15 @@
-// Import required modules
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const path = require('path');
-const PDFDocument = require('pdfkit');
 const moment = require('moment');
 const { Configuration, OpenAI } = require("openai");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const PDFDocument = require('pdfkit');
 
 // Initialize dotenv to load environment variables from .env file
-require('dotenv').config();
 dotenv.config();
 
 // Initialize the Express app
@@ -44,124 +44,138 @@ db.getConnection((err, connection) => {
     connection.release(); // release the connection after use
 });
 
-// Route to serve the home page
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// User Signup
+app.post('/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-// Route for login page
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'loginpage.php'));
-});
-
-// Route for logout
-app.get('/logout', (req, res) => {
-    // Handle logout logic
-    res.redirect('/login');
-});
-
-// Route for user profile edit
-app.get('/user-profile', (req, res) => {
-    res.sendFile(path.join(__dirname, 'user-profile-edit.php'));
-});
-
-// Route to display sales metrics (inventory and sales analysis)
-app.get('/sales-metrics', (req, res) => {
-    res.sendFile(path.join(__dirname, 'sales-metrics.php'));
-});
-
-// Route for viewing and editing invoices
-app.get('/invoice/:id', (req, res) => {
-    const invoiceId = req.params.id;
-    db.query('SELECT * FROM invoices WHERE id = ?', [invoiceId], (err, result) => {
+    db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err, result) => {
         if (err) {
-            return res.status(500).json({ error: 'Database query failed' });
+            return res.status(500).json({ error: 'Failed to sign up user' });
         }
-        res.render('pages-invoice.php', { invoice: result[0] });
+        res.json({ message: 'User created successfully' });
     });
 });
 
-// Route for adding a new customer
-app.post('/add-customer', (req, res) => {
-    const { name, email, phone } = req.body;
-    db.query('INSERT INTO customers (name, email, phone) VALUES (?, ?, ?)', [name, email, phone], (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to add customer' });
+// User Login
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, result) => {
+        if (err || result.length === 0) {
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
-        res.redirect('/page-list-customers');
+        const user = result[0];
+        const isValid = await bcrypt.compare(password, user.password);
+
+        if (!isValid) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token });
     });
 });
 
-// Route for adding a product
-app.post('/add-product', (req, res) => {
-    const { name, price, category } = req.body;
-    db.query('INSERT INTO products (name, price, category) VALUES (?, ?, ?)', [name, price, category], (err, result) => {
+// Middleware for verifying JWT token
+const authenticateJWT = (req, res, next) => {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// Product Routes
+app.post('/add-product', authenticateJWT, (req, res) => {
+    const { name, price, category, stock } = req.body;
+    db.query('INSERT INTO products (name, price, category, stock) VALUES (?, ?, ?, ?)', [name, price, category, stock], (err, result) => {
         if (err) {
             return res.status(500).json({ error: 'Failed to add product' });
         }
-        res.redirect('/page-list-product');
+        res.json({ message: 'Product added successfully' });
     });
 });
 
-// Route for listing customers (CRUD actions like Edit, Delete)
-app.get('/page-list-customers', (req, res) => {
-    db.query('SELECT * FROM customers', (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to fetch customers' });
-        }
-        res.render('page-list-customers.php', { customers: results });
-    });
-});
-
-// Route for listing products
-app.get('/page-list-product', (req, res) => {
+app.get('/products', authenticateJWT, (req, res) => {
     db.query('SELECT * FROM products', (err, results) => {
         if (err) {
             return res.status(500).json({ error: 'Failed to fetch products' });
-        }
-        res.render('page-list-product.php', { products: results });
-    });
-});
-
-// Route to view feedback
-app.get('/feedback', (req, res) => {
-    res.sendFile(path.join(__dirname, 'feedback.php'));
-});
-
-// Route for chart data (e.g., sales data)
-app.get('/chart-data', (req, res) => {
-    // Example: Fetch sales data for the chart
-    db.query('SELECT MONTH(date) AS month, SUM(sales) AS total_sales FROM sales GROUP BY MONTH(date)', (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database query failed' });
-        }
-        res.json(results); // Send data to be used by the chart.js frontend
-    });
-});
-
-// Route to fetch analytics data for dynamic charts (monthly, weekly, yearly)
-app.get('/analytics', (req, res) => {
-    const { period } = req.query; // period can be 'monthly', 'weekly', or 'yearly'
-    let query = '';
-
-    if (period === 'monthly') {
-        query = 'SELECT MONTH(date) AS month, SUM(sales) AS total_sales FROM sales GROUP BY MONTH(date)';
-    } else if (period === 'weekly') {
-        query = 'SELECT WEEK(date) AS week, SUM(sales) AS total_sales FROM sales GROUP BY WEEK(date)';
-    } else if (period === 'yearly') {
-        query = 'SELECT YEAR(date) AS year, SUM(sales) AS total_sales FROM sales GROUP BY YEAR(date)';
-    }
-
-    db.query(query, (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database query failed' });
         }
         res.json(results);
     });
 });
 
-// Route for sales report PDF generation (PDF generation logic)
-app.get('/generate-pdf', (req, res) => {
+// Sales Routes
+app.post('/add-sale', authenticateJWT, (req, res) => {
+    const { product_id, quantity, total_price, customer_id, staff_id } = req.body;
+    db.query('INSERT INTO sales (product_id, quantity, total_price, customer_id, staff_id) VALUES (?, ?, ?, ?, ?)', [product_id, quantity, total_price, customer_id, staff_id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to record sale' });
+        }
+        res.json({ message: 'Sale recorded successfully' });
+    });
+});
+
+app.get('/sales', authenticateJWT, (req, res) => {
+    db.query('SELECT * FROM sales', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch sales' });
+        }
+        res.json(results);
+    });
+});
+
+// Category Routes
+app.get('/categories', authenticateJWT, (req, res) => {
+    db.query('SELECT * FROM categories', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch categories' });
+        }
+        res.json(results);
+    });
+});
+
+// Inventory Routes
+app.get('/inventory', authenticateJWT, (req, res) => {
+    db.query('SELECT * FROM inventory', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch inventory' });
+        }
+        res.json(results);
+    });
+});
+
+// Expenses Routes
+app.post('/add-expense', authenticateJWT, (req, res) => {
+    const { description, amount, date } = req.body;
+    db.query('INSERT INTO expenses (description, amount, date) VALUES (?, ?, ?)', [description, amount, date], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to add expense' });
+        }
+        res.json({ message: 'Expense added successfully' });
+    });
+});
+
+app.get('/expenses', authenticateJWT, (req, res) => {
+    db.query('SELECT * FROM expenses', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch expenses' });
+        }
+        res.json(results);
+    });
+});
+
+// PDF Report Route
+app.get('/generate-pdf', authenticateJWT, (req, res) => {
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
@@ -172,40 +186,50 @@ app.get('/generate-pdf', (req, res) => {
     doc.moveDown();
     doc.fontSize(12).text('Date: ' + moment().format('YYYY-MM-DD'), { align: 'left' });
 
-    // Example: Fetch product data for the PDF
-    db.query('SELECT * FROM tbl_product', (err, results) => {
+    db.query('SELECT * FROM sales', (err, results) => {
         if (err) {
-            doc.text('Failed to fetch product data');
+            doc.text('Failed to fetch sales data');
         } else {
-            results.forEach((product, index) => {
-                doc.text(`${index + 1}. ${product.product_name} - ${product.price}`);
+            results.forEach((sale, index) => {
+                doc.text(`${index + 1}. Sale ID: ${sale.id}, Product ID: ${sale.product_id}, Total Price: ${sale.total_price}`);
             });
         }
         doc.end();
     });
 });
 
-// Route for AI recommendations (optional route for OpenAI integration)
-app.get('/ai-recommendations', async (req, res) => {
-    const configuration = new Configuration({
-        apiKey: process.env.OPENAI_API_KEY
+// Chart Data Route (Sales)
+app.get('/chart-data', authenticateJWT, (req, res) => {
+    db.query('SELECT MONTH(date) AS month, SUM(total_price) AS total_sales FROM sales GROUP BY MONTH(date)', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results);
     });
+});
 
-    const openai = new OpenAI(configuration);
+// Payment and Subscription Routes
+app.post('/payment', authenticateJWT, (req, res) => {
+    // Handle payment logic here
+    const { amount, method } = req.body;
+    // Example: Insert into payment table
+    db.query('INSERT INTO payments (amount, method) VALUES (?, ?)', [amount, method], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Payment failed' });
+        }
+        res.json({ message: 'Payment processed successfully' });
+    });
+});
 
-    try {
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
-            messages: [
-                { role: 'system', content: 'You are an assistant that provides product recommendations.' },
-                { role: 'user', content: 'Suggest products for a summer sale.' }
-            ]
-        });
-        
-        res.json({ message: completion.choices[0].message.content });
-    } catch (error) {
-        res.status(500).json({ error: 'AI request failed', details: error.message });
-    }
+app.post('/subscribe', authenticateJWT, (req, res) => {
+    // Handle subscription logic here
+    const { plan, user_id } = req.body;
+    db.query('INSERT INTO subscriptions (plan, user_id) VALUES (?, ?)', [plan, user_id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Subscription failed' });
+        }
+        res.json({ message: 'Subscription successful' });
+    });
 });
 
 // Start the server
