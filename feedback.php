@@ -1,108 +1,104 @@
 <?php
-// Start a session to handle CSRF token
-session_start();
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Generate CSRF token if not already set
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Include necessary files
-require __DIR__ . '/vendor/autoload.php'; // Composer autoloader
+// Include the database configuration and PHPMailer classes
+require 'config.php'; // Include the database configuration
 require '../../PHPMailer/src/PHPMailer.php';
 require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
-
-include('config.php');
 
 // Initialize variables and error array
 $name = $email = $phone = $message = '';
 $errors = [];
 
-// Check if the form is submitted
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Verify CSRF token
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
-        echo "<div class='text-danger'>Invalid CSRF token.</div>";
-        exit;
+// Process form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    // Sanitize and validate input
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $message = trim($_POST['message']);
+
+    // Validate input fields
+    if (empty($name)) {
+        $errors[] = 'Name is required.';
+    }
+    if (empty($email)) {
+        $errors[] = 'Email is required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Email is not valid.';
+    }
+    if (empty($phone)) {
+        $errors[] = 'Phone number is required.';
+    }
+    if (empty($message)) {
+        $errors[] = 'Message is required.';
     }
 
-    // Sanitize and assign input values
-    $name = htmlspecialchars(trim($_POST['name'] ?? ''));
-    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
-    $phone = htmlspecialchars(trim($_POST['phone'] ?? ''));
-    $message = htmlspecialchars(trim($_POST['message'] ?? ''));
-
-    // Validate inputs
-    if (empty($name)) $errors[] = 'Name is required.';
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
-    if (empty($phone)) $errors[] = 'Phone number is required.';
-    if (empty($message)) $errors[] = 'Message is required.';
-
-    // Process the form if no validation errors
+    // If no errors, insert data into the database and send email
     if (empty($errors)) {
-        try {
-            // Prepare the insert query with placeholders
-            $stmt = $connection->prepare(
-                "INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)"
-            );
-
-            // Bind values to the placeholders
-            $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':phone', $phone);
-            $stmt->bindParam(':message', $message);
-
-            // Execute the query and check for success
-            if ($stmt->execute()) {
-                // Set up PHPMailer for sending the email
-                $mail = new PHPMailer(true);
-
-                try {
-                    // SMTP settings
-                    $mail->isSMTP();
-                    $mail->Host = 'smtp.ionos.com'; // Use your SMTP host
-                    $mail->SMTPAuth = true;
-                    $mail->Username = 'admin@cybertrendhub.store'; // SMTP username
-                    $mail->Password = 'kokochulo@1987#'; // SMTP password
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port = 587;
-
-                    // Email settings
-                    $mail->setFrom('admin@cybertrendhub.store', 'SalesPilot');
-                    $mail->addAddress($email);
-                    $mail->isHTML(true);
-                    $mail->Subject = 'New Feedback Message';
-                    $mail->Body = "
-                        <p><strong>Name:</strong> $name</p>
-                        <p><strong>Email:</strong> $email</p>
-                        <p><strong>Phone:</strong> $phone</p>
-                        <p><strong>Message:</strong></p>
-                        <p>$message</p>
-                    ";
-
-                    // Send email
-                    if ($mail->send()) {
-                        echo "<div class='text-success'>Thank you for your message. We will get back to you shortly.</div>";
-                    } else {
-                        echo "<div class='text-danger'>Error: Could not send email. Please try again later.</div>";
-                    }
-                } catch (Exception $e) {
-                    echo "<div class='text-danger'>Mailer error: {$e->getMessage()}</div>";
-                }
-
-                // Redirect after successful form submission
-                echo "<script>setTimeout(() => { window.location.href = 'index.html'; }, 2000);</script>";
-            } else {
-                echo "<div class='text-danger'>Database error: Unable to save your message. Please try again later.</div>";
-            }
-        } catch (PDOException $e) {
-            echo "<div class='text-danger'>Database error: " . htmlspecialchars($e->getMessage()) . "</div>";
+        // Prepare SQL statement
+        $stmt = $conn->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)");
+        if ($stmt === false) {
+            die("Error preparing statement: " . $conn->error);
         }
+
+        $stmt->bind_param("ssss", $name, $email, $phone, $message);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            // Setup PHPMailer
+            $mail = new PHPMailer(true);
+            try {
+                $mail->isSMTP();
+$mail->Host = 'smtp.ionos.com';
+$mail->SMTPAuth = true;
+$mail->Username = 'admin@cybertrendhub.store';  // IONOS email address
+$mail->Password = 'Kokochulo@1987#';             // IONOS email password
+$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
+$mail->Port = 587;                               // Port 587 for TLS
+$mail->SMTPDebug = 0;                            // Enable debug output for troubleshooting
+
+                // Set email format and recipient details
+                $mail->setFrom('admin@cybertrendhub.store', 'CyberTrendHub');
+                $mail->addAddress('phemcodejay@gmail.com');       // Primary recipient
+                $mail->addReplyTo($email, $name);                 // Reply-to email and name
+
+                // Email content
+                $mail->Subject = 'New Feedback Message from ' . $name;
+                $mail->Body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage:\n$message";
+
+                // Send the email
+                $mail->send();
+                echo "Email sent successfully.<br>"; // Debug message
+
+                // Success message and page reload script
+                echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent</div>";
+               // Redirect to index.html after sending the email
+    echo "<script>
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 2000); // Redirect after 2 seconds
+          </script>";
+} catch (Exception $e) {
+    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+catch (Exception $e) {
+                echo "<div class='text-danger'>There was an error sending your message via email: {$mail->ErrorInfo}</div>";
+            }
+        } else {
+            echo "<div class='text-danger'>Error: " . $stmt->error . "</div>"; // Display SQL errors
+        }
+
+        // Close the statement
+        $stmt->close();
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -110,5 +106,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+// Close the database connection
+$conn->close();
 ?>
 
