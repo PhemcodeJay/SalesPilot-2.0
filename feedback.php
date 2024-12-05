@@ -1,11 +1,8 @@
 <?php
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+
 
 // Include the database configuration and PHPMailer classes
-require 'config.php'; // Include the database configuration
+require 'config.php'; // Make sure this file contains the correct database connection setup
 require '../../PHPMailer/src/PHPMailer.php';
 require '../../PHPMailer/src/SMTP.php';
 require '../../PHPMailer/src/Exception.php';
@@ -16,6 +13,11 @@ use PHPMailer\PHPMailer\Exception;
 // Initialize variables and error array
 $name = $email = $phone = $message = '';
 $errors = [];
+
+// Check if the database connection is established
+if (!$connection) {
+    die("Database connection failed.");
+}
 
 // Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -44,13 +46,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If no errors, insert data into the database and send email
     if (empty($errors)) {
-        // Prepare SQL statement
-        $stmt = $conn->prepare("INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)");
-        if ($stmt === false) {
-            die("Error preparing statement: " . $conn->error);
-        }
+        // Prepare SQL statement with PDO
+        $sql = "INSERT INTO contacts (name, email, phone, message) VALUES (:name, :email, :phone, :message)";
+        $stmt = $connection->prepare($sql);
 
-        $stmt->bind_param("ssss", $name, $email, $phone, $message);
+        // Bind parameters
+        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->bindParam(':phone', $phone, PDO::PARAM_STR);
+        $stmt->bindParam(':message', $message, PDO::PARAM_STR);
 
         // Execute the statement
         if ($stmt->execute()) {
@@ -58,13 +62,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
-$mail->Host = 'smtp.ionos.com';
-$mail->SMTPAuth = true;
-$mail->Username = 'admin@cybertrendhub.store';  // IONOS email address
-$mail->Password = 'Kokochulo@1987#';             // IONOS email password
-$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
-$mail->Port = 587;                               // Port 587 for TLS
-$mail->SMTPDebug = 0;                            // Enable debug output for troubleshooting
+                $mail->Host = 'smtp.ionos.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'admin@cybertrendhub.store';  // IONOS email address
+                $mail->Password = 'kokochulo@1987#';             // IONOS email password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
+                $mail->Port = 587;                               // Port 587 for TLS
+                $mail->SMTPDebug = 2;                            // Enable debug output for troubleshooting
 
                 // Set email format and recipient details
                 $mail->setFrom('admin@cybertrendhub.store', 'CyberTrendHub');
@@ -82,23 +86,17 @@ $mail->SMTPDebug = 0;                            // Enable debug output for trou
                 // Success message and page reload script
                 echo "<div class='alert alert-success'>Thank you, $name! Your message has been sent</div>";
                // Redirect to index.html after sending the email
-    echo "<script>
-            setTimeout(function() {
-                window.location.href = 'index.html';
-            }, 2000); // Redirect after 2 seconds
-          </script>";
-} catch (Exception $e) {
-    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-}
-catch (Exception $e) {
-                echo "<div class='text-danger'>There was an error sending your message via email: {$mail->ErrorInfo}</div>";
+                echo "<script>
+                        setTimeout(function() {
+                            window.location.href = 'index.html';
+                        }, 2000); // Redirect after 2 seconds
+                    </script>";
+            } catch (Exception $e) {
+                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
             }
         } else {
-            echo "<div class='text-danger'>Error: " . $stmt->error . "</div>"; // Display SQL errors
+            echo "<div class='text-danger'>Error: " . $stmt->errorInfo() . "</div>"; // Display SQL errors
         }
-
-        // Close the statement
-        $stmt->close();
     } else {
         // Display validation errors
         foreach ($errors as $error) {
@@ -107,7 +105,5 @@ catch (Exception $e) {
     }
 }
 
-// Close the database connection
-$conn->close();
+// No need to explicitly close the connection with PDO as it will close automatically when the script ends
 ?>
-

@@ -111,8 +111,8 @@ foreach ($basePricingPlans as $key => $plan) {
 }
 
 // Set your PayPal client ID and secret
-$clientId = 'YOUR_CLIENT_ID';
-$clientSecret = 'YOUR_CLIENT_SECRET';
+$clientId = 'Abq0Z652p0xd7LntfVIW3gTpX4buCF9UQUSnOH_EBcQzo0B2vrCRV_htZvOt-QCxb6kItlgT38pr1xPt';
+$clientSecret = 'EFJotT-21CyvIuDvGfPKzsCk6g0iThtMfiaZmqnaW-FoPXTSBGpW1qm7t4iJX0yfhPFbEMBPMjKjAd_V';
 
 // PayPal's webhook verification URL
 $paypalWebhookUrl = 'https://api.paypal.com/v1/notifications/verify-webhook-signature';
