@@ -7,9 +7,9 @@ define('PAYPAL_SANDBOX', true);  // Set to false for production
 
 // Your database credentials
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'salespilot');
+define('DB_NAME', 'dbs13455438');
 define('DB_USER', 'root');
-define('DB_PASS', 'dbs13455438');
+define('DB_PASS', '');
 
 // Set up PDO connection
 try {
@@ -21,6 +21,17 @@ try {
 
 // Include PayPal SDK
 require 'vendor/autoload.php';
+return [
+    'client_id' => env('PAYPAL_CLIENT_ID', ''),
+    'secret' => env('PAYPAL_SECRET', ''),
+    'settings' => [
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // or 'live'
+        'http.ConnectionTimeOut' => 30,
+        'log.LogEnabled' => true,
+        'log.FileName' => storage_path('logs/paypal.log'),
+        'log.LogLevel' => 'FINE',
+    ],
+];
 
 // Set up PayPal API context
 $apiContext = new \PayPal\Rest\ApiContext(

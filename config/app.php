@@ -1,0 +1,1 @@
+App\Providers\TenancyServiceProvider::class,
