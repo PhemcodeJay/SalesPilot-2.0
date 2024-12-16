@@ -3,6 +3,10 @@
         "phpmailer/phpmailer": "^6.9",
         "orhanerday/open-ai": "^5.2",
         "paypal/paypal-server-sdk": "^0.6.1",
-        "paypal/rest-api-sdk-php": "^1.6"
+        "paypal/rest-api-sdk-php": "*",
+        "tenancy/tenancy": "*",
+        "firebase/php-jwt": "*",
+        "laravel/passport": "*",
+        "laravel/ui": "*"
     }
 }
