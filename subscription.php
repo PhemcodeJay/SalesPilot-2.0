@@ -1,5 +1,5 @@
 <?php
-session_start([
+session_start([ 
     'cookie_lifetime' => 86400,
     'cookie_secure'   => true,
     'cookie_httponly' => true,
@@ -7,9 +7,7 @@ session_start([
     'sid_length'      => 48,
 ]);
 
-
-
-// Include database connection
+// Include database connection and PayPal SDK
 include('config.php');
 require 'vendor/autoload.php';
 
@@ -21,7 +19,7 @@ if (!isset($_SESSION["username"])) {
 
 $username = htmlspecialchars($_SESSION["username"]);
 
-// Fetch the logged-in user's information
+// Fetch user data
 $user_query = "SELECT username, email, date, phone, location, user_image FROM users WHERE username = :username";
 $stmt = $connection->prepare($user_query);
 $stmt->bindParam(':username', $username);
@@ -38,209 +36,187 @@ $location = htmlspecialchars($user_info['location']);
 $existing_image = htmlspecialchars($user_info['user_image']);
 $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
 
+// PayPal configuration
+define('PAYPAL_CLIENT_ID', 'your_client_id_here');
+define('PAYPAL_SECRET', 'your_secret_key_here');
+define('PAYPAL_SANDBOX', true); // Set to false for production
 
-try {
-    // Process payment form submission
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $amount = $_POST['payment_amount'] ?? 0;
-        $method = $_POST['payment_method'] ?? 'Cash';
-        $status = $_POST['payment_status'] ?? 'Pending';
+// Set up PayPal API context
+$apiContext = new \PayPal\Rest\ApiContext(
+    new \PayPal\Auth\OAuthTokenCredential(
+        PAYPAL_CLIENT_ID,
+        PAYPAL_SECRET
+    )
+);
 
-        $stmt = $connection->prepare("INSERT INTO payments (payment_amount, payment_method, payment_status) VALUES (?, ?, ?)");
-        $stmt->execute([$amount, $method, $status]);
-        $paymentId = $connection->lastInsertId();
+// Handle the subscription flow
+if (isset($_GET['action'])) {
+    switch ($_GET['action']) {
+        case 'create_plan':
+            createBillingPlan($apiContext);
+            break;
+        case 'create_agreement':
+            createBillingAgreement($apiContext);
+            break;
+        case 'execute_subscription':
+            executeSubscription($apiContext);
+            break;
+        default:
+            echo "Invalid action.";
+            break;
     }
-
-    // Fetch inventory notifications with product images
-    $inventoryQuery = $connection->prepare("
-        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-        FROM inventory i
-        JOIN products p ON i.product_id = p.id
-        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-        ORDER BY i.last_updated DESC
-    ");
-    $inventoryQuery->execute([':low_stock' => 10, ':high_stock' => 1000]);
-    $inventoryNotifications = $inventoryQuery->fetchAll(PDO::FETCH_ASSOC);
-
-    // Fetch reports notifications with product images
-    $reportsQuery = $connection->prepare("
-        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-               p.image_path
-        FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-        ORDER BY r.report_date DESC
-    ");
-    $reportsQuery->execute([':high_revenue' => 10000, ':low_revenue' => 1000]);
-    $reportsNotifications = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-    echo "Database connection failed: " . $e->getMessage();
-    exit;
+} else {
+    echo "<p>Welcome to the PayPal Subscription System. Please choose an action.</p>";
+    echo "<a href='?action=create_plan'>Create Billing Plan</a><br/>";
+    echo "<a href='?action=create_agreement'>Create Billing Agreement</a>";
 }
 
-
-// Handle PayPal Webhook if the request is POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Read the incoming webhook payload
-    $rawPayload = file_get_contents("php://input");
-    $payload = json_decode($rawPayload, true);
-
-    // Validate the event
-    if (!empty($payload) && isset($payload['event_type'])) {
-        // Event types to listen for
-        switch ($payload['event_type']) {
-            case 'BILLING.SUBSCRIPTION.ACTIVATED':
-                // Subscription activated logic
-                $subscriptionId = $payload['resource']['id'];
-                $planId = $payload['resource']['plan_id'];
-                $userId = getUserIdBySubscription($subscriptionId); // Replace with actual logic to get user ID from your database
-
-                // Determine the plan type based on the plan_id
-                $planName = getPlanName($planId);
-
-                if ($planName) {
-                    activateSubscription($subscriptionId, $planName, $userId);
-                } else {
-                    logError("Unknown plan ID: $planId");
-                }
-                break;
-
-            case 'PAYMENT.SALE.COMPLETED':
-                // Payment completed logic
-                $saleId = $payload['resource']['id'];
-                $amount = $payload['resource']['amount']['total'];
-                $userId = getUserIdByPayment($saleId); // Replace with actual logic to get user ID
-
-                // Insert payment information
-                recordPayment($saleId, $amount, $userId);
-                break;
-
-            // Add additional event types as needed
-            default:
-                logError("Unhandled event type: " . $payload['event_type']);
-                break;
-        }
-
-        // Respond with a success status to acknowledge receipt of the webhook
-        http_response_code(200);
-        echo json_encode(['status' => 'success']);
-        exit;
-    }
-
-    // Respond with an error status if the payload is invalid
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid payload']);
-    exit;
-}
-
-// Function to get the plan name based on plan_id
-function getPlanName($planId) {
+// Create a Billing Plan for Starter, Business, and Enterprise plans
+function createBillingPlan($apiContext) {
+    // Define different pricing plans
     $plans = [
-        'P-92V01000GH171635WM5HYGRQ' => 'starter',
-        'P-6TP94103DT2394623M5HYFKY' => 'business',
-        'P-7E210255TM029860GM5HYC4A' => 'enterprise'
+        'starter' => [
+            'name' => 'Starter Subscription Plan',
+            'description' => 'Basic monthly subscription with limited features.',
+            'amount' => 10.00
+        ],
+        'business' => [
+            'name' => 'Business Subscription Plan',
+            'description' => 'Advanced features for small to medium businesses.',
+            'amount' => 30.00
+        ],
+        'enterprise' => [
+            'name' => 'Enterprise Subscription Plan',
+            'description' => 'Full suite of enterprise-level features.',
+            'amount' => 60.00
+        ]
     ];
-    return $plans[$planId] ?? null;
+
+    // Loop through the plans to create them
+    foreach ($plans as $planKey => $planData) {
+        $plan = new \PayPal\Api\Plan();
+        $plan->setName($planData['name'])
+             ->setDescription($planData['description'])
+             ->setType('INFINITE'); // INFINITE means no end date
+
+        $paymentDefinition = new \PayPal\Api\PaymentDefinition();
+        $paymentDefinition->setName('Monthly Payment')
+                          ->setType('REGULAR')
+                          ->setFrequency('Month')
+                          ->setFrequencyInterval('1')
+                          ->setAmount(new \PayPal\Api\Currency(array('value' => $planData['amount'], 'currency' => 'USD')))
+                          ->setCycles('0'); // 0 means infinite payments
+
+        $merchantPreferences = new \PayPal\Api\MerchantPreferences();
+        $merchantPreferences->setReturnUrl("http://localhost/your-project/paypal_subscription.php?action=execute_subscription&success=true")
+                            ->setCancelUrl("http://localhost/your-project/paypal_subscription.php?action=execute_subscription&success=false")
+                            ->setAutoBillAmount('YES')
+                            ->setInitialFailAmountAction('CONTINUE')
+                            ->setMaxFailAttempts('0');
+
+        $plan->setPaymentDefinitions(array($paymentDefinition))
+             ->setMerchantPreferences($merchantPreferences);
+
+        try {
+            // Create the plan
+            $plan->create($apiContext);
+            echo "{$planData['name']} created successfully!<br>";
+            echo "<a href='?action=create_agreement'>Create Billing Agreement for {$planData['name']}</a><br/>";
+        } catch (Exception $ex) {
+            logError("Error creating {$planData['name']}: " . $ex->getMessage());
+            die("Error creating plan. Please try again later.");
+        }
+    }
 }
 
-// Function to activate the subscription
-function activateSubscription($subscriptionId, $planName, $userId) {
-    global $connection; // Use the global connection object
+// Create a Billing Agreement for the selected plan
+function createBillingAgreement($apiContext) {
+    $payer = new \PayPal\Api\Payer();
+    $payer->setPaymentMethod('paypal');
+
+    // Fetch the plan ID based on user selection (you can store this dynamically based on user choice)
+    $plan = new \PayPal\Api\Plan();
+    $plan->setId('P-0WL28690XY174544KPUF5RB4'); // This ID should be dynamically fetched for the selected plan
+
+    $agreement = new \PayPal\Api\Agreement();
+    $agreement->setName('Premium Subscription Agreement')
+              ->setDescription('Agreement for Monthly Premium Subscription')
+              ->setStartDate(gmdate("Y-m-d\TH:i:s\Z", time() + 60)); // Start in 1 minute
+
+    $agreement->setPayer($payer);
+    $agreement->setPlan($plan);
 
     try {
-        // Insert subscription data
+        // Create the agreement
+        $agreement = $agreement->create($apiContext);
+        // Redirect user to PayPal to approve the agreement
+        $approvalUrl = $agreement->getApprovalLink();
+        header("Location: $approvalUrl");
+        exit;
+    } catch (Exception $ex) {
+        logError("Error creating agreement: " . $ex->getMessage());
+        die("Error creating agreement. Please try again later.");
+    }
+}
+
+// Execute Subscription after Approval
+function executeSubscription($apiContext) {
+    if (isset($_GET['success']) && $_GET['success'] == 'true' && isset($_GET['agreement_id'])) {
+        $agreementId = $_GET['agreement_id'];
+
+        // Get the agreement from PayPal
+        try {
+            $agreement = \PayPal\Api\Agreement::get($agreementId, $apiContext);
+            $agreementExecution = $agreement->execute($apiContext);
+
+            // Subscription activated logic: Confirm payment and activate subscription
+            $userId = $_SESSION["user_id"]; // Assuming user_id is stored in session
+            activateSubscription($userId);
+
+            echo "Subscription activated successfully!<br>";
+            echo "Agreement ID: " . $agreementExecution->getId();
+        } catch (Exception $ex) {
+            logError("Error executing subscription: " . $ex->getMessage());
+            die("Error executing subscription. Please try again later.");
+        }
+    } else {
+        echo "Subscription failed or was canceled.";
+    }
+}
+
+// Activate the subscription in the database
+function activateSubscription($userId) {
+    global $connection;
+
+    try {
         $query = "INSERT INTO subscriptions (user_id, subscription_plan, status) VALUES (?, ?, 'active')";
         $stmt = $connection->prepare($query);
         $stmt->bindParam(1, $userId, PDO::PARAM_INT);
         $stmt->bindParam(2, $planName, PDO::PARAM_STR);
 
         if ($stmt->execute()) {
-            // Log the subscription activation
-            file_put_contents('webhook_log.txt', "Subscription activated: ID = $subscriptionId, User ID = $userId, Plan = $planName\n", FILE_APPEND);
+            // Log subscription activation
+            file_put_contents('logs/webhook_log.txt', "Subscription activated for User ID = $userId\n", FILE_APPEND);
 
             // Send email notification
-            $email = getUserEmailById($userId);
+            $userEmail = getUserEmailById($userId);
             $subject = "Subscription Activated";
-            $message = "Dear User,\n\nYour subscription ($planName) has been activated successfully.\n\nThank you for subscribing!\n\nBest regards,\nYour Company";
-            $headers = "From: no-reply@yourcompany.com";
-            mail($email, $subject, $message, $headers);
+            $message = "Dear User,\n\nYour subscription has been activated successfully.\n\nBest regards,\nYour Company";
+            mail($userEmail, $subject, $message);
         } else {
-            logError("Subscription insert failed: " . json_encode($stmt->errorInfo()));
+            logError("Subscription insert failed.");
         }
     } catch (Exception $e) {
         logError("Error activating subscription: " . $e->getMessage());
     }
 }
 
-// Function to record payment
-function recordPayment($saleId, $amount, $userId) {
-    global $connection; // Use the global connection object
-
-    try {
-        // Insert payment data
-        $query = "INSERT INTO payments (user_id, payment_method, payment_amount, payment_status, sale_id) 
-                  VALUES (?, 'paypal', ?, 'completed', ?)";
-        $stmt = $connection->prepare($query);
-        $stmt->bindParam(1, $userId, PDO::PARAM_INT);
-        $stmt->bindParam(2, $amount, PDO::PARAM_STR);
-        $stmt->bindParam(3, $saleId, PDO::PARAM_STR);
-
-        if ($stmt->execute()) {
-            // Log the payment record
-            file_put_contents('webhook_log.txt', "Payment recorded: Sale ID = $saleId, Amount = $amount, User ID = $userId\n", FILE_APPEND);
-
-            // Send email notification
-            $email = getUserEmailById($userId);
-            $subject = "Payment Received";
-            $message = "Dear User,\n\nWe have received your payment of $amount.\n\nThank you for your support!\n\nBest regards,\nYour Company";
-            $headers = "From: no-reply@yourcompany.com";
-            mail($email, $subject, $message, $headers);
-        } else {
-            logError("Payment insert failed: " . json_encode($stmt->errorInfo()));
-        }
-    } catch (Exception $e) {
-        logError("Error recording payment: " . $e->getMessage());
-    }
-}
-
-// Function to log errors
-function logError($message) {
-    file_put_contents('webhook_log.txt', "Error: $message\n", FILE_APPEND);
-}
-
-// Function to get the user ID based on subscription ID (replace with your own logic)
-function getUserIdBySubscription($subscriptionId) {
-    global $connection;
-    $query = "SELECT user_id FROM subscriptions WHERE subscription_id = ?";
-    $stmt = $connection->prepare($query);
-    $stmt->bindParam(1, $subscriptionId, PDO::PARAM_STR);
-    $stmt->execute();
-    return $stmt->fetchColumn();
-}
-
-// Function to get the user ID based on sale ID (replace with your own logic)
-function getUserIdByPayment($saleId) {
-    global $connection;
-    $query = "SELECT user_id FROM payments WHERE sale_id = ?";
-    $stmt = $connection->prepare($query);
-    $stmt->bindParam(1, $saleId, PDO::PARAM_STR);
-    $stmt->execute();
-    return $stmt->fetchColumn();
-}
-
-// Function to get the user email by user ID (replace with your own logic)
-function getUserEmailById($userId) {
-    global $connection;
-    $query = "SELECT email FROM users WHERE id = ?";
-    $stmt = $connection->prepare($query);
-    $stmt->bindParam(1, $userId, PDO::PARAM_INT);
-    $stmt->execute();
-    return $stmt->fetchColumn();
+// Log error to log file
+function logError($errorMessage) {
+    file_put_contents('logs/error_log.txt', date("Y-m-d H:i:s") . " - " . $errorMessage . "\n", FILE_APPEND);
 }
 ?>
+
 
 <!doctype html>
 <html lang="en">

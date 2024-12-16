@@ -6,5 +6,12 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'apimatic\\jsonmapper\\' => array($vendorDir . '/apimatic/jsonmapper/src'),
+    'Unirest\\' => array($vendorDir . '/apimatic/unirest-php/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
+    'PaypalServerSdkLib\\' => array($vendorDir . '/paypal/paypal-server-sdk/src'),
     'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
+    'Orhanerday\\OpenAi\\' => array($vendorDir . '/orhanerday/open-ai/src'),
+    'Core\\' => array($vendorDir . '/apimatic/core/src'),
+    'CoreInterfaces\\' => array($vendorDir . '/apimatic/core-interfaces/src'),
 );

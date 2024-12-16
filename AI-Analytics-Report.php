@@ -1,145 +1,117 @@
 <?php
-require 'vendor/autoload.php'; // Include OpenAI PHP SDK or use CURL if not installed
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+    'sid_length'      => 48,
+]);
+
+require 'vendor/autoload.php'; // Include OpenAI PHP SDK
+include('config.php'); // Includes database connection
 
 use Orhanerday\OpenAi\OpenAi;
 
 $open_ai_key = 'your_openai_api_key';
 $openAi = new OpenAi($open_ai_key);
 
-// Example: Sending product sales data to OpenAI for analysis
-$salesData = [
-    'weekly_sales' => $productMetrics,
-    'top_products' => $topProducts,
-    'inventory_metrics' => $inventoryMetrics,
-];
+// Check if username is set in session
+if (!isset($_SESSION["username"])) {
+    exit("Error: No username found in session.");
+}
 
-// Convert data to JSON
-$salesDataJson = json_encode($salesData);
+$username = htmlspecialchars($_SESSION["username"]);
 
-// Construct the prompt
-$prompt = "
+try {
+    // Retrieve user information from the users table
+    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
+    $stmt = $connection->prepare($user_query);
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user_info) {
+        exit("Error: User not found.");
+    }
+
+    // Retrieve user email and registration date
+    $email = htmlspecialchars($user_info['email']);
+    $date = htmlspecialchars($user_info['date']);
+
+    // Fetch data from the reports table
+    $reportsQuery = $connection->query("SELECT * FROM reports");
+    $reports = $reportsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch data from the revenue_by_product table
+    $revenueByProductQuery = $connection->query("SELECT * FROM revenue_by_product");
+    $revenueByProduct = $revenueByProductQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch data from the sales_analytics table
+    $salesAnalyticsQuery = $connection->query("SELECT * FROM sales_analytics");
+    $salesAnalytics = $salesAnalyticsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+    // Prepare data for OpenAI analysis
+    $salesData = [
+        'weekly_sales' => $salesAnalytics,
+        'top_products' => $revenueByProduct,
+        'inventory_metrics' => $reports,
+    ];
+
+    $salesDataJson = json_encode($salesData);
+
+    // Construct the prompt for OpenAI
+    $prompt = "
 Analyze the following sales data and provide insights:
 $salesDataJson
 - Identify trends in sales and inventory.
 - Suggest actions to improve performance.
 - Highlight any anomalies or concerns.
-";
+    ";
 
-$response = $openAi->completion([
-    'model' => 'gpt-4',
-    'prompt' => $prompt,
-    'temperature' => 0.7,
-    'max_tokens' => 1000,
-    'top_p' => 1.0,
-    'frequency_penalty' => 0.0,
-    'presence_penalty' => 0.0,
-]);
+    // Request analysis from OpenAI
+    $response = $openAi->completion([
+        'model' => 'gpt-4',
+        'prompt' => $prompt,
+        'temperature' => 0.7,
+        'max_tokens' => 1000,
+        'top_p' => 1.0,
+        'frequency_penalty' => 0.0,
+        'presence_penalty' => 0.0,
+    ]);
 
-// Decode the response
-$responseData = json_decode($response, true);
-$insights = $responseData['choices'][0]['text'] ?? 'No insights found.';
+    $responseData = json_decode($response, true);
+    $insights = $responseData['choices'][0]['text'] ?? 'No insights found.';
 
-// Display insights on the dashboard
-echo "<h2>AI Analysis</h2>";
-echo "<div>" . nl2br(htmlspecialchars($insights)) . "</div>";
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage());
+}
+
+// Display user information and AI insights
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis Results</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background: #007bff;
-            color: #fff;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        main {
-            padding: 20px;
-        }
-        .analysis-container {
-            margin: 0 auto;
-            max-width: 800px;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            padding: 20px;
-        }
-        .analysis-container h2 {
-            color: #007bff;
-        }
-        .analysis-result {
-            background: #f9f9f9;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .loading {
-            text-align: center;
-            color: #666;
-        }
-    </style>
+    <title>Dashboard</title>
 </head>
 <body>
-    <header>
-        <h1>Dynamic Data Analysis</h1>
-    </header>
-    <main>
-        <div class="analysis-container">
-            <h2>Analysis Results</h2>
-            <div id="results" class="loading">Loading analysis...</div>
-        </div>
-    </main>
-    <script>
-        // Fetch data dynamically (replace the URL with your server endpoint)
-        async function fetchAnalysis() {
-            const resultsContainer = document.getElementById('results');
-            try {
-                const response = await fetch('https://your-server-endpoint/api/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer YOUR_OPENAI_API_KEY' // Add your server-side key
-                    },
-                    body: JSON.stringify({
-                        query: "Analyze this data",
-                        data: "Sample dynamic data from your database" // Replace with real data
-                    })
-                });
+    <h1>Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
+    <p>Email: <?php echo $email; ?></p>
+    <p>Registration Date: <?php echo $date; ?></p>
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
+    <h2>AI Analysis</h2>
+    <div><?php echo nl2br(htmlspecialchars($insights)); ?></div>
 
-                const analysis = await response.json();
+    <h2>Reports</h2>
+    <pre><?php echo htmlspecialchars(json_encode($reports, JSON_PRETTY_PRINT)); ?></pre>
 
-                // Display the analysis
-                resultsContainer.innerHTML = '';
-                analysis.results.forEach((item, index) => {
-                    const resultDiv = document.createElement('div');
-                    resultDiv.className = 'analysis-result';
-                    resultDiv.innerHTML = `<strong>Result ${index + 1}:</strong> <p>${item}</p>`;
-                    resultsContainer.appendChild(resultDiv);
-                });
-            } catch (error) {
-                resultsContainer.innerHTML = `<p>Error loading analysis: ${error.message}</p>`;
-            }
-        }
+    <h2>Revenue by Product</h2>
+    <pre><?php echo htmlspecialchars(json_encode($revenueByProduct, JSON_PRETTY_PRINT)); ?></pre>
 
-        // Initialize the analysis on page load
-        window.onload = fetchAnalysis;
-    </script>
+    <h2>Sales Analytics</h2>
+    <pre><?php echo htmlspecialchars(json_encode($salesAnalytics, JSON_PRETTY_PRINT)); ?></pre>
 </body>
 </html>

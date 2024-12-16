@@ -67,10 +67,10 @@ $connection = null;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  <link rel="icon" type="image/png" href="https://salespilot.cybertrendhub.store/home_assets/img/favicon.png">
+  <link rel="icon" type="image/png" href="http://localhost/salspilot/home_assets/img/favicon.png">
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
-  <link href="https://salespilot.cybertrendhub.store/home_assets/css/nucleo-icons.css" rel="stylesheet">
-  <link href="https://salespilot.cybertrendhub.store/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet">
+  <link href="http://localhost/salspilot/home_assets/css/nucleo-icons.css" rel="stylesheet">
+  <link href="http://localhost/salspilot/home_assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet">
 </head>
 
 <body class="bg-gray-200">
@@ -95,7 +95,7 @@ $connection = null;
                 <?php if (!empty($login_err)): ?>
                   <div class="alert alert-danger text-center"><?php echo $login_err; ?></div>
                 <?php endif; ?>
-                <form action="https://salespilot.cybertrendhub.store/loginpage.php" method="post" class="text-start">
+                <form action="http://localhost/salspilot/loginpage.php" method="post" class="text-start">
                   <div class="input-group input-group-outline my-3">
                     <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo htmlspecialchars($username ?? '', ENT_QUOTES); ?>">
                     <small class="text-danger"><?php echo $username_err; ?></small>
@@ -110,11 +110,11 @@ $connection = null;
                   </div>
                   <div class="text-center">
                     <button type="submit" name="login" class="btn bg-gradient-primary w-100">Sign in</button>
-                    <button type="button" class="btn bg-gradient-primary w-100 mt-2" onclick="window.location.href='https://salespilot.cybertrendhub.store/recoverpwd.php'">Forgot Password</button>
+                    <button type="button" class="btn bg-gradient-primary w-100 mt-2" onclick="window.location.href='http://localhost/salspilot/recoverpwd.php'">Forgot Password</button>
                   </div>
                   <p class="mt-4 text-sm text-center">
                     Don't have an account?
-                    <a href="https://salespilot.cybertrendhub.store/sign-up.php" class="text-primary font-weight-bold">Sign up</a>
+                    <a href="http://localhost/salspilot/sign-up.php" class="text-primary font-weight-bold">Sign up</a>
                   </p>
                 </form>
               </div>
@@ -133,9 +133,9 @@ $connection = null;
       </footer>
     </div>
   </main>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/popper.min.js"></script>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/core/bootstrap.min.js"></script>
-  <script src="https://salespilot.cybertrendhub.store/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="http://localhost/salspilot/home_assets/js/core/popper.min.js"></script>
+  <script src="http://localhost/salspilot/home_assets/js/core/bootstrap.min.js"></script>
+  <script src="http://localhost/salspilot/home_assets/js/plugins/smooth-scrollbar.min.js"></script>
 </body>
 
 </html>
