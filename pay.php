@@ -236,7 +236,7 @@ function activateSubscription($connection, $subscriptionId, $payerId) {
     <title>SalesPilot - Pricing Plans</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Favicon -->
-    <link rel="shortcut icon" href="https://salespilot.cybertrendhub.store/assets/images/favicon-blue.ico" />
+    <link rel="shortcut icon" href="http://localhost/salespilot/assets/images/favicon-blue.ico" />
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7fa; color: #333; }
         .header { text-align: center; margin: 30px 0; }
@@ -276,7 +276,7 @@ function activateSubscription($connection, $subscriptionId, $payerId) {
 
 <div class="container">
     <div class="header">
-        <img src="https://salespilot.cybertrendhub.store/logonew1.jpg" alt="Logo">
+        <img src="http://localhost/salespilot/logonew1.jpg" alt="Logo">
         <h1>Sales Pilot - Price and Plans</h1>
         <p>Select a plan that suits your needs and get started today!</p>
     </div>
@@ -503,14 +503,14 @@ function activateSubscription($connection, $subscriptionId, $payerId) {
                     <div class="row">
                         <div class="col-lg-6">
                             <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/privacy-policy.php">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/terms-of-service.php">Terms of Use</a></li>
-                              <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/subscription.php">Subscriptions</a></li>
-                                <li class="list-inline-item"><a href="https://salespilot.cybertrendhub.store/dashboard.php">Dashboatd</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/salespilot/privacy-policy.php">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/salespilot/terms-of-service.php">Terms of Use</a></li>
+                              <li class="list-inline-item"><a href="http://localhost/salespilot/subscription.php">Subscriptions</a></li>
+                                <li class="list-inline-item"><a href="http://localhost/salespilot/dashboard.php">Dashboatd</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="https://salespilot.cybertrendhub.store/dashboard.php" class="">SalesPilot</a>.
+                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost/salespilot/dashboard.php" class="">SalesPilot</a>.
                         </div>
                     </div>
                 </div>

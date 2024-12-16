@@ -9,8 +9,6 @@ session_start([
 
 include('config.php'); // Includes database connection
 
-
-
 // Check if username is set in session
 if (!isset($_SESSION["username"])) {
     exit("Error: No username found in session.");
