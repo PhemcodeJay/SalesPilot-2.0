@@ -1,0 +1,101 @@
+{
+    "name": "tenancy/tenancy",
+    "description": "Creating multi tenant saas from your Laravel app with ease",
+    "keywords": ["laravel", "multi-tenant", "saas", "tenancy", "aws", "gce"],
+    "license": "MIT",
+    "require": {
+        "laravel/framework": "^9.0 | ^10.0 | ^11.0",
+        "doctrine/dbal": "^3.3 | ^4.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.9",
+        "laravel/laravel": "*",
+        "phpunit/phpunit": "^9.0 | ^10.0",
+        "mockery/mockery": "^1.5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tenancy\\": "src/Tenancy",
+            "Tenancy\\Affects\\": "src/Affects",
+            "Tenancy\\Database\\Drivers\\": "src/Database",
+            "Tenancy\\Hooks\\": "src/Hooks",
+            "Tenancy\\Identification\\Drivers\\": "src/Identification"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tenancy\\Testing\\": "src/Testing",
+            "Tenancy\\Tests\\": "tests/",
+            "Tenancy\\Tests\\Framework\\": "tests/Tenancy",
+            "Tenancy\\Tests\\Affects\\": "tests/Affects",
+            "Tenancy\\Tests\\Database\\": "tests/Database",
+            "Tenancy\\Tests\\Hooks\\": "tests/Hooks",
+            "Tenancy\\Tests\\Identification\\": "tests/Identification"
+        }
+    },
+    "replace": {
+        "tenancy/framework": "self.version",
+        "tenancy/testing": "self.version",
+        "tenancy/affects-broadcasts": "self.version",
+        "tenancy/affects-cache": "self.version",
+        "tenancy/affects-configs": "self.version",
+        "tenancy/affects-connections": "self.version",
+        "tenancy/affects-filesystems": "self.version",
+        "tenancy/affects-logs": "self.version",
+        "tenancy/affects-mails": "self.version",
+        "tenancy/affects-models": "self.version",
+        "tenancy/affects-routes": "self.version",
+        "tenancy/affects-urls": "self.version",
+        "tenancy/affects-views": "self.version",
+        "tenancy/hooks-database": "self.version",
+        "tenancy/hooks-migration": "self.version",
+        "tenancy/db-driver-mysql": "self.version",
+        "tenancy/db-driver-sqlite": "self.version",
+        "tenancy/identification-driver-console": "self.version",
+        "tenancy/identification-driver-environment": "self.version",
+        "tenancy/identification-driver-http": "self.version",
+        "tenancy/identification-driver-queue": "self.version"
+    },
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/tenancy"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/tenancy"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Arlon Antonius",
+            "email": "opensource@arlon.dev",
+            "homepage": "https://arlon.dev"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tenancy\\Providers\\TenancyProvider",
+                "Tenancy\\Affects\\Broadcasts\\Provider",
+                "Tenancy\\Affects\\Cache\\Provider",
+                "Tenancy\\Affects\\Configs\\Provider",
+                "Tenancy\\Affects\\Connections\\Provider",
+                "Tenancy\\Affects\\Filesystems\\Provider",
+                "Tenancy\\Affects\\Logs\\Provider",
+                "Tenancy\\Affects\\Mails\\Provider",
+                "Tenancy\\Affects\\Models\\Provider",
+                "Tenancy\\Affects\\Routes\\Provider",
+                "Tenancy\\Affects\\URLs\\Provider",
+                "Tenancy\\Affects\\Views\\Provider",
+                "Tenancy\\Identification\\Drivers\\Console\\Providers\\IdentificationProvider",
+                "Tenancy\\Identification\\Drivers\\Environment\\Providers\\IdentificationProvider",
+                "Tenancy\\Identification\\Drivers\\Http\\Providers\\IdentificationProvider",
+                "Tenancy\\Identification\\Drivers\\Queue\\Providers\\IdentificationProvider"
+            ],
+            "aliases": {
+                "Tenancy": "Tenancy\\Facades\\Tenancy"
+            }
+        }
+    }
+}

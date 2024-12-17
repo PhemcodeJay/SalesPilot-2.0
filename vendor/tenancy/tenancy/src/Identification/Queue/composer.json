@@ -1,0 +1,38 @@
+{
+    "name": "tenancy/identification-driver-queue",
+    "description": "The tenancy/tenancy identification driver for queues",
+    "keywords": ["identification", "tenancy", "queue"],
+    "license": "MIT",
+    "require": {
+        "tenancy/framework": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tenancy\\Identification\\Drivers\\Queue\\": ""
+        }
+    },
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/tenancy"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/tenancy"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Arlon Antonius",
+            "email": "opensource@arlon.dev",
+            "homepage": "https://arlon.dev"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tenancy\\Identification\\Drivers\\Queue\\Providers\\IdentificationProvider"
+            ]
+        }
+    }
+}

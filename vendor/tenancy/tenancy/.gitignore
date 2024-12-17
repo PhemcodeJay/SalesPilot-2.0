@@ -1,0 +1,6 @@
+.phpunit.result.cache
+.subsplit
+composer.lock
+vendor/
+.tmp/
+.phpunit.cache/

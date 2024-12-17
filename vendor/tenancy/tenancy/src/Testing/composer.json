@@ -1,0 +1,32 @@
+{
+    "name": "tenancy/testing",
+    "description": "Creating multi tenant saas from your Laravel app with ease",
+    "keywords": ["laravel", "multi-tenant", "saas", "tenancy", "aws", "gce"],
+    "license": "MIT",
+    "require": {
+        "tenancy/framework": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tenancy\\Testing\\": ""
+        }
+    },
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/tenancy"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/tenancy"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Arlon Antonius",
+            "email": "opensource@arlon.dev",
+            "homepage": "https://arlon.dev"
+        }
+    ],
+    "abandoned": true
+}

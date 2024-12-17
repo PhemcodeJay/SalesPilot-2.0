@@ -1,0 +1,38 @@
+{
+    "name": "tenancy/identification-driver-environment",
+    "description": "The tenancy/tenancy identification driver using environment variables",
+    "keywords": ["identification", "tenancy", "environment"],
+    "license": "MIT",
+    "require": {
+        "tenancy/framework": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tenancy\\Identification\\Drivers\\Environment\\": ""
+        }
+    },
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/tenancy"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/tenancy"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Arlon Antonius",
+            "email": "opensource@arlon.dev",
+            "homepage": "https://arlon.dev"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tenancy\\Identification\\Drivers\\Environment\\Providers\\IdentificationProvider"
+            ]
+        }
+    }
+}
